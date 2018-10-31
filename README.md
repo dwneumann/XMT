@@ -87,8 +87,8 @@ functionality. By convention any release generated in this branch will be tagged
 the head of this stream is the version currently deployed into production.
 
 - No pull requests into release streams are accepted.   
-Keyword expansion (smudging) is done in the stable and experimental release
-streams using xmt_cm/bin/git_kw so that cloning or downloading an archive of
+Client side keyword expansion (smudging) is done in the stable and experimental release
+streams using xmt_cm/bin/git_kw so that checking out from
 these streams yields files which are tracable to the release they correspond
 with.     
 i.e. .git/config contains the lines:     

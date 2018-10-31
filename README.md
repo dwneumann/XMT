@@ -9,12 +9,12 @@ It has been in use and has evolved since the mid-1990's.
 
 The following packages are included in the collection:
 - xmt_build :
-   utilities and vim mappings to automate cross-language, cross-platform software building.  
-   C, C++, and Java languages are supported.   
+   utilities and vim mappings to automate cross-language, cross-platform software building.     
+   C, C++, and Java languages are supported.     
    generic, Sparc, Linux-x86, AX8052, and STM32 platforms are supported.
 
 - xmt_cm :
-   utilities to automate configuration management functions.   
+   utilities to automate configuration management functions.     
    sccs, rcs, cvs, subversion and git are supported.
 
 - xmt_defect :
@@ -24,7 +24,7 @@ The following packages are included in the collection:
    utilities to automate document generation from sources.
 
 - xmt_edit :
-   utilities and vim mappings to automate editing of source code in vim.  
+   utilities and vim mappings to automate editing of source code in vim.     
    Many file types are supported.
 
 - xmt_metrics :
@@ -46,16 +46,58 @@ See the file [LICENSE](LICENSE) for details.
 
 ## Getting Started
 
-Download the XMT collection onto a local file system and set a $XMT environment variable in your .bashrc or .cshrc file to point to it.  
-Then add the following line to your .bashrc: source $XMT/.bashrc  
-Or add the following line to your .cshrc:    source $XMT/.cshrc  
+Download the XMT collection onto a local file system and set a $XMT environment
+variable in your .bashrc or .cshrc file to point to it.     
 
-Those files each source subordinate cshrc or bashrc files from each package in the collection.
-Comment out those you don't want, source the ones you do.  
-Customize as desired.
+Then add the following line to your .bashrc: source $XMT/.bashrc     
+Or add the following line to your .cshrc:    source $XMT/.cshrc     
+
+Those files each source subordinate cshrc or bashrc files from each package
+in the collection.  Comment out those you don't want, source the ones you
+do.  Customize as desired.
+
+## Streams & Branches
+This repository adopts a "multiple release streams" convention:     
+(we don't impose or even advocate that you do likewise, but if you clone or
+download an archive of this repo you should know this):
+
+The repo contains 4 long-running branches:     
+master, two release streams and one development branch.
+
+- The develop branch is where active development occurs.  Feature branches
+get merged into the develop branch (after unit test) for inclusion in nightly
+builds.  The default branch is set to Develop, so if you are a collaborator,
+this is the branch you would clone and issue a pull request into.  No keyword
+expansion (smudging) is done on this branch.
+
+- The develop branch gets merged into the experimental branch for release
+into a test environment.  The experimental branch is a release stream. By
+convention any release generated in this branch will be tagged as "rcX.Y.Z" 
+( rc for "release candidate") and has been deployed into a test environment. By
+definition the head of this stream is the version currently deployed into
+the test environment.
+
+- The master branch is the stable mainline.  No work gets done in the mainline
+and no releases get made from the mainline.  
+
+- The stable branch is a release stream.  Commits get cherry picked from
+master into the release stream as needed to create releases with desired
+functionality. By convention any release generated in this branch will be tagged
+"vX.Y.Z" and has been deployed into a production environment. By definition
+the head of this stream is the version currently deployed into production.
+
+- No pull requests into release streams are accepted.   
+Client side keyword expansion (smudging) is done in the stable and experimental release
+streams using xmt_cm/bin/git_kw so that checking out from
+these streams yields files which are tracable to the release they correspond
+with.     
+i.e. .git/config contains the lines:     
+[filter "kw_expand"]       
+&ensp;&ensp;&ensp;&ensp;&ensp;&ensp; process = git_kw  --process --expand='stable|experimental'  
+
 
 ---------
-Copyright &copy; 1997-1999 Neumann & Associates Inc.   
-Copyright &copy; 2007-2018 Visionary Research Inc.   
+Copyright &copy; 1997-1999 Neumann & Associates Inc.      
+Copyright &copy; 2007-2018 Visionary Research Inc.        
 
 

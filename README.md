@@ -55,7 +55,7 @@ Comment out those you don't want, source the ones you do.
 Customize as desired.
 
 ---------
-Copyright &copy; 1997-1999 Neumann & Associates Inc.
-Copyright &copy; 2007-2018 Visionary Research Inc.
+Copyright &copy; 1997-1999 Neumann & Associates Inc.   
+Copyright &copy; 2007-2018 Visionary Research Inc.   
 
 

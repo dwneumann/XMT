@@ -19,15 +19,16 @@
 #		  to stdout, performing no substitution.
 #
 #   Synopsis	: git_kw [<options>] [file]
-#   	  --help	print help message & exit
-#	  --expand	expand (i.e. smudge) all keywords found in stdin, 
-#			and write substituted data stream to stdout
+#   	  --help	print help message & exit.
+#         --expand=[branchspec]     only if in a branch matching regex pattern <branchspec>, 
+#                       expand (i.e. smudge) all keywords of the form \$Keyword:\$ 
+#                       found in stdin and write substituted data stream to stdout.
 #	  --unexpand	unexpand (i.e. clean) all keyword values found in stdin, 
-#			and write cleaned data stream to stdout
-#   	  --list	print expanded keyword values to stdout; do no substitution
-#   	  --verbose	list keyword labels with their expanded values to stdout
+#			and write cleaned data stream to stdout.
+#   	  --list	print expanded keyword values to stdout; do no substitution.
+#   	  --verbose	list keyword labels with their expanded values to stdout.
 #	  --binary      force substitutions in binary files; 
-#			by defualt substitution only occurs in ascii files
+#			by defualt substitution only occurs in ascii files.
 #	 --process      operate as a git long running process using Git filter protocol v2.
 #	 --debug	write packet trace log to /tmp/git_kw.log
 #

@@ -1,0 +1,88 @@
+{
+#************************************************************************
+#   $Version:$
+#   Package	: xmt_edit
+#   Synopsis	:
+#   Purpose	: Perl block which, when eval'ed, prints the desired
+# 		module specification block for SDS files.
+#
+#   Copyright (c) 1998	Neumann & Associates Information Systems Inc.
+#   			legal.info@neumann-associates.com
+#   Licensed under the Apache License, Version 2.0 (the "License");
+#   you may not use this file except in compliance with the License.
+#   You may obtain a copy of the License at http://www.apache.org/licenses/LICENSE-2.0
+#   
+#   Unless required by applicable law or agreed to in writing, software
+#   distributed under the License is distributed on an "AS IS" BASIS,
+#   WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+#   See the License for the specific language governing permissions and
+#   limitations under the License. 
+#************************************************************************
+
+print qq{
+<!****************************************************************************>
+<META NAME=SECTION VALUE="MODULE SPEC" >
+<P><HR WIDTH="100%">
+<H2><A NAME=[??? module name]></A> [??? module name] </H1>
+
+<H3>Synopsis</H3>
+[??? one-line module synopsis]
+
+<H3>Description</H3>
+[??? one-paragraph module description]
+
+<!****************************************************************************>
+<META NAME=SECTION VALUE="PUBLIC INTERFACE">
+<H3> Public Interface Functions </H3>
+This module contains the following public interface functions:
+<! ****** Add a function specification (^FF) for each public function.	******>
+
+
+<!****************************************************************************>
+<META NAME=SECTION VALUE="PRIVATE INTERFACE">
+<H3> Private Interface Functions </H3>
+This module contains the following private interface functions:
+<! ****** Add a function specification (^FF) for each private function.	******>
+
+
+<!****************************************************************************>
+<META NAME=SECTION VALUE="STATIC FUNCTIONS">
+<H3><A NAME="Static Functions"></A> Static Functions </H3>
+This module contains the following static functions:
+<! ****** Add a function specification (^FF) for each static function.	******>
+
+
+<!****************************************************************************>
+<META NAME=SECTION VALUE="DATA OBJECTS">
+<H3> Data Objects </H3>
+This module defines, manipulates, and abstracts the following data items:
+<! ****** Add a data object specification (^FO) for each data object.	******>
+
+
+<!****************************************************************************>
+<META NAME=SECTION VALUE="BEHAVIOUR MODIFICATION">
+<H3> User Interface Specification </H3>
+This module supports the following runtime (non-programmatic) ways of 
+modifying it's behaviour:
+<! ****** Add a table row ( TR ... /TR) for each env var, file, etc.	******>
+<TABLE>
+    <TR> 
+	<TD VALIGN=TOP> [??? file/var name ] </TD>
+	<TD VALIGN=TOP> [??? description ] </TD>
+    </TR>
+</TABLE>
+
+
+<!****************************************************************************>
+<META NAME=SECTION VALUE="MODULE DEPENDENCIES">
+<H3> Module Dependencies </H3>
+This module depends upon the foillowing existing modules:
+
+<! ****** Add a table row ( TR ... /TR) for each dependency.		******>
+<TABLE>
+    <TR> <TD VALIGN=TOP> [??? module name] </TD> </TR>
+</TABLE>
+ 
+<P>
+};
+}

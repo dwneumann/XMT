@@ -1,0 +1,105 @@
+#************************************************************************
+#   $Version:$
+#   Package	: xhist
+#   Synopsis	: included automatically by $(XMTBUILD)/proto/Makefile.top
+#   Purpose	: Customize make environment for the current package.
+#
+#   Copyright (c) 1998	Neumann & Associates Information Systems Inc.
+#   			legal.info@neumann-associates.com
+#   Licensed under the Apache License, Version 2.0 (the "License");
+#   you may not use this file except in compliance with the License.
+#   You may obtain a copy of the License at http://www.apache.org/licenses/LICENSE-2.0
+#   
+#   Unless required by applicable law or agreed to in writing, software
+#   distributed under the License is distributed on an "AS IS" BASIS,
+#   WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+#   See the License for the specific language governing permissions and
+#   limitations under the License. 
+#************************************************************************
+#************************************************************************
+# Default values for all variables are inherited from the top
+# (site-level) Makefile, and then from any project or
+# subproject-level Makefiles (to an arbitrary depth).  However, any
+# of the following can be specified if the defaults are unsuitable:
+#
+# .SILENT       : suppress echoing of commands invoked by make.
+#                 The default is to be verbose.
+# .DEFAULT      : the target to build if no target is specified 
+#                 on the commandline. The default is "build".
+# PKG_TGT       : specifies whether this package compiles into a "lib", 
+#                 an "exe", or a custom target.  The default is "lib".
+# PKG_NM        : specifies the root name for this package.  
+#                 The default the name that was given to mkpkg when
+#                 this directory  is heirarchy was created.
+# LANGUAGE      : the language of the source files.  Supported 
+#                 languages are listed in $XMTBUILD/proto/lang Mixed
+#                 languages within the same package are supported,
+#                 but must be built with separate invocations of
+#                 make.   For example:
+#                   all:
+#                       $(MAKE) LANGUAGE=java lib
+#                       $(MAKE) LANGUAGE=cpp exe
+# ARCH          : the platform architecture to build for.  The default is
+#                 to use the environment variable $XMTBUILD_DFLT_ARCH.
+# LIB_NM        : the name the library should take.  The default is
+#                 to use $(PKG_NM) as the rootname, with a prefix
+#                 and suffix appropriate for $(LANGUAGE) and $(ARCH).
+# EXE_NM        : the name the executable should take.  
+#                 The default is to use $(PKG_NM).
+#
+# The following flags affect the compilation process for all
+# languages & all architectures.  The defaults are site-specific.
+#    CFLAGS     : [additional] flags to pass to compiler
+#    LDFLAGS    : [additional] flags to pass to linker
+#    ARFLAGS    : [additional] flags to pass to library generator
+#    LINTFLAGS  : [additional] flags to pass to lint checker
+#    DOCFLAGS   : [additional] flags to pass to documentation generator
+# Any of the above flags may also be suffixed with a language
+# specifier,  to affect only the specified language, but all
+# architectures. The defaults are language and site specific. The
+# following example adds "-O2" to the list of flags passed to  the
+# C++ compiler for all target architectures.
+#       CFLAGS.cpp += -O2
+# Any of the above language-specific flags may be further suffixed
+# with  an architecture specifier, to affect only the specified
+# architecture. The following example adds "-fPIC" to the list of
+# flags passed to  the linker specified for use with C source files,
+# when compiling for  the target architecture "SunOS-5.6-sparc".
+#       LDFLAGS.c.SunOS-5.6-sparc += -fPIC 
+#
+# LIBS          : [additional] libraries with which executables
+#                 of all languages and architectures should be
+#                 linked. Language-specific suffixes and
+#                 language-and-architecture specific suffixes are
+#                 supported, as above. The defaults are language and
+#                 architecture specific.
+#
+# BUILD_TGT     : specifies the name of the target which "make build"
+#                 should make in the current package, after  having
+#                 recursively built all packages specified in
+#                 $(BUILD_PKGS). The default is $(PKG_TGT).
+# BUILD_PKGS    : specifies the pathnames of packages upon which
+#                 this package depends.  "make build" will invoke
+#                 "$(MAKE) build" in each of the listed directories
+#                 before invoking "$(MAKE) $(BUILD_TGT)" in the
+#                 current  directory. This allows for the
+#                 regeneration of an entire project tree or any
+#                 portion thereof via a single 'make build' from any
+#                 package directory. Since each dependency will
+#                 recursively build its own dependencies, it is only
+#                 necessary to list first-order dependencies.
+#                 For packages which build an exe, it is convenient 
+#                 to have $(BUILD_PKGS) list the packages which make
+#                 the libs with which the executable links.
+#                 For building entire project trees, it is convenient
+#                 to put a Makefile and Makefile.pkg at the project root
+#                 which lists all the executables of the project.
+#************************************************************************
+
+PKG_TGT = xhist_instrument
+all: xhist_instrument
+
+xhist_instrument:
+	lex -t $@.l > $(TGTDIR)/$@.c 
+	$(CC) $(TGTDIR)/$@.c -o $(TGTDIR)/$@ -ll
+	echo $@ has been made in $(TGTDIR).

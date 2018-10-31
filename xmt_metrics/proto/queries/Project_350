@@ -1,0 +1,2 @@
+SELECT * FROM Assignments
+WHERE wbs LIKE '350%';

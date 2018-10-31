@@ -1,0 +1,24 @@
+#!/usr/local/bin/perl -w 
+#
+#  a handy little snippet which generates subroutines out of all the
+#  files in the current directory, and generates the file vhtml.pl
+#  which can be sourced by defectsrv.pl to get the subroutines in the
+#  current namespace instead of having to eval them.  This makes
+#  debugging easier.
+
+open( REQ, ">vhtml.pl" ) || die( "vhtml.pl: $!" );
+foreach $f ( glob( "*") )
+{
+    if ( -f $f && $f =~ /^[^\.]*$/ )
+    {
+	open( V, "<$f" ) || die( "$f: $!" );
+	undef $/;
+	$buf = <V>;
+	close V;
+	next if $buf !~ /^{.*}$/s;
+	print REQ "\n\nsub $f\n";
+	print REQ $buf . "\n";
+    }
+}
+print REQ "\nreturn 1;\n";
+close REQ;

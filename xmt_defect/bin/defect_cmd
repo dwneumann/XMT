@@ -1,0 +1,367 @@
+#!/bin/perl 
+#************************************************************************
+#   $Version:$
+#   Package	: defect
+#   Purpose	: commandline entry point to defect database.
+#                 Performs the specified <action> on defect objects.
+#
+#   Copyright (c) 1998	Neumann & Associates Information Systems Inc.
+#   			legal.info@neumann-associates.com
+#************************************************************************
+
+use English;
+use Env;
+use Fcntl;
+use Getopt::Long;
+use lib $ENV{XMTDEFECT}.'/bin'; # specifies where to find local libs
+use Defect::CM_Entity;
+use Defect::Defect;
+use Defect::Group;
+use Defect::Person;
+use Defect::Product;
+use Defect::StateTransition;
+require "defectDB.pl";
+
+my $pgmname;
+($pgmname	= $0) =~ s{.*/}{};
+%::actions = (
+  'insertCM_Entity'	=> { 
+	'defect'	=> { format => 's',	reqd => true },
+	'filename'	=> { format => 's',	reqd => true },
+	'revision'	=> { format => 's',	reqd => true } },
+  'updateCM_Entity'	=> { 
+	'oid'		=> { format => 's',	reqd => true },
+	'defect'	=> { format => 's',	reqd => false },
+	'filename'	=> { format => 's',	reqd => false },
+	'revision'	=> { format => 's',	reqd => false } },
+  'deleteCM_Entity'		 => { 
+	'oid'		=> { format => 's',	reqd => true } },
+
+  'insertDefect'	=> { 
+	'id'		=> { format => 's',	reqd => true },
+	'severity'	=> { format => 's',	reqd => false },
+	'fc'		=> { format => 's',	reqd => false },
+	'product'	=> { format => 's',	reqd => false },
+	'subject'	=> { format => 's',	reqd => true } },
+  'updateDefect'	=> { 
+	'oid'		=> { format => 's',	reqd => true },
+	'id'		=> { format => 's',	reqd => false },
+	'severity'	=> { format => 's',	reqd => false },
+	'fc'		=> { format => 's',	reqd => false },
+	'product'	=> { format => 's',	reqd => false },
+	'subject'	=> { format => 's',	reqd => false } },
+  'deleteDefect'	=> { 
+	'oid'		=> { format => 's',	reqd => true } },
+
+  'insertGroup'		=> { 
+	'name'		=> { format => 's',	reqd => true },
+	'member'	=> { format => 's',	reqd => true } },
+  'updateGroup'		=> { 
+	'oid'		=> { format => 's',	reqd => true },
+	'name'		=> { format => 's',	reqd => false },
+	'member'	=> { format => 's',	reqd => false } },
+  'deleteGroup'		=> { 
+	'oid'		=> { format => 's',	reqd => true } },
+
+  'insertPerson'	=> { 
+	'uname'		=> { format => 's',	reqd => true },
+	'name'		=> { format => 's',	reqd => true },
+	'passwd'	=> { format => 's',	reqd => false },
+	'tel'		=> { format => 's',	reqd => false },
+	'email'		=> { format => 's',	reqd => false } },
+  'updatePerson'	=> { 
+	'oid'		=> { format => 's',	reqd => true },
+	'uname'		=> { format => 's',	reqd => false },
+	'name'		=> { format => 's',	reqd => false },
+	'passwd'	=> { format => 's',	reqd => false },
+	'tel'		=> { format => 's',	reqd => false },
+	'email'		=> { format => 's',	reqd => false } },
+  'deletePerson'	=> { 
+	'oid'		=> { format => 's',	reqd => true } },
+
+  'insertProduct'	=> { 
+	'name'		=> { format => 's',	reqd => true },
+	'revision'	=> { format => 's',	reqd => true },
+	'os'		=> { format => 's',	reqd => false },
+	'arch'		=> { format => 's',	reqd => false },
+	'config'	=> { format => 's',	reqd => false } },
+  'updateProduct'	=> { 
+	'oid'		=> { format => 's',	reqd => true },
+	'name'		=> { format => 's',	reqd => false },
+	'revision'	=> { format => 's',	reqd => false },
+	'os'		=> { format => 's',	reqd => false },
+	'arch'		=> { format => 's',	reqd => false },
+	'config'	=> { format => 's',	reqd => false } },
+  'deleteProduct'	=> { 
+	'oid'		=> { format => 's',	reqd => true } },
+
+  'insertStateTransition' => { 
+	'defect'	=> { format => 's',	reqd => true },
+	'time'		=> { format => 's',	reqd => false },
+	'from'		=> { format => 's',	reqd => true },
+	'to'		=> { format => 's',	reqd => true },
+	'uname'		=> { format => 's',	reqd => false },
+	'remarks'	=> { format => 's',	reqd => false } },
+  'updateStateTransition' => { 
+	'oid'		=> { format => 's',	reqd => true },
+	'defect'	=> { format => 's',	reqd => false },
+	'time'		=> { format => 's',	reqd => false },
+	'from'		=> { format => 's',	reqd => false },
+	'to'		=> { format => 's',	reqd => false },
+	'uname'		=> { format => 's',	reqd => false },
+	'remarks'	=> { format => 's',	reqd => false } },
+  'deleteStateTransition' => { 
+	'oid'		=> { format => 's',	reqd => true } },
+
+  'report' 		=> { 
+	'query'		=> { format => 's',	reqd => false },
+	'rpt'		=> { format => 's',	reqd => false } },
+    );
+
+%::opts	= ();
+my (@getOptArray, %uniqueOpts);
+
+# construct an array of unique option names & formats
+foreach $action (keys %::actions)
+{
+    foreach $k (keys %{$::actions{$action}})
+    {
+	if (!defined($uniqueOpts{$k}))
+	{
+	    $uniqueOpts{$k} = $::actions{$action}{$k}{'format'}; 
+	    push(@getOptArray, sprintf("%s=%s", 
+		$k, $::actions{$action}{$k}{'format'}));
+	}
+    }
+}
+
+# die if we detected incorrect usage
+my %taintedOpts;
+GetOptions(\%taintedOpts, @getOptArray) || usage();
+usage() if $#ARGV <0;
+$::action   = shift @ARGV;
+usage() if ( !defined &$::action );
+
+# untaint (potentially malicious code in) options
+foreach $k (keys %taintedOpts)
+{
+    ($k =~ /^(\w+)$/) and $k = $1;
+    (($taintedOpts{$k} =~ /^([^;\`\$<>\s]+)$/) and $::opts{$k} = $1 )
+	or die("insecure data disallowed for option $k\n");
+}
+
+# ensure that all required options for the specified action are present
+foreach $k (keys %{$::actions{$::action}})
+{
+    die( sprintf("%s requires the -%s option\n", $::action, $k))
+	if ( $::actions{$::action}{$k}{'reqd'} && !defined $::opts{$k} );
+}
+# ensure that all options specified for the specified action are valid
+foreach $k ( keys %::opts )
+{
+    return( die( "option '$k' is invalid for action '$::action'" ))
+	if ( !defined $::actions{$::action}{$k} );
+}
+
+#********************************************************************
+# connect to the database and invoke the appropriate action handler
+#********************************************************************
+DefectDB::connect('defect', $ENV{'USER'}, '') 
+    || die('database connection failed\n');
+&$::action();
+DefectDB::dbdie(); # exit cleanly
+
+
+#********************************************************************
+# generic routines
+#********************************************************************
+sub usage
+{
+    my ( $action, $k );
+    print "usage: $pgmname <action> [options]
+    Valid actions and their options are:\n";
+
+    foreach $action (sort keys %::actions)
+    {
+	my ($verb, $tbl);
+	($verb=$action) =~ s/[A-Z].*$//;
+	($tbl=$action)  =~ s/^[a-z]*//;
+	if ($verb !~ /^report$/)
+	{
+	    printf("\t%s\t: %s the specified %s record\n", 
+	    	$action, $verb, $tbl);
+	}
+	else
+	{
+	    printf("\t%s\t: %s\n", $verb,
+		"execute the specified query and produce the specified report");
+	}
+
+	foreach $k (keys %{$::actions{$action}})
+	{
+	    printf("\t\t\t[-%s <value>]\n", $k );
+	}
+    }
+    exit;
+}
+
+#********************************************************************
+# action handlers:
+#********************************************************************
+sub insertCM_Entity
+{
+    $o = new Defect::CM_Entity() || DefectDB::dbdie;
+    $o->{defect}	= $::opts{'defect'}	if defined $::opts{'defect'};
+    $o->{filename}	= $::opts{'filename'}	if defined $::opts{'filename'};
+    $o->{revision}	= $::opts{'revision'}	if defined $::opts{'revision'};
+    $o->update;
+}
+sub updateCM_Entity
+{
+    $o = new Defect::CM_Entity($::opts{'oid'}) || DefectDB::dbdie;
+    $o->{defect}	= $::opts{'defect'}	if defined $::opts{'defect'};
+    $o->{filename}	= $::opts{'filename'}	if defined $::opts{'filename'};
+    $o->{revision}	= $::opts{'revision'}	if defined $::opts{'revision'};
+    $o->update;
+}
+sub deleteCM_Entity
+{
+    $o = new Defect::CM_Entity($::opts{'oid'}) || DefectDB::dbdie;
+    $o->delete;
+}
+
+sub insertDefect
+{
+    $o = new Defect::Defect() || DefectDB::dbdie;
+    $o->{id}		= $::opts{'id'}		if defined $::opts{'id'};
+    $o->{severity}	= $::opts{'severity'}	if defined $::opts{'severity'};
+    $o->{fc}		= $::opts{'fc'}		if defined $::opts{'fc'};
+    $o->{product}	= $::opts{'product'}	if defined $::opts{'product'};
+    $o->{subject}	= $::opts{'subject'}	if defined $::opts{'subject'};
+    $o->update;
+}
+sub updateDefect
+{
+    $o = new Defect::Defect($::opts{'oid'}) || DefectDB::dbdie;
+    $o->{id}		= $::opts{'id'}		if defined $::opts{'id'};
+    $o->{severity}	= $::opts{'severity'}	if defined $::opts{'severity'};
+    $o->{fc}		= $::opts{'fc'}		if defined $::opts{'fc'};
+    $o->{product}	= $::opts{'product'}	if defined $::opts{'product'};
+    $o->{subject}	= $::opts{'subject'}	if defined $::opts{'subject'};
+    $o->update;
+}
+sub deleteDefect
+{
+    $o = new Defect::Defect($::opts{'oid'}) || DefectDB::dbdie;
+    $o->delete;
+}
+
+sub insertGroup
+{
+    $o = new Group::Group() || GroupDB::dbdie;
+    $o->{name}		= $::opts{'name'}	if defined $::opts{'name'};
+    $o->{member}	= $::opts{'member'}	if defined $::opts{'member'};
+    $o->update;
+}
+sub updateGroup
+{
+    $o = new Group::Group($::opts{'oid'}) || GroupDB::dbdie;
+    $o->{name}		= $::opts{'name'}	if defined $::opts{'name'};
+    $o->{member}	= $::opts{'member'}	if defined $::opts{'member'};
+    $o->update;
+}
+sub deleteGroup
+{
+    $o = new Group::Group($::opts{'oid'}) || GroupDB::dbdie;
+    $o->delete;
+}
+
+sub insertPerson
+{
+    $o = new Person::Person() || PersonDB::dbdie;
+    $o->{uname}		= $::opts{'uname'}	if defined $::opts{'uname'};
+    $o->{name}		= $::opts{'name'}	if defined $::opts{'name'};
+    $o->{passwd}	= $::opts{'passwd'}	if defined $::opts{'passwd'};
+    $o->{tel}		= $::opts{'tel'}	if defined $::opts{'tel'};
+    $o->{email}		= $::opts{'email'}	if defined $::opts{'email'};
+    $o->update;
+}
+sub updatePerson
+{
+    $o = new Person::Person($::opts{'oid'}) || PersonDB::dbdie;
+    $o->{uname}		= $::opts{'uname'}	if defined $::opts{'uname'};
+    $o->{name}		= $::opts{'name'}	if defined $::opts{'name'};
+    $o->{passwd}	= $::opts{'passwd'}	if defined $::opts{'passwd'};
+    $o->{tel}		= $::opts{'tel'}	if defined $::opts{'tel'};
+    $o->{email}		= $::opts{'email'}	if defined $::opts{'email'};
+    $o->update;
+}
+sub deletePerson
+{
+    $o = new Person::Person($::opts{'oid'}) || PersonDB::dbdie;
+    $o->delete;
+}
+
+sub insertProduct
+{
+    $o = new Product::Product() || ProductDB::dbdie;
+    $o->{name}		= $::opts{'name'}	if defined $::opts{'name'};
+    $o->{revision}	= $::opts{'revision'}	if defined $::opts{'revision'};
+    $o->{os}		= $::opts{'os'}		if defined $::opts{'os'};
+    $o->{arch}		= $::opts{'arch'}	if defined $::opts{'arch'};
+    $o->{config}	= $::opts{'config'}	if defined $::opts{'config'};
+    $o->update;
+}
+sub updateProduct
+{
+    $o = new Product::Product($::opts{'oid'}) || ProductDB::dbdie;
+    $o->{name}		= $::opts{'name'}	if defined $::opts{'name'};
+    $o->{revision}	= $::opts{'revision'}	if defined $::opts{'revision'};
+    $o->{os}		= $::opts{'os'}		if defined $::opts{'os'};
+    $o->{arch}		= $::opts{'arch'}	if defined $::opts{'arch'};
+    $o->{config}	= $::opts{'config'}	if defined $::opts{'config'};
+    $o->update;
+}
+sub deleteProduct
+{
+    $o = new Product::Product($::opts{'oid'}) || ProductDB::dbdie;
+    $o->delete;
+}
+
+sub insertStateTransition
+{
+    $o = new StateTransition::StateTransition() || StateTransitionDB::dbdie;
+    $o->{defect}	= $::opts{'defect'}	if defined $::opts{'defect'};
+    $o->{time}		= $::opts{'time'}	if defined $::opts{'time'};
+    $o->{from}		= $::opts{'from'}	if defined $::opts{'from'};
+    $o->{to}		= $::opts{'to'}		if defined $::opts{'to'};
+    $o->{uname}		= $::opts{'uname'}	if defined $::opts{'uname'};
+    $o->{remarks}	= $::opts{'remarks'}	if defined $::opts{'remarks'};
+    $o->update;
+}
+sub updateStateTransition
+{
+    $o = new StateTransition::StateTransition($::opts{'oid'}) 
+	|| StateTransitionDB::dbdie;
+    $o->{defect}	= $::opts{'defect'}	if defined $::opts{'defect'};
+    $o->{time}		= $::opts{'time'}	if defined $::opts{'time'};
+    $o->{from}		= $::opts{'from'}	if defined $::opts{'from'};
+    $o->{to}		= $::opts{'to'}		if defined $::opts{'to'};
+    $o->{uname}		= $::opts{'uname'}	if defined $::opts{'uname'};
+    $o->{remarks}	= $::opts{'remarks'}	if defined $::opts{'remarks'};
+    $o->update;
+}
+sub deleteStateTransition
+{
+    $o = new StateTransition::StateTransition($::opts{'oid'}) 
+	|| StateTransitionDB::dbdie;
+    $o->delete;
+}
+
+sub report
+{
+    $stmt = DefectDB::loadquery($::opts{'qry'}) || Defect::dbdie($!);
+    DefectDB::query($stmt) || Defect::dbdie($!);
+    DefectDB::format_report($::opts{'rpt'});
+}
+

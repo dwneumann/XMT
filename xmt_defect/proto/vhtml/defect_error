@@ -1,0 +1,74 @@
+{
+#************************************************************************
+#*  $Version:$
+#*  Package	: defect
+#*  Synopsis	:
+#*  Purpose	: Perl block which, when eval'ed, 
+#*		  serves the virtual path 'defect_error'.
+#*
+#*  Copyright (c) Neumann & Associates 1998
+#************************************************************************
+
+my $qr = \$Defect::q;
+my $err  = defined $$qr->param('defect_err') ? $$qr->param('defect_err') : 'unknown';
+my $event_verb = ucfirst $Defect::event;
+$event_verb =~ s/_.*//;
+my %msgs = (
+    "session expired"	=> {
+	reason  => "your session key has expired.
+		    This is most likely because too much time has
+		    elapsed since you logged in, or because you tried
+		    to bookmark (hotlist) a page which is access-controlled.",
+	fix     => "returning to the 
+		    <A HREF=\"defect_home.html\">Defect Database 
+		    home page</A>, and logging in again."
+			   },
+    "no query"  	=> {
+	reason  => "a <I>query</I> was not supplied.",
+	fix     => "clicking your browser's <B>Back</B> button to 
+		    return to the previous page, then loading, constructing,
+		    or typing a <I>Query</I>, and selecting the
+		    <I>$event_verb</I> operation again."
+			   },
+    "no query template"  	=> {
+	reason  => "a <I>Query Template</I> was not selected.",
+	fix     => "clicking your browser's <B>Back</B> button to 
+		    return to the previous page, clicking on one of the
+		    templates listed in the <I>Query Templates</I>
+		    list, and selecting the <I>$event_verb</I>
+		    operation again."
+			   },
+    "not a query"  	=> {
+	reason  => "your <I>query</I> is not permitted.",
+	fix     => "clicking your browser's <B>Back</B> button to 
+		    return to the previous page, then loading,
+		    constructing, or typing a <I>select</I> statement,
+		    and then selecting the <I>$event_verb</I> operation
+		    again."
+			   },
+    "unknown"	=> {
+	reason  => "of an unspecified error.",
+	fix     => "clicking your browser's <B>Back</B> button to 
+		    return to the previous page, verifying that you
+		    have correctly specified all required information,
+		    and selecting the <I>$event_verb</I> operation again."
+			   },
+	   );
+
+print
+    $$qr->start_html( -title=>"DDB Error",
+		    -target=>'defect_mainframe' ), "\n" ,
+    $$qr->h3( "Error" ), "\n",
+
+    "Your requested operation failed because ";
+
+print $msgs{$err}{reason};
+
+print " <P>
+    If you wish to re-attempt the operation, you may do so by ";
+
+print $msgs{$err}{fix};
+
+print " <HR>",
+    $$qr->end_html;
+}

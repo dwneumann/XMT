@@ -1,0 +1,91 @@
+#!/bin/perl -w
+#************************************************************************
+#*   $Version:$
+#*   Package	: xmt_cm
+#*   Synopsis	: lsco [-d <root>]
+#*   Purpose	: 
+#*	Lists all files checked out of cm repositories in all directories
+#*	below the specified directory (by default, below the current 
+#*	working directory).  Suitable for use before a build of a 
+#*	product tree, to see if anyone still has files checked out.
+#*	Suitable for use with SCCS, RCS, or CVS.
+#*	For CVS, use "lsco -d $CVSROOT"
+#*
+#*  Copyright (c) 1998	Neumann & Associates Information Systems Inc.
+#*  			legal.info@neumann-associates.com
+#*  Licensed under the Apache License, Version 2.0 (the "License");
+#*  you may not use this file except in compliance with the License.
+#*  You may obtain a copy of the License at http://www.apache.org/licenses/LICENSE-2.0
+#*  
+#*  Unless required by applicable law or agreed to in writing, software
+#*  distributed under the License is distributed on an "AS IS" BASIS,
+#*  WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+#*  See the License for the specific language governing permissions and
+#*  limitations under the License. 
+#************************************************************************/
+
+use Getopt::Long;
+use Cwd;
+
+($pgmname = $0) =~ s{.*/}{};
+$usage		= "usage: $pgmname [-d <root>]\n";
+undef $opt_u; # unnecessary but shuts up -w
+GetOptions( "u", "d=s" ) || die $usage;
+die $usage if defined $opt_u;
+%infos = (  'sccs'  => 'sccs info',
+	    'rcs'   => 'rlog -L -R -l RCS/*',
+	    'cvs'   => 'rlog -L -R -l RCS/*'
+	 );
+
+$cmdir		= uc $ENV{XMTCM_PKG} 	|| die "no CM package defined";
+$cm_cmd		= $infos{$cmdir} 	|| die "unsupported CM package";
+
+@dirs	= ( (defined $opt_d ? $opt_d : fastcwd ) ); 
+foreach $dir ( @dirs )
+{
+    &scandir( $dir );
+}
+
+sub scandir
+{
+    my $d = $_[0];
+    my $f;
+    my @dirents;
+
+    #********************************************************************
+    # if there exists a non-empty CM repository, listlocked().
+    #********************************************************************
+    if ( -d "$d/$cmdir" && 
+	 $#{[glob("$d/$cmdir/*")]} >= 0 ) { &listlocked( "$d" ); }
+
+    #********************************************************************
+    # descend into $d & keep scanning ...
+    #********************************************************************
+    opendir( D, $d ) || return;
+    @dirents = readdir( D );
+    foreach $f ( @dirents )
+    {
+	if (  $f !~ /^\.+$/o && -d "$d/$f" ) 
+	{
+	    @dirs = ( @dirs, "$d/$f" );
+	}
+    }
+    closedir( D );
+}
+
+sub listlocked
+{
+    my $d = $_[0];
+    my $buf;
+    my $curdir = getcwd();
+
+    chdir( $d );
+    open( CMTOOL, "$cm_cmd|" ) || return;
+    undef $/;
+    $buf = <CMTOOL>;
+    print( "$d:\n$buf\n" ) if defined $buf;
+    close( CMTOOL );
+    chdir( $curdir );
+}
+
+exit 0;

@@ -1,0 +1,32 @@
+{
+#************************************************************************
+#*  $Version:$
+#*  Package	: defect
+#*  Synopsis	:
+#*  Purpose	: Perl block which, when eval'ed, 
+#*		  serves the virtual path 'defect_login_failed'
+#*
+#*  Copyright (c) Neumann & Associates 1998
+#************************************************************************
+
+my $qr = \$Defect::q;
+
+print
+    $$qr->start_html( -title=>"DDB Login Failed",
+		    -target=>'defect_mainframe' ), "\n" ,
+    $$qr->h3( "Login Failed" ), "\n",
+
+    "<FONT SIZE=2>
+    Your attempt to login to the <I>Defect Database</I> failed.  If you
+    are authorized to access the DDB, remember that your DDB login name
+    and password are not necessarily the same as your computer login name
+    and password.  You may re-attempt your login by selecting the
+    <I>Login</I> link at left.
+    <P>
+    If you have not received authorization for DDB access, you may
+    submit a request for access by selecting the <I>Register</I> link
+    at left.
+    <HR>
+    </FONT>\n";
+    $$qr->end_html;
+}

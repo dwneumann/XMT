@@ -1,0 +1,62 @@
+{
+#************************************************************************
+#   $Version:$
+#   Package	: xmt_edit
+#   Synopsis	:
+#   Purpose	: Perl block which, when eval'ed, prints the desired
+# 		function specification block for SDS files.
+#
+#   Copyright (c) 1998	Neumann & Associates Information Systems Inc.
+#   			legal.info@neumann-associates.com
+#   Licensed under the Apache License, Version 2.0 (the "License");
+#   you may not use this file except in compliance with the License.
+#   You may obtain a copy of the License at http://www.apache.org/licenses/LICENSE-2.0
+#   
+#   Unless required by applicable law or agreed to in writing, software
+#   distributed under the License is distributed on an "AS IS" BASIS,
+#   WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+#   See the License for the specific language governing permissions and
+#   limitations under the License. 
+#************************************************************************
+
+print qq{
+<!****************************************************************************>
+<META NAME=SECTION VALUE="FUNCTION SPECIFICATION">
+<H4><A NAME=[??? function]></A> [??? function] </H4>
+
+<H5> Synopsis </H5>
+[??? synopsis]
+
+<H5> Parameters </H5>
+<! ****** Add a table row ( TR ... /TR) for each parameter.		******>
+<TABLE>
+    <TR> 
+	<TD VALIGN=TOP> [??? datatype ] </TD>
+	<TD VALIGN=TOP> [??? parameter name ] </TD>
+	<TD VALIGN=TOP> : (in) </TD>
+	<TD VALIGN=TOP> [??? parameter synopsis ] </TD>
+    </TR>
+</TABLE>
+
+<H5> Values Returned </H5>
+<! ****** Add a table row ( TR ... /TR) for each enumerated value.	******>
+<TABLE>
+    <TR> 
+	<TD VALIGN=TOP> [??? value ] </TD>
+	<TD VALIGN=TOP> [??? synopsis ] </TD>
+    </TR>
+</TABLE>
+
+<H5> Purpose </H5>
+[??? purpose]
+
+<H5> Algorithm </H5>
+[??? lengthy description of algorithm]
+
+<H5> Satisfies Requirements </H5>
+<OL TYPE=i>
+    <LI>	[??? TDA:SRS-xxx:n.n p.p.p]
+    <LI>	[??? TDA:SRS-xxx:n.n p.p.p]
+</OL>
+};
+}

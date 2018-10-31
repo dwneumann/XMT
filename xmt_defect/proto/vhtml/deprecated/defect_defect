@@ -1,0 +1,167 @@
+{
+#************************************************************************
+#*  $Version:$
+#*  Package	: defect
+#*  Synopsis	:
+#*  Purpose	: Perl block which, when eval'ed, 
+#*		  serves the virtual path 'defect_defect'
+#*
+#*  Copyright (c) Neumann & Associates 1998
+#************************************************************************
+
+my $qr = \$Ddb::q;	# reference to CGI object
+my $dr = \$Ddb::d;	# reference to Defect object
+my ($fld, $st, $ta);
+my $draw = draw_closure($dr);
+
+print
+    $$qr->start_html( -title=>"DDB Defect",
+		    -target=>'defect_mainframe' ), 
+    $$qr->start_form(-action=>'./defectsrv.pl' ), 
+    $$qr->hidden( 'ev', 'submit_defect' );
+
+#************************************************************************
+# Paint the form: this version of defect_defect paints a 2-column format...
+# Whether the field is drawn as an input or output type depends on
+# the transition currently being performed and the DataInputStates policy. 
+# This is determined by $draw, and the appropriate widget displayed.
+#************************************************************************
+my %product = ${$$dr->Products}{$$dr->def_product};
+my %severity = ${$$dr->Severities}{$$dr->def_severity};
+print 
+    "<H2>Defect Identification:</H2>",
+    "<TABLE>",
+    "<TR><TD><I> Defect ID: </I><TD>\n", $$dr->id, 
+    "<TR><TD><I> Severity: </I><TD>\n",
+	    &$draw( 'Defects.def_severity', $severity{sev} ),
+    "<TR><TD><I> Product Name: </I><TD>\n", 
+	    &$draw( 'Products.prd_name', $product{prd_name} ),
+    "<TR><TD><I> Revision: </I><TD>\n", 
+	    &$draw( 'Products.prd_revn', $product{prd_rev} ),
+    "<TR><TD><I> OS: </I><TD>\n", 
+	    &$draw( 'Products.prd_os', $product{prd_os} ),
+    "<TR><TD><I> Machine Architecture:  </I><TD>\n", 
+	    &$draw( 'Products.prd_arch', $product{prd_arch} ),
+    "<TR><TD><I> Configuration: </I><TD>\n", 
+	    &$draw( 'Products.prd_config', $product{prd_config} ),
+    "<TR><TD COLSPAN=2><I> Subject: </I><TR><TD>\n", 
+	    &$draw( 'Defects.def_subject', $$dr->def_subject ),
+    "</TABLE>";
+
+#************************************************************************
+# Draw desired fields from each StateTransition (oldest to newest).
+# Note that by default we don't allow modification of historical data
+# (ie past transition data is never inputtable).
+#************************************************************************
+print
+    "<H2>Defect States:</H2>",
+    "<TABLE>";
+my $st_oid;
+foreach $st_oid ( sort {{$$dr->StateTransitions{$a}}{st_time} cmp 
+    {$$dr->StateTransitions{$b}}{st_time}} keys %{$$dr->StateTransitions} )
+{
+    my $st = $$dr->StateTransitions{$st_oid};
+    my $numrows = 2 + (3* scalar keys %{$$dr->TransitionAuths});
+    print 
+	"<TR><TD><B>$st{st_to}</B>",
+	    "<TD><I>by:</I>",
+	    "<TD>", $st{st_by},
+	    "<TD ROWSPAN=$numrows>", $st{st_remarks},
+	"<TR><TD><!--horozontal spacer>",
+	    "<TD><I>on:</I>",
+	    "<TD>", $st{st_time};
+    }
+
+#************************************************************************
+# Draw desired fields for the transition currently in progress.
+# These fields may be either input or output depending on the 
+# DataInputStates policy.
+#************************************************************************
+$st = $$dr->CurrentTransition;
+print 
+    "<TR><TD><B>$st{st_to}</B>",
+	"<TD><I>by:</I>",
+	"<TD>", $st{st_by},
+	"<TD>", 
+	    &$draw( 'StateTransitions.st_remarks', $st{st_remarks} ),
+    "</TABLE>";
+
+#************************************************************************
+# Draw submit & clear buttons, then end form & page.
+#************************************************************************
+print
+    "<P>",
+    "<TABLE ALIGN=CENTER>",
+    "<TR>",
+	"<TD ALIGN=LEFT>", 
+	    $$qr->submit( '-name'=>'submit', 
+			'-value'=>'      Submit      ' ), 
+	"<TD ALIGN=RIGHT>",
+	    $$qr->defaults('      Clear       ' ),
+    "</TABLE>",
+    $$qr->end_form,
+    $$qr->end_html;
+print "\n";
+
+
+#************************************************************************
+# define draw_closure() to return a reference to the draw function
+#************************************************************************
+sub draw_closure {
+    my ($dr) = @_;
+    my %fields = 
+    (
+	'Defects.def_product'
+		    => 'product name',
+	'Defects.def_product'
+		    => 'product revision',
+	'Defects.def_product'
+		    => 'product configuration',
+	'Defects.def_product'
+		    => 'product OS',
+	'Defects.def_product'
+		    => 'product hardware architecture',
+	'Defects.oid'
+		    => 'defect ID',
+	'Defects.def_severity'
+		    => 'defect severity',
+	'Defects.def_subject'
+		    => 'defect subject',
+	'Defects.def_fc'
+		    => 'defect classification phase',
+	'Defects.def_fc'
+		    => 'defect classification type',
+	'Defects.def_fc'
+		    => 'defect classification reason',
+	'StateTransitions.st_from'
+		    =>'state left',
+	'StateTransitions.st_to'
+		    => 'state entered',
+	'StateTransitions.st_time'
+		    => 'transition request date/time',
+	'StateTransitions.st_by'
+		    => 'transition initiator name',
+	'StateTransitions.st_remarks'
+		    => 'transition remarks',
+	'CM_Entities.cm_filename'
+		    => 'CM Entity filename',
+	'CM_Entities.cm_revision'
+		    => 'CM Entity revision',
+	'CM_Entities.cm_defect'
+		    => 'CM Entity\'s associated defect',
+    );
+
+    return sub {
+	my ($fldnm, $what) = @_;
+	if ($what eq 'val')
+	{
+	    $what = (exists {$$dr->DataInputStates}{$fldnm} &&
+		    {$$dr->DataInputStates}{$fldnm} eq 
+		    {$$dr->CurrentTransition}{st_to}) ?
+		    'ival' : 'oval';
+	}
+	return %fields{$fldnm}{$what};
+    };
+}
+
+}

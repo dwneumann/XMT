@@ -1,0 +1,119 @@
+#!/bin/perl 
+#************************************************************************
+#*   $Version:$
+#*   Package	: xmt_defect
+#*   Synopsis	: defect_loadpolicy <policyfile.pl> ...
+#*   Purpose	: Loads Defect database with initial policy data.
+#*		  Several "canned" policies are provided, but most 
+#*		  organizations will probably want to roll their own.
+#*		  Canned policies exist in individual files in the 
+#*		  $XMTDEFECT/proto directory.  
+#*		  See individual files for details on each policy.
+#*
+#*  Copyright (c) 1998	Neumann & Associates Information Systems Inc.
+#*  			legal.info@neumann-associates.com
+#*  Licensed under the Apache License, Version 2.0 (the "License");
+#*  you may not use this file except in compliance with the License.
+#*  You may obtain a copy of the License at http://www.apache.org/licenses/LICENSE-2.0
+#*  
+#*  Unless required by applicable law or agreed to in writing, software
+#*  distributed under the License is distributed on an "AS IS" BASIS,
+#*  WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+#*  See the License for the specific language governing permissions and
+#*  limitations under the License. 
+#************************************************************************/
+
+use Getopt::Long;
+use Env;
+use DBI;
+
+($pgmname = $0) =~ s{.*/}{};
+$usage		= "usage: $pgmname <policyfile.pl> ...\n";
+GetOptions( "u" ) || die $usage;
+die $usage if defined $opt_u;
+
+
+#************************************************************************
+# connect to the Defect database 
+#************************************************************************
+$dbname = "defects";
+$dbh = DBI->connect( "dbi:Pg:$dbname", '', '', )		||
+    &dbdie( "connect $dbname : $DBI::errstr" );
+$sth = $dbh->prepare( 'select relname from pg_class' )		||
+    &dbdie( "query pg_class: $DBI::errstr" );
+$sth->execute;
+%pgclasses  = ();
+$pgclass    = '';
+$sth->bind_columns( undef, \$pgclass );
+while ( $sth->fetch )
+{
+    $pgclasses{ $pgclass } = "$pgclass";
+}
+$sth->finish;
+
+
+#************************************************************************
+# Read each policy file specified on the command line & eval it.
+# This populates the array @::dbStmts
+#************************************************************************
+foreach $fn ( @ARGV )
+{
+    &serve( $fn );
+}
+
+#************************************************************************
+# Pass each @dbStmts element to the dbms to load the database with the
+# policy information. We do this statement by statement rather than
+# with a COPY because policies can also create sequences, additional
+# tables or indexes, etc.
+#************************************************************************
+foreach $row ( 0 .. $#{@::dbStmts} )
+{
+    $stmt = $::dbStmts[$row];
+    $dbh->do( $stmt ) || &dbdie( "$DBI::errstr" );
+}
+
+&dbdie( "$dbname policy information has been loaded successfully." );
+
+
+#************************************************************************
+# dbdie($msg): disconnect from the dbms, display msg, & exit
+#************************************************************************
+sub dbdie
+{
+    my $msg = $_[0];
+    $dbh->disconnect	if ( defined $dbh );
+    undef $dbh;
+    undef $sth;
+    die "$msg\n";
+}
+
+#************************************************************************
+# serve($fn, $err): eval the file $fn. Paths are relative to  the
+# proto/policies directory by default.   If $err is defined, the global
+# $::errstr is set to $err before $fn is eval'ed.
+#************************************************************************
+sub serve
+{
+    my ($fn, $err) = ($_[0], $_[1]);
+    my $func;
+
+    $::errstr = $err if ( defined $err );
+    $fn =~ s{^/*}{};
+    $fn =~ s{^([^/]*)$}{../proto/policies/$1};
+
+    # debugging is easier if we copy the eval block into this
+    # namespace as a subroutine with the name &$fn (with all
+    # characters that would be illegal in an identifier replaced with
+    # underscores).  So, if such a subroutine exists, we call it,
+    # rather than evaling the file.
+    ($func = $fn) =~ s{.*/}{};
+    $func  =~ s/[^\w]/_/g;
+    return &$func if ( defined &$func );
+
+    open( TMPL, "<$fn" ) || dbdie( "$fn: $!" );
+    undef $/;
+    $buf = <TMPL>;
+    close( TMPL ) || dbdie ( "$fn: $!" );
+    eval $buf;
+}

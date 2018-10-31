@@ -1,0 +1,109 @@
+#!/bin/perl 
+#************************************************************************
+#*   $Version:$
+#*   Package	: xmt_metrics
+#*   Synopsis	:
+#*   Purpose	: populate metrics database with some records for testing
+#*
+#*  Copyright (c) 1998	Neumann & Associates Information Systems Inc.
+#*  			legal.info@neumann-associates.com
+#*  Licensed under the Apache License, Version 2.0 (the "License");
+#*  you may not use this file except in compliance with the License.
+#*  You may obtain a copy of the License at http://www.apache.org/licenses/LICENSE-2.0
+#*  
+#*  Unless required by applicable law or agreed to in writing, software
+#*  distributed under the License is distributed on an "AS IS" BASIS,
+#*  WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+#*  See the License for the specific language governing permissions and
+#*  limitations under the License. 
+#************************************************************************
+
+use Getopt::Long;
+use Env;
+
+($pgmname = $0) =~ s{.*/}{};
+$usage		= "usage: $pgmname [-u]\n";
+GetOptions( "u" ) || die $usage;
+
+use DBI;
+$dbname = "metrics";
+$dbh = DBI->connect( "dbi:Pg:$dbname", '', '', )		||
+    &dbdie( "connect $dbname : $DBI::errstr" );
+
+# delete all records from the Tasks table, then add a new one
+$dbh->do( "delete from Tasks" ) || &dbdie( "$DBI::errstr" );
+$stmt = "insert into Tasks values 
+    ( ".
+	"'350.00.11.1234',".	# task WBS code
+	"'0302350',	".	# project number
+	"'SRS Review',	".	# task name
+	"2,		".	# estimated effort (hrs)
+	"4,		".	# task actual effort (hrs)
+	"20,		".	# estimated size
+	"30,		".	# task actual size
+	"'pages',	".	# units of size measurement
+	"'1999-05-20',	".	# estimated start date
+	"'1999-05-20',	".	# actual start date
+	"'1999-05-21',	".	# estimated end date
+	"'1999-05-23',	".	# actual end date
+	"10.0,		".	# estimated productivity
+	"7.5,		".	# actual productivity
+	"'general remarks'".	# general remarks
+    ");";
+$dbh->do( $stmt ) || &dbdie( "$DBI::errstr" );
+
+$stmt = "insert into Tasks values 
+    ( ".
+	"'250.00.11.1234',".	# task WBS code
+	"'0301250',	".	# project number
+	"'SRS Review',	".	# task name
+	"3,		".	# estimated effort (hrs)
+	"4,		".	# task actual effort (hrs)
+	"40,		".	# estimated size
+	"50,		".	# task actual size
+	"'pages',	".	# units of size measurement
+	"'1999-03-30',	".	# estimated start date
+	"'1999-03-30',	".	# actual start date
+	"'1999-04-01',	".	# estimated end date
+	"'1999-04-02',	".	# actual end date
+	"12.5,		".	# estimated productivity
+	"1.20,		".	# actual productivity
+	"'general remarks'".	# general remarks
+    ");";
+$dbh->do( $stmt ) || &dbdie( "$DBI::errstr" );
+
+# delete all records from the Assignments table, 
+# then use that to populate a new Assignments record
+$dbh->do( "delete from Assignments" ) || &dbdie( "$DBI::errstr" );
+$stmt = "insert into Assignments values 
+    ( ".
+	"'350.00.11.1234',".	# associated Task wbs
+	"'dean', 	".	# login username of assigned employee
+	"3,		".	# estimated effort (hrs)
+	"4,		".	# task actual effort (hrs)
+	"18,		".	# estimated size
+	"30,		".	# task actual size
+	"'1999-05-20',	".	# estimated start date
+	"'1999-05-20',	".	# actual start date
+	"'1999-05-21',	".	# estimated end date
+	"'1999-05-23',	".	# actual end date
+	"6.0,		".	# estimated productivity
+	"7.5,		".	# actual productivity
+	"100		".	# resource efficiency factor
+    ");";
+$dbh->do( $stmt ) || &dbdie( "$DBI::errstr" );
+
+# exit cleanly
+dbdie();
+
+
+sub dbdie
+{
+    my $msg = $_[0];
+    $dbh->disconnect	if ( defined $dbh );
+    undef $dbh;
+    undef $sth;
+    if ( defined $msg ) { die "$msg\n"; }
+    exit 0;
+}
+

@@ -1,0 +1,51 @@
+#!/bin/perl
+#************************************************************************
+#   $Version:$
+#   Package	: 
+#   Synopsis	: gdbocd <pgm.elf>
+#   Purpose	: launch gdb, spawn openocd, connect to target, debug <pgm.elf>.
+#
+#   Copyright 2018 Visionary Research Inc.  
+#   Licensed under the Apache License, Version 2.0 (the "License");
+#   you may not use this file except in compliance with the License.
+#   You may obtain a copy of the License at http://www.apache.org/licenses/LICENSE-2.0
+#   
+#   Unless required by applicable law or agreed to in writing, software
+#   distributed under the License is distributed on an "AS IS" BASIS,
+#   WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+#   See the License for the specific language governing permissions and
+#   limitations under the License. 
+#************************************************************************
+
+$SIG{INT} 	= \&cleanup;
+$SIG{TERM}	= \&cleanup;
+
+my $gdb		= "/cygdrive/c/Programs/gcc/bin/arm-none-eabi-gdb.exe";
+my $gdb_args	= "--quiet " 
+		. "-ex 'target remote :3333' "	# oopocd's gdbserver port
+		. "-ex 'monitor reset halt' "	# halt ARM's execution
+		. "-ex 'monitor reset init' "	# reset pgm counter to start
+		. "-ex 'break main' "		# break at first instruction of main
+		. "-ex 'load' "			# force reflash to board
+		. "-ex 'continue' ";		# run to break at main
+
+# note: openocd needs a Windows path to its config file
+my $openocd	= "/cygdrive/c/Programs/GNU_MCU_Eclipse_OpenOCD/bin/openocd.exe";
+my $ocd_args	= "-d0 -f C:/Programs/GNU_MCU_Eclipse_OpenOCD/scripts/board/st_nucleo_l4.cfg";
+
+# launch openocd & leave running as a background process
+system( "$openocd $ocd_args 1>/dev/null 2>&1 &" );
+
+# launch gdb, connect to openocd, and load the executable to be debugged
+# the system() call will retrun when we quit gdb.
+system( "$gdb $gdb_args $ARGV[0]") or die "$gdb: $!\n";
+
+END {
+    cleanup();
+}
+
+sub cleanup
+{
+    print "killing child processes...\n";
+    system('taskkill /IM openocd* /F > /dev/null 2>&1');
+}

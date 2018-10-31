@@ -1,0 +1,177 @@
+{
+#************************************************************************
+#*  $Version:$
+#*  Package	: defect
+#*  Synopsis	:
+#*  Purpose	: Perl block which, when eval'ed, 
+#*		  serves the virtual path 'defect_search'
+#*
+#*  Copyright (c) Neumann & Associates 1998
+#************************************************************************
+
+my $qr = \$Defect::q;
+my (@queries, @reports, $query, $qtmpl, $qrpt);
+
+push( @queries, map {s{.*/}{};$_} grep {-f $_} glob("../proto/queries/*"));
+push( @queries, '&nbsp'x50 ); # add blank element of known width
+
+push( @reports, map {s{.*/}{};$_} grep {-f $_} glob("../proto/reports/*"));
+push( @reports, '&nbsp'x50 ); # add blank element of known width
+
+$query	= ( defined $$qr->param('query') ? $$qr->param('query') : '' );
+$qtmpl	= ( defined $$qr->param('query_tmpl') ? $$qr->param('query_tmpl') : '' );
+$qrpt	= ( defined $$qr->param('report_fmt') ? $$qr->param('report_fmt') : '' );
+
+#************************************************************************
+# field_labels keys of the form 
+# 't1.f1'  generate query constraints of the form 
+#	...where t1.f1 <op> <value>
+#
+# field_labels keys of the form 
+# 't1.f1=t2.f2->t3.f3' generate query constraints of the form
+#	...where t1.f1 IN (select f2 from t2 where t3.f3 <op> <value>)
+#
+# field_labels keys of the form 
+# 't1.f1!=t2.f2->t3.f3' generate query constraints of the form
+#	...where t1.f1 NOT IN (select f2 from t2 where t3.f3 <op> <value>)
+#************************************************************************
+my %field_labels = # will appear sorted by value
+(
+    'Defects.def_product=Products.oid->Products.prd_name'
+		=> 'product name',
+    'Defects.def_product=Products.oid->Products.prd_rev'
+		=> 'product revision',
+    'Defects.def_product=Products.oid->Products.prd_config'
+		=> 'product configuration',
+    'Defects.def_product=Products.oid->Products.prd_os'
+		=> 'product OS',
+    'Defects.def_product=Products.oid->Products.prd_arch'
+		=> 'product hardware architecture',
+    'Defects.oid'
+		=> 'defect ID',
+    'Defects.def_severity'
+		=> 'defect severity',
+    'Defects.def_synopsis'
+		=> 'defect synopsis',
+    'Defects.def_fc=FaultClassifications.oid->FaultClassifications.fc_phase'
+		=> 'defect classification phase',
+    'Defects.def_fc=FaultClassifications.oid->FaultClassifications.fc_type'
+		=> 'defect classification type',
+    'Defects.def_fc=FaultClassifications.oid->FaultClassifications.fc_reason'
+		=> 'defect classification reason',
+    'StateTransitions.st_from'
+		=>'state left',
+    'StateTransitions.st_to'
+		=> 'state entered',
+    'StateTransitions.st_time'
+		=> 'transition request date/time',
+    'StateTransitions.st_to'
+		=>'transition initiator name',
+    'StateTransitions.st_remarks'
+		=> 'transition remarks',
+    'CM_Entities.cm_filename'
+		=> 'CM Entity filename',
+    'CM_Entities.cm_revision'
+		=> 'CM Entity revision',
+    'CM_Entities.cm_defect'
+		=> 'CM Entity\'s associated defect',
+);
+
+my %operator_labels = # will appear sorted alphabetically by key
+(
+    'lt'	=> 'is less than',
+    'lte'	=> 'is less than or equal to',
+    'eq'	=> 'is equal to',
+    'eq.n'	=> 'is not equal to',
+    'gt'	=> 'is greater than',
+    'gte'	=> 'is greater than or equal to',
+    'in'	=> 'is in the set',
+    'in.n'	=> 'is not in the set',
+    'rx'	=> 'matches pattern',
+    'rx.n'	=> 'does not match pattern',
+);
+
+my %event_labels =  # will appear sorted by value
+(
+    'load_query'	=> 'Load query template',
+    'add_and_clause' 	=> 'Add additional constraint (AND)',
+    'add_or_clause' 	=> 'Add alternate constraint (OR)',
+    'search'		=> 'Execute query',
+);
+
+print
+    $$qr->start_html( -title=>"DDB Search",
+		    -target=>'defect_mainframe' ), 
+    $$qr->start_form(-action=>'./defectsrv.pl' ), 
+    "<TABLE>
+    <TR>
+	<TD ALIGN=CENTER VALIGN=BOTTOM> <B>Query Templates</B>
+	<TD>", '&nbsp;'x3,
+	"<TD ALIGN=CENTER VALIGN=BOTTOM> <B>Constructing Queries</B>
+    <TR>
+	<TD ALIGN=CENTER ROWSPAN=3>", 
+	    $$qr->scrolling_list( -name=>'query_tmpl', 
+		-default=>[$qtmpl], '-values'=>[@queries], 
+		-size=>7, -override=>1 ), 
+       "<TD ALIGN=CENTER COLSPAN=2>", $$qr->popup_menu( -name=>'field_name',
+	    '-values'=>[ sort {$field_labels{$a} cmp $field_labels{$b}} 
+			keys %field_labels ],
+	    -default=>'Defects.oid', 
+	    -labels=>\%field_labels),
+    "<TR>
+	<TD ALIGN=CENTER COLSPAN=2>", $$qr->popup_menu( -name=>'field_opr',
+	    '-values'=>[ sort keys %operator_labels ],
+	    -default=>'eq', -labels=>\%operator_labels),
+    "<TR>
+	<TD ALIGN=CENTER COLSPAN=2>", $$qr->textfield( -name=>'field_value',
+			    -size=>27, -maxsize=>1024, -override=>1 ),
+    "<TR>
+	<TD VALIGN=TOP><FONT SIZE=2> <I>Select a predefined query
+	    template to load, <B>or</B></I></FONT>
+	<TD> <!-- horizontal spacer>
+	<TD VALIGN=TOP><FONT SIZE=2> <I>Construct a query by repeatedly
+	    adding search constraints.  For each constraint, select the
+	    field to search on, select an operator, and enter a value to
+	    compare against.  Constants, expressions and nested sub-queries
+	    are permitted.  (Surround text values with 'quotes').</I></FONT>
+    <TR><TD>&nbsp;<!--vertical spacer>
+    <TR>
+	<TD ALIGN=CENTER COLSPAN=3>", $$qr->textarea( -name=>'query',
+		-default=>"$query", -columns=>52, -rows=>4, -override=>1 ),
+    "<TR>
+	<TD COLSPAN=3><FONT SIZE=2>
+	    <I>Queries, whether loaded from templates, constructed through
+	    the addition of constraints, or typed in SQL directly, may be
+	    edited as desired before executing the query.</I></FONT>
+    <TR><TD>&nbsp;<!--vertical spacer>
+    <TR>
+	<TD ALIGN=CENTER VALIGN=BOTTOM> <B>Report Formats</B>
+	<TD ALIGN=CENTER VALIGN=BOTTOM COLSPAN=2> 
+		<B>Select & Submit Operation</B>
+    <TR>
+	<TD ALIGN=CENTER ROWSPAN=2>", $$qr->scrolling_list( 
+		-name=>'report_fmt', '-values'=>[@reports], -size=>4,
+		-default=>[$qrpt], -override=>1 ), 
+	"<TD ALIGN=CENTER COLSPAN=2>", $$qr->popup_menu( -name=>'ev',
+	    '-values'=>[ sort {$event_labels{$a} cmp $event_labels{$b}}
+			 keys %event_labels ],
+	    -default=>'search', -labels=>\%event_labels),
+    "<TR>
+	<TD ALIGN=CENTER COLSPAN=2>", 
+	    $$qr->submit( '-name'=>'submit', 
+			'-value'=>'      Submit      ' ), 
+    "<TR>
+	<TD><FONT SIZE=2><I>Select a report format.  All records
+	    returned by the specified query will be formatted using the
+	    selected report format.</I></FONT>
+	<TD> <!-- horizontal spacer>
+	<TD ALIGN=CENTER><FONT SIZE=2> <I>Select the operation to perform, and
+	    submit it.</I></FONT>
+    </TABLE>
+    <P> ",
+    $$qr->end_form,
+    "</FONT>\n",
+    $$qr->end_html;
+
+print "\n";
+}

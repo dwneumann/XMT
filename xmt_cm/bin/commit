@@ -1,0 +1,94 @@
+#!/bin/perl -w
+#************************************************************************
+#   $Version:$
+#   Package	: xmt_cm
+#   Synopsis	: commit [-m "msg"] [-mf msgfile] [-u|-l] [-n] [rcs/sccs/cvs options] file ...
+#   Purpose	: 
+#       wrapper around sccs, rcs & cvs checkin commands which forces
+#       the user  to enter a WBC # against which to log the changes
+#       made to the file(s) being committed.
+#	All options not recognized are passed transparently to rcs/sccs/cvs.
+#	For use as a CVS editinfo script, set
+#	    DEFAULT $XMTCM/bin/commit -n -mf
+#
+#  Copyright (c) 1998	Neumann & Associates Information Systems Inc.
+#  			legal.info@neumann-associates.com
+#  Licensed under the Apache License, Version 2.0 (the "License");
+#  you may not use this file except in compliance with the License.
+#  You may obtain a copy of the License at http://www.apache.org/licenses/LICENSE-2.0
+#  
+#  Unless required by applicable law or agreed to in writing, software
+#  distributed under the License is distributed on an "AS IS" BASIS,
+#  WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+#  See the License for the specific language governing permissions and
+#  limitations under the License. 
+#************************************************************************
+
+use Getopt::Long;
+%cmds = (   'sccs'  => {'get'	    => 'sccs get',
+			'edit'	    => 'sccs edit',
+			'delta'	    => 'sccs delta',
+			'msgflag'   => '-y' },
+	    'rcs'   => {'get'	    => 'co -u',
+			'edit'	    => 'co -l',
+			'delta'	    => 'ci',
+			'msgflag'   => '-m' },
+	    'cvs'   => {'get'	    => 'cvs checkout',
+			'edit'	    => 'cvs edit',
+			'delta'	    => 'cvs commit ',
+			'msgflag'   => '-m' },
+	);
+$pkg = uc($ENV{XMTCM_PKG}) || die "no CM package defined\n";
+if (!exists $cmds{$pkg}) { die "unsupported CM package\n";}
+
+($pgmname = $0) =~ s{.*/}{};
+$usage		= "usage: $pgmname [-m \"msg\"] [-u|-l] [-n] [rcs/cvs/sccs options] file ...\n";
+
+undef $opt_n;	# unnecessary, but shuts up -w
+Getopt::Long::config( "permute", "pass_through" );
+GetOptions( "m=s", "mf=s", "u", "l", "n" ) || die $usage;
+
+die "$usage"	if ( defined( $opt_l ) && defined( $opt_u ) );
+
+#************************************************************************
+# prompt for a valid WBC code until we get one
+#************************************************************************
+while ( !defined( $auth_code ) )
+{
+    print "WBC # : ";
+    $_ = <STDIN>; chomp( $_ );
+    if ( /^[0-9]+(\.[0-9]+)*$/ || /^n\/a/i ) 
+    {
+	$auth_code = $_;
+    }
+    else
+    {
+	print "invalid WBC code\n";
+    }
+}
+
+#************************************************************************
+# now read the message string and execute the specified cmd.
+#************************************************************************
+if ( !defined $opt_m )
+{
+    print "message: ";
+    $opt_m = <STDIN>; chomp( $opt_m );
+}
+
+if (defined $opt_mf)
+{
+    open(MF, ">$opt_mf") || die "$opt_mf:$!\n";
+    print MF "$auth_code: $opt_m\n";
+    close(MF);
+}
+
+if ( !defined $opt_n )
+{
+    $cmd = "$cmds{$pkg}{delta} $cmds{$pkg}{msgflag}\"$auth_code : $opt_m\"";
+    system( "$cmd @ARGV" );
+    if ( defined( $opt_l ) )    { system( "$cmds{$pkg}{edit} @ARGV" ); }
+    elsif ( defined( $opt_u ) ) { system( "$cmds{$pkg}{get} @ARGV" ); }
+}
+exit 0;
+

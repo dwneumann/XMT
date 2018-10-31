@@ -1,0 +1,74 @@
+#!/bin/perl -w
+#************************************************************************
+#*   $Version:$
+#*   Package	: xmt_util
+#*   Synopsis	: modenv [options]
+#*   Purpose	: 
+#*	Modify environment variable string read from stdin as specified
+#*	by commandline options, and print modified string on stdout.
+#*	Duplicate entries are unconditionally removed.
+#*		Commandline options include:
+#*		[-d  <fld>]	: delete field <fld> (may be repeated)
+#*		[-o  <fld>]	: enforce field ordering as per -o options
+#*		[-fs <str>]	: use <str> as field separator (default ":")
+#*
+#*  Copyright (c) 1998	Neumann & Associates Information Systems Inc.
+#*  			legal.info@neumann-associates.com
+#*  Licensed under the Apache License, Version 2.0 (the "License");
+#*  you may not use this file except in compliance with the License.
+#*  You may obtain a copy of the License at http://www.apache.org/licenses/LICENSE-2.0
+#*  
+#*  Unless required by applicable law or agreed to in writing, software
+#*  distributed under the License is distributed on an "AS IS" BASIS,
+#*  WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+#*  See the License for the specific language governing permissions and
+#*  limitations under the License. 
+#************************************************************************
+
+use Getopt::Long;
+
+($pgmname = $0) =~ s{.*/}{};
+$usage		= "usage: $pgmname [-d <fld>] [-o <fld>] [-fs <str>] \n";
+$opt_fs		= ":";
+GetOptions( "d=s%", "o=s@", "fs=s" ) || die $usage;
+
+while ( <STDIN> )
+{
+    chomp( $_ );
+    @f = split( $opt_fs, $_ );
+}
+
+#************************************************************************
+# put elements of @f into an ordered hash, 
+# keeping only the *first* of duplicates
+#************************************************************************
+$i=0; 
+foreach $k ( @f )
+{
+    $fields{$k} = $i++ if !exists $fields{$k};
+}
+
+#************************************************************************
+# delete specified fields
+#************************************************************************
+if ( defined %opt_d )
+{
+    map { delete $fields{$_} } keys %opt_d;
+}
+
+#************************************************************************
+# swap the order of those fields specified by -o flags
+# so they appear in the order specified
+#************************************************************************
+if ( defined @opt_o )
+{
+    @element_indices = map { $fields{$_} } @opt_o;
+    @sorted_element_indices = sort { $a <=> $b } @element_indices;
+    $i=0; 
+    map { $fields{$_}=$sorted_element_indices[$i++] } @opt_o;
+}
+
+$fields = join( $opt_fs, sort { $fields{$a} <=> $fields{$b} } keys %fields );
+print $fields."\n";
+exit 0;
+

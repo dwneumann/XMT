@@ -1,0 +1,167 @@
+#!/bin/perl
+#************************************************************************
+#*   $Version:$
+#*   Package	: xmt_edit
+#*   Synopsis	: hdr [-m<ext>] [-d] <file_name>
+#*   Purpose	: 
+#*	write to stdout a file header appropriate to the type of file
+#*	specified on the commandline (as determined by the file suffix).
+#*      If the option -m<ext> is given, the specified template is
+#*      used instead of being determined by the filename suffix. The
+#*      environment variable XMTEDIT_HDRPATH may be set to a
+#*      colon-separated  list of additional directories to search for
+#*      files of the form
+#*		hdr.<ext>
+#*      If the option -d is present, further data is read from stdin
+#*      and is passed to a subroutine of the same name as the
+#*      filetype determined.  This subroutine is free to define
+#*      further variables which can be referenced by the  template.
+#*
+#*  Copyright (c) 1998	Neumann & Associates Information Systems Inc.
+#*  			legal.info@neumann-associates.com
+#*  Licensed under the Apache License, Version 2.0 (the "License");
+#*  you may not use this file except in compliance with the License.
+#*  You may obtain a copy of the License at http://www.apache.org/licenses/LICENSE-2.0
+#*  
+#*  Unless required by applicable law or agreed to in writing, software
+#*  distributed under the License is distributed on an "AS IS" BASIS,
+#*  WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+#*  See the License for the specific language governing permissions and
+#*  limitations under the License. 
+#************************************************************************/
+
+use Getopt::Long;
+use Env;
+use Cwd;
+
+($pgmname = $0) =~ s{.*/}{};
+$usage		= "usage: $pgmname [-m<ext>] [-d] <file_name>\n";
+undef $opt_u;	# unnecessary, but it shuts up -w
+
+use Getopt::Long;
+use Cwd;
+use Env;
+use lib ( "$XMTEDIT/bin" );
+use Hdr;
+%kw =	(   'sccs'  => {'rev'		=> "%" . "I" . "%",
+			'id'		=> "%" . "M" . "%",
+			'lcd'		=> "%" . "G" . "%" },
+
+	    'rcs'   => {'rev'		=> "\$" . "Revision" . "\$",
+			'id'		=> "\$" . "Id" . "\$",
+			'lcd'		=> "\$" . "Date" . "\$" },
+
+	    'cvs'   => {'rev'		=> "\$" . "Revision" . "\$",
+			'id'		=> "\$" . "Id" . "\$",
+			'lcd'		=> "\$" . "Date" . "\$" },
+
+	    'svn'   => {'rev'		=> "\$" . "Revision" . "\$",
+			'id'		=> "\$" . "Id" . "\$",
+			'lcd'		=> "\$" . "Date" . "\$" },
+
+	    'git'   => {'rev'		=> "\$" . "Version:" . "\$",
+			'id'		=> "\$" . "CommitId:" . "\$",
+			'lcd'		=> "\$" . "CommitDate:" . "\$",
+			'msg'		=> "\$" . "CommitSubject:" . "\$",
+			'abbrevId'	=> "\$" . "AbbrevId:" . "\$",
+			'branch'	=> "\$" . "Branch:" . "\$",
+			'build'		=> "\$" . "BuildNum:" . "\$",
+			'committer'	=> "\$" . "Committer:" . "\$",
+			'sigStatus'	=> "\$" . "SigStatus:" . "\$",
+			'signer'	=> "\$" . "Signer:" . "\$",
+			'tag'		=> "\$" . "Tag:" . "\$" }
+	);
+
+($pgmname = $0) =~ s{.*/}{};
+$usage		= "usage: $pgmname [-m<ext>] [-d] <file_name>\n";
+
+Getopt::Long::config( "bundling_override" );
+GetOptions("m=s", "d", "u" ) || die $usage;
+die "$usage" if defined $opt_u;
+
+
+#************************************************************************
+#  initialize variables accessible by templates
+#************************************************************************
+$ARGV[0] =~ tr :\\:/:;
+@dirs = (split '/',  getcwd() . '/' . $ARGV[0] );
+$filename = $dirs[-1];
+$module->{pkg} = $dirs[-3];
+($module->{name}, $suffix) = (split /\./, $filename);
+($filename_ = $filename) =~ tr/\./_/;
+
+$date	= `date +%y\\/%m\\/%d`; chomp( $date );
+($x[0],$x[1],$x[2],$x[3],$x[4],$author,@x) = getpwnam($USER);
+$cmpkg  = $ENV{XMTCM_PKG};
+$cm = {};
+$cm->{id}	= (exists $kw{$cmpkg} ? $kw{$cmpkg}{'id'} : "");
+$cm->{rev}	= (exists $kw{$cmpkg} ? $kw{$cmpkg}{'rev'} : "");
+$cm->{lcd}	= (exists $kw{$cmpkg} ? $kw{$cmpkg}{'lcd'} : "");
+$dflt_ext	= $XMTEDIT_DFLT_SRC if defined $XMTEDIT_DFLT_SRC;
+$copyright_fn	= ( defined $XMTEDIT_COPYRIGHT	? "$XMTEDIT_COPYRIGHT"
+		: "$XMTEDIT/proto/dflt_copyright" );
+
+open( TMP, "<$copyright_fn" ) || die( "$copyright_fn: $!" );
+undef $/;
+$copyright = <TMP>;
+close( TMP ) || die ( "TMP: $!" );
+$/ = "\n";
+
+#************************************************************************
+#  generate a list of available templates
+#************************************************************************
+$m .= " ".join( ' ', glob( "$XMTEDIT/proto/hdr/hdr.*" )); 
+$m =~ s/([^\s]*hdr\.)([^\s]*)/$2 $1$2/g;
+%known_hdrs	= split(' ', $m );
+
+#************************************************************************
+# attempt to match a hdr template with:
+#  a) the template explicitly specified on the commandline, 
+#  b) the suffix of the filename specified on the commandline,
+#  c) the template specified in $dflt_ext
+#************************************************************************
+$tmpl = ( defined( $opt_m ) ? $opt_m  : "" );
+foreach $f ( $tmpl, $filename, $suffix, $dflt_ext )
+{
+    if ( exists $known_hdrs{ $f } )
+    {
+	$ext = $f;
+	$tmpl = $known_hdrs{$f};
+	last;
+    }
+}
+
+#************************************************************************
+#  If we have a subroutine named &<ext> defined, invoke it.
+#************************************************************************
+if ( defined $ext && defined $opt_d )
+{
+    undef $/;
+    while ( <STDIN> )
+    {
+	$stdin .= $_;
+    }
+
+    ($subname = "Hdr::hdr_$ext") =~ s/\./_/go;
+    if ( defined &$subname ) 
+    {
+	&$subname( $stdin );
+    }
+}
+
+#************************************************************************
+#  Read template & eval it.
+#************************************************************************
+if ( defined $ext && defined $tmpl )
+{
+    open( TMPL, "<$tmpl" ) || die( "$tmpl: $!" );
+    undef $/;
+    while ( <TMPL> )
+    {
+	$buf .= $_;
+    }
+    close( TMPL ) || die ( "TMPL: $!" );
+    eval $buf;
+}
+
+exit 0;

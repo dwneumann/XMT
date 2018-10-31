@@ -1,0 +1,3 @@
+*.as	binary
+*.so	binary
+*	filter=kw_expand

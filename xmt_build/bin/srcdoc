@@ -1,0 +1,51 @@
+#!/bin/perl -w
+#************************************************************************
+#*   $Version:$
+#*   Package	: xmt_build
+#*   Synopsis	: srcdoc [-o <outfile>] [-t <lang>] <file>
+#*   Purpose	: generates HTML formatted documentation from the specified
+#*		  input file <file>.  If the source code language is not 
+#*		  specified via [-t <lang>], it will be determined from the
+#*		  file suffix of the specified input file.  Output is
+#*		  written to stdout unless an output file is specified via
+#*		  [-o <outfile>].
+#*
+#*  Copyright (c) 1998	Neumann & Associates Information Systems Inc.
+#*  			legal.info@neumann-associates.com
+#*  Licensed under the Apache License, Version 2.0 (the "License");
+#*  you may not use this file except in compliance with the License.
+#*  You may obtain a copy of the License at http://www.apache.org/licenses/LICENSE-2.0
+#*  
+#*  Unless required by applicable law or agreed to in writing, software
+#*  distributed under the License is distributed on an "AS IS" BASIS,
+#*  WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+#*  See the License for the specific language governing permissions and
+#*  limitations under the License. 
+#************************************************************************/
+
+use Getopt::Long;
+use Env;
+use IPC::Open2;
+
+($pgmname = $0) =~ s{.*/}{};
+$usage		= "usage: $pgmname [-o <outfile>] [-t <lang>] <file>\n";
+GetOptions("o=s", "t=s" ) || die $usage;
+
+($lang = $ARGV[0]) =~ s/.*\.([^\.]*)/$1/o;
+$opt_t	= ( defined $opt_t ? "-t $opt_t" : "$lang.doc" );
+open( INFILE, "<$ARGV[0]" )	|| die "$ARGV[0]: $!\n";
+*OUTFILE = *STDOUT;
+if ( defined $opt_o )
+{
+    open( OUTFILE, ">$opt_o" )	|| die "$opt_o: $!\n";
+}
+open2( \*RDR, \*WTR, "docgen $opt_t $ARGV[0]" );
+
+undef $/;
+$buf = <INFILE>;
+print WTR $buf;
+close WTR;
+$buf = <RDR>;
+close RDR;
+
+print OUTFILE $buf;

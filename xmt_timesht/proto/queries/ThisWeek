@@ -1,0 +1,3 @@
+SELECT * FROM ActiveTimesheets 
+WHERE age('now', start_date) > timespan('7 days'::reltime)
+ORDER by wbs, start_date;

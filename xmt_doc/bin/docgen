@@ -1,0 +1,68 @@
+#!/bin/perl 
+#************************************************************************
+#*   $Version:$
+#*   Package	: xmt_doc
+#*   Synopsis	: docgen [<xformspec>] [-u] [<file>]
+#*   Purpose	: 
+#*      Transform a document of one type into a document of another
+#*      type according to the specified <xformspec>, reading the
+#*      source document from stdin, and writing the target document
+#*      to stdout.
+#*	<xformtype> is a mime-type specification of the form
+#*		application/x-xmt-<srcclass>-<tgtclass>
+#*      Both <srcclass> and <tgtclass> are fully qualified Perl class
+#*      names of the form Class::Subclass::SubSubClass... specifying
+#*      the class to be invoked to parse the source document and
+#*      generate the target document type.  Each class may exist in
+#*      any of the directories in Perl's standard library search
+#*      path, or  The environment variable XMTDOC_CLASSPATH may be
+#*      set to a colon-separated  list of additional directories to
+#*      search.
+#*
+#*  Copyright (c) 1998	Neumann & Associates Information Systems Inc.
+#*  			legal.info@neumann-associates.com
+#*  Licensed under the Apache License, Version 2.0 (the "License");
+#*  you may not use this file except in compliance with the License.
+#*  You may obtain a copy of the License at http://www.apache.org/licenses/LICENSE-2.0
+#*  
+#*  Unless required by applicable law or agreed to in writing, software
+#*  distributed under the License is distributed on an "AS IS" BASIS,
+#*  WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+#*  See the License for the specific language governing permissions and
+#*  limitations under the License. 
+#************************************************************************/
+
+use Getopt::Long;
+use Cwd;
+use Env qw{ XMTDOC XMTDOC_CLASSPATH };
+use lib ( "$XMTDOC/proto" );
+use lib ( qw{ split /:/, $XMTDOC_CLASSPATH } );
+require Xmtdoc::FileSpec;
+
+($pgmname = $0) =~ s{.*/}{};
+$usage		= "usage: $pgmname [<xformspec>] [-u] [<file>]\n";
+Getopt::Long::config( "bundling_override" );
+GetOptions( "u" ) || die $usage;
+die "$usage" if defined $opt_u;
+die $usage if $#ARGV < 0;
+die $usage if ( $ARGV[0] !~ /(application\/)?(x-xmt-)?([^-]*)-([^-]*$)/ );
+$src_class = $3;
+$tgt_class = $4;
+shift @ARGV;
+
+#************************************************************************
+# read src doc from stdin, 
+# invoke the FileSpec class' input method,
+# then invoke the specified source class' input method, 
+# and the specified target class output method.
+#************************************************************************
+undef $/;
+$srcbuf = <STDIN>;
+die "$src_class input method not found" if !defined &{$src_class::input};
+die "$tgt_class output method not found" if !defined &{$tgt_class::output};
+Xmtdoc::parse( 'Xmtdoc::FileSpec', $ARGV[-1] )			|| die;
+Xmtdoc::parse( $src_class, $srcbuf )				|| die;
+$tgtbuf = Xmtdoc::print( $tgt_class, $Xmtdoc::srcinfo )		|| die;
+print $tgtbuf;
+
+exit 0;

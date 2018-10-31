@@ -20,9 +20,10 @@
 #
 #   Synopsis	: git_kw [<options>] [file]
 #   	  --help	print help message & exit.
-#         --expand=[branchspec]     only if in a branch matching regex pattern <branchspec>, 
+#	  --expand=[branchspec]     only if in a branch matching regex pattern <branchspec>, 
 #                       expand (i.e. smudge) all keywords of the form \$Keyword:\$ 
 #                       found in stdin and write substituted data stream to stdout.
+#                       (e.g.  git_kw --expand="release|test" )
 #	  --unexpand	unexpand (i.e. clean) all keyword values found in stdin, 
 #			and write cleaned data stream to stdout.
 #   	  --list	print expanded keyword values to stdout; do no substitution.
@@ -70,6 +71,7 @@ $pgmname [<options>] [file]
   --expand=[branchspec]     only if in a branch matching regex pattern <branchspec>, 
                 expand (i.e. smudge) all keywords of the form \$Keyword:\$ found in stdin 
 		and write substituted data stream to stdout
+                (e.g.  git_kw --expand="release|test" )
   --unexpand    unexpand (i.e. clean) all keyword values found in stdin, 
                 and write cleaned data stream to stdout
   --list       print all recognized keyword values to stdout

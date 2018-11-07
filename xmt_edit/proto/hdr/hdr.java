@@ -20,7 +20,7 @@
 #************************************************************************
 
 $copyright  =~ s/\n*$//;
-$copyright  =~ s/\n/\n*   /g; 
+$copyright  =~ s/\n/\n *   /g; 
 ($pkgname   = $module->{pkg}) =~ s{/}{.}g;
 $classname  = $module->{name};
 

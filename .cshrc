@@ -42,7 +42,7 @@ if ( $?prompt ) then
     #********************************************************************
     # remove duplicate entries from PATH & MANPATH
     #********************************************************************
-    #setenv  PATH    `echo $PATH |  modenv`; 
+    setenv  PATH    `echo $PATH | modenv -s`; 
     #setenv  MANPATH `echo $MANPATH | modenv` 
 endif
 

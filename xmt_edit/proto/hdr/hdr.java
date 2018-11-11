@@ -25,18 +25,20 @@ $copyright  =~ s/\n/\n *   /g;
 $classname  = $module->{name};
 
 print qq{/**
- * Package:	$pkgname
- * Class:	${classname}
- * \@version	$cm->{rev}
  * $copyright
- *
- * Purpose:
  */
 
 package $pkgname;
 
-//imports ...
-
+/**
+ * The ${classname} class defines [short description].
+ * <p>
+ * Package:	$pkgname
+ * Class:	${classname}
+ * \@version	$cm->{rev}
+ * [full description]
+ * <p>
+ */
 public	class		${classname}
 	//extends	<superclass>
 	//implements	<Interfaces>
@@ -47,11 +49,11 @@ public	class		${classname}
     public	$classname() { }
     protected	void finalize() { }
 
-    // public    class \& instance methods ...
+    // public    class \& instance methods here ...
 
-    // protected class \& instance methods ...
+    // protected class \& instance methods here ...
 
-    // private   class \& instance methods ...
+    // private   class \& instance methods here ...
 
 }
 };

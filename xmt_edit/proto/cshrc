@@ -18,11 +18,9 @@
 #************************************************************************
 
 setenv XMTEDIT		"$XMT/xmt_edit"
-
-setenv XMTEDIT_COPYRIGHT	$XMTEDIT/proto/dflt_copyright
 setenv PATH		"$XMTEDIT/bin:${PATH}"
 setenv EDITOR 		gvim
 setenv VISUAL		"$EDITOR"
 setenv XEDITOR		"$EDITOR"
-alias  vi		"$VISUAL"
+#setenv XMTEDIT_COPYRIGHT	$PROJECT/.copyright	# set appropriately
 

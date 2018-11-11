@@ -19,7 +19,7 @@
 
 setenv XMTEDIT		"$XMT/xmt_edit"
 
-setenv XMT_COPYRIGHT	$XMT/.copyright
+setenv XMTEDIT_COPYRIGHT	$XMTEDIT/proto/dflt_copyright
 setenv PATH		"$XMTEDIT/bin:${PATH}"
 setenv EDITOR 		gvim
 setenv VISUAL		"$EDITOR"

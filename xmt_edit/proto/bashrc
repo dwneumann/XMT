@@ -19,7 +19,7 @@
 
 export XMTEDIT="${XMT}/xmt_edit"
 
-export XMT_COPYRIGHT="${XMT}/.copyright"
+export XMTEDIT_COPYRIGHT="${XMTEDIT}/proto/dflt_copyright"
 export PATH="${XMTEDIT}/bin:${PATH}"
 export EDITOR=gvim
 export VISUAL="$EDITOR"

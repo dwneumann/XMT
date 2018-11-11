@@ -61,14 +61,14 @@ use Hdr;
 
 	    'git'   => {'rev'		=> "\$" . "Version:" . "\$",
 			'id'		=> "\$" . "CommitId:" . "\$",
+			'abbrevId'	=> "\$" . "AbbrevId:" . "\$",
 			'lcd'		=> "\$" . "CommitDate:" . "\$",
 			'msg'		=> "\$" . "CommitSubject:" . "\$",
-			'abbrevId'	=> "\$" . "AbbrevId:" . "\$",
 			'branch'	=> "\$" . "Branch:" . "\$",
 			'build'		=> "\$" . "BuildNum:" . "\$",
 			'committer'	=> "\$" . "Committer:" . "\$",
-			'sigStatus'	=> "\$" . "SigStatus:" . "\$",
 			'signer'	=> "\$" . "Signer:" . "\$",
+			'sigStatus'	=> "\$" . "SigStatus:" . "\$",
 			'tag'		=> "\$" . "Tag:" . "\$" }
 	);
 

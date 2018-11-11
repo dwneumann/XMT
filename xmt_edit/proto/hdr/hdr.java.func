@@ -21,15 +21,17 @@
 
 my $f = $::module->{funcs}[0];
 print qq{
-/************************************************************************
-* <--\t$f->{proto}  -->
-*\t<purpose>
-* 
+/**
+*\t$f->{proto}
+*\t[synopsis]
+*\t<p>
+*\t[purpose]
+*\t<p>
 };
 
 foreach $i ( 0 .. $#{$f->{args}} )
 {
-    print qq{* \@param\t$f->{args}[$i]->{name}\t<description>\n};
+    print qq{* \@param\t$f->{args}[$i]->{name}\t[description]\n};
 }
 print "*\n";
 
@@ -45,7 +47,7 @@ foreach $i ( 0 .. $#{$f->{exceps}} )
 }
 
 print qq{* 
-***********************************************************************/
+*/
 $stdin};
 
 }

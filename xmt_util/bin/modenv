@@ -11,6 +11,7 @@
 #*		[-d  <fld>]	: delete field <fld> (may be repeated)
 #*		[-o  <fld>]	: enforce field ordering as per -o options
 #*		[-fs <str>]	: use <str> as field separator (default ":")
+#*		[-s]		: escape bare spaces in paths
 #*
 #*  Copyright (c) 1998	Neumann & Associates Information Systems Inc.
 #*  			legal.info@neumann-associates.com
@@ -27,10 +28,25 @@
 
 use Getopt::Long;
 
+undef $opt_s;
+undef $opt_help;
+undef $pgmname;
 ($pgmname = $0) =~ s{.*/}{};
-$usage		= "usage: $pgmname [-d <fld>] [-o <fld>] [-fs <str>] \n";
-$opt_fs		= ":";
-GetOptions( "d=s%", "o=s@", "fs=s" ) || die $usage;
+my $usage = <<'__END__';
+usage   : $pgmname [options]
+Modify PATH environment variable read from stdin and print modified string on stdout.
+Duplicate entries are unconditionally removed.
+    options include:
+    [-d  <fld>] : delete field <fld> (may be repeated)
+    [-o  <fld>] : enforce field ordering as per -o options
+    [-fs <str>] : use <str> as field separator (default ":")
+    [-s]        : escape bare spaces in paths
+    [--help]    : print usage
+__END__
+
+$opt_fs = ":";
+GetOptions( "help", "s", "d=s%", "o=s@", "fs=s" ) || die $usage;
+die $usage if defined $opt_help;
 
 while ( <STDIN> )
 {
@@ -40,27 +56,28 @@ while ( <STDIN> )
 
 #************************************************************************
 # put elements of @f into an ordered hash, 
-# keeping only the *first* of duplicates
+# escaping bare spaces and keeping only one of duplicates
 #************************************************************************
 $i=0; 
 foreach $k ( @f )
 {
-    $fields{$k} = $i++ if !exists $fields{$k};
+    $k =~ s/([^\\]) /$1\\ /g	if defined $opt_s;
+    $fields{$k} = $i++	if !exists $fields{$k};
 }
 
 #************************************************************************
 # delete specified fields
 #************************************************************************
-if ( defined %opt_d )
+if ( %opt_d )
 {
     map { delete $fields{$_} } keys %opt_d;
 }
 
 #************************************************************************
-# swap the order of those fields specified by -o flags
+# swap the order of any fields specified by -o flags
 # so they appear in the order specified
 #************************************************************************
-if ( defined @opt_o )
+if ( @opt_o )
 {
     @element_indices = map { $fields{$_} } @opt_o;
     @sorted_element_indices = sort { $a <=> $b } @element_indices;
@@ -68,6 +85,9 @@ if ( defined @opt_o )
     map { $fields{$_}=$sorted_element_indices[$i++] } @opt_o;
 }
 
+#************************************************************************
+# concatenate fields back into one long string and spit it out
+#************************************************************************
 $fields = join( $opt_fs, sort { $fields{$a} <=> $fields{$b} } keys %fields );
 print $fields."\n";
 exit 0;

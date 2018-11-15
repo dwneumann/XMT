@@ -21,7 +21,7 @@
 
 alias gadd	'git add -v --ignore-errors'	# add new or modified file to commit list
 alias gstage	 gadd				# synonym for gadd
-alias gci	'git commit'			# commit staged files 
+alias gci	'git commit --allow-empty'	# commit staged files 
 alias gdiff	'git diff'			# show modified files not yet staged
 alias gdiffs	'git diff --staged'		# show files staged for next commit
 alias gclone	'git clone \!*'			# clone named remote repo

@@ -3,6 +3,7 @@
 #*   $Version:$
 #*   Package	: xmt_util
 #*   Synopsis	: slocs [-v] [-csv] [-f <filespec>] <dir> ...
+#*		 e.g.  slocs -f '*.java' src/
 #*   Purpose	: 
 #*	Perform source code metrics counts on all files matching the 
 #*	pattern <filespec> in each directory <dir> and all subdirectories 
@@ -31,35 +32,40 @@ $usage		= "usage: $pgmname [-v] [-csv] [-f 'file pattern'] <dir>\n";
 undef $opt_u; # unnecessary but shuts up -w
 undef $opt_v; # unnecessary but shuts up -w
 undef $opt_csv; # unnecessary but shuts up -w
-$opt_f		= '*.[ch]';
+$opt_f	= '*.[ch]';
 
 GetOptions( "u", "v", "csv", "f=s" ) || die $usage;
 die $usage if defined $opt_u;
 die $usage if $#ARGV < 0;
+STDOUT->autoflush(1);
 
-$cmd = ( defined $opt_csv ? "sloc -csv" : "sloc" );
+my $cmd = ( defined $opt_csv ? "sloc -csv" : "sloc" );
+my $field_separator = ( defined $opt_csv ? "," : ":\n" );
+my $csv_headings = 'File,' . `sloc < /dev/null`;
+$csv_headings =~ s/:[^\n]*\n/,/sg;
+$csv_headings =~ s/,\n//;
 
 @dirs = @ARGV;		# initial directory list
 while ( $#dirs >= 0 )
 {
-    $d = $dirs[0];
+    my $d = $dirs[0];
     @dirents = glob( "$d/*" );
     foreach $f ( @dirents )
     {
 	push( @dirs, $f ) if ( -d $f && $f !~ /^\.+$/ );# append subdirs
     }
-    printf( STDERR "scanning $d\n" ) if defined $opt_v;
     push( @srcs, glob("$d/$opt_f") );# append matching filenames to @srcs
     shift @dirs;
 }
 
 exit 0 if ($#srcs < 0);
 open( CMD, "|$cmd" ) or die("$cmd: $!\n");	# spawn sloc cmd
+print STDOUT "$csv_headings\n" if (defined $opt_csv);
 foreach $f ( @srcs )
 {
     if ( -T $f )
     {
-	printf( STDERR "$f :\n" ) if defined $opt_v;
+	printf( STDOUT "$f%s", $field_separator) if defined $opt_v;
 	open(BUF, $f) || warn("$f: $!\n");
 	undef $/;
 	$buf = <BUF>;			# read src file
@@ -72,10 +78,6 @@ foreach $f ( @srcs )
 	    close(CMD);
 	    open( CMD, "|$cmd" ) or die("$cmd: $!\n");	# spawn sloc cmd
 	}
-    }
-    else
-    {
-        printf( STDERR "ignoring binary file $f\n" );
     }
 }
 

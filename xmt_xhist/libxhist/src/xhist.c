@@ -64,11 +64,31 @@ static const char xhist_c_id[] = "@(#) xhist::xhist.c	$Version:$";
 #define BACKOUT_IF(ex, msg)	\
 	if (ex) { fprintf(stderr, "%s\n", msg); goto backout; }
 
-XH_REC	xhist_tbl[ XHIST_SIZE ]	= {{ NULL, 0 }};
+long	xhist_tbl[ XHIST_SIZE ]		= {0};
 int		xhist_tail		= 0;
 int		xhist_logfd		= -1;
 
-extern void	xhist_write();
+/************************************************************************
+*   Synopsis:
+*	void	xhist_add(short filenum, short linenum)
+*
+*   Purpose:
+*	Appends {filenum, linenum} to execution history log.
+*	This is the function call equivalent to the _XHIST macro.
+* 
+*   Parameters: 
+*	short	filenum	: index of filename in filemap
+*	short	linenum	: line number in source file
+* 
+*   Values Returned: 
+*	none	 
+* 
+***********************************************************************/
+void	xhist_add( short filenum, short linenum)
+{
+    xhist_tbl[xhist_tail] = ((filenum << 16) | linenum);
+    xhist_tail = ++xhist_tail % XHIST_SIZE;
+}
 
 
 /************************************************************************
@@ -108,8 +128,7 @@ void	xhist_logdev(int fd)
 ***********************************************************************/
 void	xhist_write()
 {
-    char	tmpbuf[XHIST_PATHLEN];
-    int		i;
+    short		i;
 
 
     BACKOUT_IF( xhist_logfd < 0, "invalid log device" );
@@ -120,8 +139,7 @@ void	xhist_write()
      */
 
     i = sizeof(int);
-    BACKOUT_IF( write( xhist_logfd, (char *) &i, sizeof( int ) ) 
-    		< sizeof( int ), strerror(errno) );
+    BACKOUT_IF( write( xhist_logfd, (char *) &i, sizeof(i) ) < sizeof(i), strerror(errno) );
 
 
     /*
@@ -136,32 +154,11 @@ void	xhist_write()
      *  now write XHIST_SIZE entries from the table to the log device
      */
     
-   for ( i = 0; i < XHIST_SIZE; ++i )
-   {
-      if (xhist_tbl[i].xh_file != NULL)
-      {
-         strncpy(tmpbuf, xhist_tbl[i].xh_file, sizeof(tmpbuf)-1 );
-         BACKOUT_IF( write( xhist_logfd, tmpbuf, sizeof( tmpbuf ) ) 
-                     < sizeof( tmpbuf ),
-                     strerror(errno) );
-         BACKOUT_IF( write( xhist_logfd, (char *) &xhist_tbl[i].xh_line, 
-                     sizeof( xhist_tbl[i].xh_line ) ) < 
-                     sizeof( xhist_tbl[i].xh_line ),
-                     strerror(errno) );
-      }
-      else
-      {
-         strcpy(tmpbuf, " " );
-         xhist_tbl[i].xh_line = 0;
-         BACKOUT_IF( write( xhist_logfd, tmpbuf, sizeof( tmpbuf ) ) 
-                     < sizeof( tmpbuf ),
-                     strerror(errno) );
-         BACKOUT_IF( write( xhist_logfd, (char *) &xhist_tbl[i].xh_line, 
-                     sizeof( xhist_tbl[i].xh_line ) ) < 
-                     sizeof( xhist_tbl[i].xh_line ),
-                     strerror(errno) );
-      }
-   }
+    for ( i = 0; i < XHIST_SIZE; ++i )
+    {
+	BACKOUT_IF( write( xhist_logfd, (char *) &xhist_tbl[i], 
+		    sizeof( xhist_tbl[i] ) ) < sizeof( xhist_tbl[i] ), strerror(errno) );
+    }
 
 backout:
     close(xhist_logfd);

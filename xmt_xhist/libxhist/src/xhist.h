@@ -28,8 +28,8 @@ extern short	xhist_tail;
 
 /* the functions of libxhist are not declared here,
  * because we do not want to force the IUT to link with libxhist.
- * Linking the IUT with libxhist is optional, and is used only if exporting
- * the circular buffer to a file descriptor during program exeecution.
+ * Linking the IUT with libxhist is necessary only if exporting
+ * the circular buffer to a file descriptor during program execution.
 extern  void	xhist_logdev(int fd);
 extern  void	xhist_write();
 */

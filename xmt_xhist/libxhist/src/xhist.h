@@ -15,24 +15,16 @@
 static const char xhist_h_id[] = "@(#) xhist::xhist.h	$Version:$";
 #endif
 
-#define XHIST_SIZE		500	/* number of stmts to store in tbl */
-#define XHIST_PATHLEN		32	/* fixed field length to write to log*/
-#define XHIST_LOGFILE		"xhist.dat" /* default log file name */
-#define _XH					\
-{						\
-    xhist_tbl[xhist_tail].xh_file = __FILE__;	\
-    xhist_tbl[xhist_tail].xh_line = __LINE__;	\
-    xhist_tail = ++xhist_tail % XHIST_SIZE;			\
+#define XHIST_SIZE		1000		/* number of stmts to store in tbl */
+#define XHIST_LOGFILE		"xhist.dat" 	/* default log file name */
+#define _XHIST(filenum, linenum)			\
+{							\
+    xhist_tbl[xhist_tail] = ((filenum << 16) | linenum);\
+    xhist_tail = ++xhist_tail % XHIST_SIZE;		\
 }
 
-typedef struct xhist
-{
-    char*	xh_file;	/* ptr to static string containing filename */
-    short	xh_line;	/* max 65000 lines per file :-)	*/
-} XH_REC;
-
-extern XH_REC	xhist_tbl[ XHIST_SIZE ];
-extern int	xhist_tail;
+extern long	xhist_tbl[ XHIST_SIZE ];
+extern short	xhist_tail;
 
 /* the functions of libxhist are not declared here,
  * because we do not want to force the IUT to link with libxhist.

@@ -124,9 +124,19 @@ $kw{'Branch'}{val}	= `git symbolic-ref --short -q HEAD`;
 $kw{'Branch'}{val}	= 'detached' if $? != 0;
 chomp $kw{'Branch'}{val};
 
-my ($k, $unused);
-( $kw{'Tag'}{val}, $kw{'BuildNum'}{val}, $unused ) = split('-', `git describe --long`);
+my ($k, $s);
+$s = `git describe --always --long`;
 die "git describe failed \n" if $? != 0;
+if ($s =~ m/(.*?)-(.*?)-(.*?)/) 	
+{
+    $kw{'Tag'}{val}	= $1;
+    $kw{'BuildNum'}{val}= $2;
+}
+else
+{
+    $kw{'Tag'}{val}	= 'notag';
+    $kw{'BuildNum'}{val}= '0';
+}
 
 foreach $k (keys %kw)
 {
@@ -320,8 +330,8 @@ sub process_main
 		$output = "";
 	    }
 	}
-	packet_flush();    # flush content!
-	packet_flush();    # empty list, keep "status=success" unchanged!
+	packet_flush();    # flush content
+	packet_flush();    # empty list, keep "status=success" unchanged
     }
 }
 

@@ -1,3 +1,4 @@
 *.as	binary
 *.so	binary
+* 	text=auto eol=lf
 *	filter=kw_expand

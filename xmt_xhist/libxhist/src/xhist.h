@@ -15,24 +15,25 @@
 static const char xhist_h_id[] = "@(#) xhist::xhist.h	$Version:$";
 #endif
 
-#define XHIST_SIZE		1000		/* number of stmts to store in tbl */
+#define XHIST_TBLSIZE		1000		/* number of stmts to store in tbl */
+#define XHIST_MAPFNLENGTH	64		/* length of string storing map filename */
+#define XHIST_VERSIONLENGTH	64		/* length of string storing build version */
 #define XHIST_LOGFILE		"xhist.dat" 	/* default log file name */
-#define _XHIST(filenum, linenum)			\
-{							\
-    xhist_tbl[xhist_tail] = ((filenum << 16) | linenum);\
-    xhist_tail = ++xhist_tail % XHIST_SIZE;		\
+#define _XH_ADD(filenum, linenum)		/* inline version of xhist_add() */	\
+{											\
+    xhist_tbl[xhist_tail] = (((unsigned short) filenum << 16) | (unsigned short) linenum);\
+    xhist_tail = (unsigned short) ((xhist_tail+1) % XHIST_TBLSIZE);			\
 }
 
-extern long	xhist_tbl[ XHIST_SIZE ];
-extern short	xhist_tail;
+extern unsigned long	xhist_tbl[ XHIST_TBLSIZE ];
+extern unsigned long	xhist_tail;
+extern char		xhist_mapfn[ XHIST_MAPFNLENGTH ];	/* filemap filename */
+extern char		xhist_buildtag[ XHIST_VERSIONLENGTH ];	/* callers version string */
 
-/* the functions of libxhist are not declared here,
- * because we do not want to force the IUT to link with libxhist.
- * Linking the IUT with libxhist is necessary only if exporting
- * the circular buffer to a file descriptor during program execution.
 extern  void	xhist_logdev(int fd);
+extern  void	xhist_mapfile(char *s);		/* store filename of mapfile to decode tbl */
+extern  void	xhist_version(char *s);		/* store version tag of instrumented source */
 extern  void	xhist_write();
-*/
 
 #endif /* __xhist_h	*/
 

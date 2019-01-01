@@ -73,8 +73,6 @@ static const char xhist_report_c_id[] = "@(#) $Version:$";
 #define BACKOUT_IF(ex, msg)	\
 	if (ex) { fprintf(stderr, "%s\n", msg); goto backout; }
 
-XH_REC	xhist_tbl[ XHIST_SIZE ]	= {{ NULL, 0 }};
-int		xhist_tail		= 0;
 
 
 /************************************************************************
@@ -98,96 +96,99 @@ int		xhist_tail		= 0;
 ***********************************************************************/
 int	main( int argc, char* argv[] )
 {
+    long	*xhist_tbl	= NULL;
+    long	tbl_len	= 0;
+    long	xhist_tail		= 0;
     int		rc	= EXIT_FATAL;
-    int		fd	= -1;
-    char*	fn	= NULL;
-    char	tmpbuf[XHIST_PATHLEN];
-    int		intsize_written;
+    int		logfd	= -1;
+    int		mapfd	= -1;
+    char*	logfn	= NULL;
+    char*	mapfn	= NULL;
+    long	l;
     int		count, i;
     char	swap	= FALSE;
 
 
-    fn =( argc > 1 ? argv[argc - 1] : XHIST_LOGFILE );
-    BACKOUT_IF( (fd = open( fn, O_RDONLY )) < 0, strerror(errno) );
+    if (argc != 3)
+    {
+	fprintf(stderr, "usage: %s <logfile> <mapfile>\n");
+	exit(EXIT_USAGE);
+    }
+    logfn = argv[1];
+    mapfn = argv[2];
+    BACKOUT_IF( (logfd = open( logfn, O_RDONLY )) < 0, strerror(errno) );
+    BACKOUT_IF( (mapfd = open( mapfn, O_RDONLY )) < 0, strerror(errno) );
 
 
     /*
-     *  read the first sizeof(int) bytes from the file.
-     *  These should be the size of the writers int.
-     *  If We read it as our int size, no byte swapping is necessary.
-     *  If we read it as the byteswapped equivalent of the writers int,
-     *  we byteswap all remaining int fields read from the file.
+     *  read the first sizeof(long) bytes from the file.
+     *  This should be the size of the writers long.
+     *  If it matches our sizeof(long), no byte swapping is necessary.
+     *  If we read it as the byteswapped equivalent of sizeof(long),
+     *  we must byteswap all remaining long fields read from the file.
      *  If we read a value other than one of those two, we error out.
      */
 
-    BACKOUT_IF( read( fd, (char *) &intsize_written, sizeof( int ) ) 
-    		< sizeof( int ), "unrecognized data format" );
-
-    if ( intsize_written != sizeof( int ) )
+    BACKOUT_IF(read(logfd, (char *) &l, sizeof(long)) < sizeof(long), "unknown data format" );
+    if ( l != sizeof( long ) )
     {
-	BACKOUT_IF( BYTESWAP4( intsize_written ) != sizeof( int ),
-			"unrecognized data format" );
+	BACKOUT_IF( BYTESWAP4(l) != sizeof(long), "unknown data format" );
 	swap = TRUE;
     }
 
 
     /*
-     *  now we read the tail index from the logfile and byteswap if appropriate
+     *  now we read the table length & tail index and byteswap if appropriate
      */
 
-    BACKOUT_IF( read( fd, (char *) &xhist_tail, sizeof( xhist_tail ) ) 
-    	< sizeof( xhist_tail ), strerror(errno) );
-
-
-    /*
-     *  now we read XHIST_SIZE entries from the logfile into our xhist array,
-     *  byteswapping line numbers if necessary
-     */
-    
-    for ( i = 0; i < XHIST_SIZE; ++i )
+    BACKOUT_IF(read(logfd, (char *) &tbl_len, sizeof(tbl_len)) 
+	< sizeof(tbl_len), strerror(errno));
+    BACKOUT_IF(read(logfd, (char *) &xhist_tail, sizeof(xhist_tail)) 
+    	< sizeof(xhist_tail), strerror(errno));
+    if ( swap )
     {
-      BACKOUT_IF( read( fd, tmpbuf, sizeof( tmpbuf ) ) < sizeof( tmpbuf ),
-             strerror(errno) );
-      BACKOUT_IF( (xhist_tbl[i].xh_file = strdup(tmpbuf)) == NULL,
-             strerror(ENOMEM) );
-
-      BACKOUT_IF( read( fd, (char *) &xhist_tbl[i].xh_line, 
-             sizeof( xhist_tbl[i].xh_line ) ) < 
-             sizeof( xhist_tbl[i].xh_line ),
-             strerror(errno) );
-
-      if ( swap )
-      {
-          xhist_tbl[i].xh_line = BYTESWAP4( xhist_tbl[i].xh_line );
-      }
+	tbl_len = BYTESWAP4(tbl_len);
+	xhist_tail = BYTESWAP4(xhist_tail);
     }
 
 
     /*
-     *  The last instrunction executed is at xhist_tbl[xhist_tail],
+     *  now we read tbl_len entries from the logfile into our xhist array,
+     *  byteswapping if necessary
+     */
+    
+    BACKOUT_IF((xhist_tbl = (long *) calloc((size_t) tbl_len, sizeof(long))) == NULL);
+    for ( i = 0; i < tbl_len; ++i )
+    {
+	BACKOUT_IF(read(logfd, (char *) &xhist_tbl[i], sizeof(long)) 
+	    < sizeof(long), strerror(errno));
+	if ( swap )
+	{
+	    xhist_tbl[i] = BYTESWAP4( xhist_tbl[i] );
+	}
+    }
+
+    /*
+     *  The last statement executed is at xhist_tbl[xhist_tail],
      *  the previous instruction is at xhist_tail-1, then xhist_tail-2,
-     *  all the way back to 0, then XHIST_SIZE back to xhist_tail+1.
-     *  We want to list the instructions in order from oldest to latest,
-     *  so we start at xhist_tail+1 and wrap around to xhist_tail.
+     *  all the way back to 0, then from tbl_len back to xhist_tail+1.
+     *  We want to list the instructions in the order executed,
+     *  so we start at xhist_tail+1 and wrap around.
      */
 
-	for ( count=0, i = xhist_tail + 1; count < XHIST_SIZE; 
-         ++count, i = (i+1) % XHIST_SIZE )
+    for ( count=0, i = xhist_tail + 1; count < tbl_len; 
+	    ++count, i = (i+1) % tbl_len )
+    {
+	if (xhist_tbl[i] > 0)
 	{
-       if (xhist_tbl[i].xh_line > 0)
-       {
-          printf( "%s:%d\n", xhist_tbl[i].xh_file, xhist_tbl[i].xh_line );
-       }
+	    printf( "%s:%d\n", (xhist_tbl[i] >> 16), (xhist_tbl[i] & 0x00FF) );
 	}
-
+    }
     rc = EXIT_OK;
  
 backout:
     /* free all resources held.  Some OS's don't do this for us */
-    (void) close(fd);
-    for ( i = 0; i < XHIST_SIZE; ++i )
-    {
-        FREE( xhist_tbl[i].xh_file );
-    }
-    return( rc );
+    (void) close(logfd);
+    FREE(xhist_tbl);
+    return(rc);
 }

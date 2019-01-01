@@ -64,7 +64,7 @@
 #  limitations under the License. 
 #************************************************************************
 
-BEGIN {push @INC, "$ENV{XMT}/xmt_xhist/xhist_instrument/src"}
+BEGIN {push @INC, "$ENV{XMTXHIST}/bin"}
 use Getopt::Long;
 use Path::Tiny qw(path);
 use XMT::Xhist;

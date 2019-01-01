@@ -19,6 +19,7 @@
 
 package XMT::Xhist;
 use Carp;
+use Digest::CRC qw(crc16);
 
 sub version 
 {
@@ -48,8 +49,9 @@ sub new
 
     $self->{fname}	= $f  if defined($f);
     ($self->{fext}	= $self->{fname}) =~ s/.*\.([^\.]*)/$1/;
-    $self->{fnum}	= (keys %filemap) + 1;	# determine next filenum
-    $filemap{$self->{fname}} = $self->{fnum};	# add name & num to filemap
+    $self->{fnum}	= crc16($self->{fname});	# calculate hash of fname
+    $self->{fnum}++	while ( $self->{fnum} ~~ [values %filemap] ); # handle collisions
+    $filemap{$self->{fname}} = $self->{fnum};	# add name & hash to filemap
     $self->{lnum}	= 0;
     $self->{buf}	= $$bufp;
     bless $self;
@@ -69,14 +71,15 @@ sub DESTROY { }
 
 #************************************************************************
 # class method printmap($f) writes filemap to specified file.
+# If file already exists it is appended to.
 #************************************************************************
 sub printmap
 {
     my $f = shift;
-    open(my $FH, ">", $f) or die "$f: $!\n";
+    open(my $FH, ">>", $f) or die "$f: $!\n";
     foreach (sort keys %filemap) 
     {
-	print $FH "$_\t= $filemap{$_}";
+	print $FH "$_\t= $filemap{$_}\n";
     }
 }
 
@@ -109,7 +112,7 @@ sub instrument_c
     local $xh_debug_false	= qr(/\*\s+xhist\s+debug\s+FALSE\s*\*\/)	;
     local $xh_instrument_true	= qr(/\*\s+xhist\s+instrument\s+TRUE\s*\*\/)	;
     local $xh_instrument_false	= qr(/\*\s+xhist\s+instrument\s+FALSE\s*\*\/)	;
-    local $trace_stmt		= '	_XHIST( FNUM, LNUM );'			; 
+    local $trace_stmt		= '	_XH_ADD( FNUM, LNUM );'			; 
 
     $self->{buf} = <<__END__ . $self->{buf};
 #ifdef XHIST
@@ -171,40 +174,40 @@ sub _instrument
 	# "xhist debug TRUE" inside a comment enables tracing 
 	if ( m:${xh_debug_true}: )
 	{
-	    $xh_debug = TRUE;
+	    $xh_debug = 1;
 	    $self->{buf} .= "$_\t/*<DEBUG ON>*/\n";
 	}
 
 	# "xhist debug FALSE" inside a comment disables tracing 
 	elsif ( m:${xh_debug_false}: )
 	{
-	    $xh_debug = FALSE;
+	    $xh_debug = 0;
 	    $self->{buf} .= "$_\t/*<DEBUG OFF>*/\n";
 	}
 
 	# "xhist instrument TRUE" inside a comment enables instrumentation
 	elsif ( m:${xh_instrument_true}: )
 	{
-	    $xh_instrument = TRUE;
+	    $xh_instrument = 1;
 	    $self->{buf} .= $_ . ($xh_debug ? "\t/*<INSTRUMENT ON>*/" : '') . "\n";
 	}
 
 	# "xhist instrument FALSE" inside a comment disables instrumentation
 	elsif ( m:${xh_instrument_false}: )
 	{
-	    $xh_instrument = FALSE;
+	    $xh_instrument = 0;
 	    $self->{buf} .= $_ . ($xh_debug ? "\t/*<INSTRUMENT OFF>*/" : '') . "\n";
 	}
 
 	elsif ( m:${func_start}: )
 	{
-	    $in_func = TRUE;
+	    $in_func = 1;
 	    $self->{buf} .= $_ . ($xh_debug ? "\t/*<FUNC START>*/" : '') . "\n";
 	}
 
 	elsif ( m:${func_end}: )
 	{
-	    $in_func = FALSE;
+	    $in_func = 0;
 	    $self->{buf} .= $_ . ($xh_debug ? "\t/*<FUNC END>*/" : '') . "\n";
 	}
 
@@ -240,7 +243,10 @@ sub _instrument
 		$self->{buf} .= $_ . ($xh_debug ? "\t/*<STMT>*/" : '');
 		(my $repl = $trace_stmt) =~ s/FNUM/$self->{fnum}/g;
 		$repl =~ s/LNUM/$self->{lnum}/g;
-		$xh_instrument and eval {$self->{buf} .= $repl};
+		if ($xh_instrument == 1)
+		{
+		    eval {$self->{buf} .= $repl};
+		}
 		$self->{buf} .= "\n";
 	    }
 	    else

@@ -1,0 +1,2 @@
+/usr/bin/gcc @../obj/cygwin/xhist.o.cflags xhist.c 
+/usr/bin/ar @../tgt/cygwin/libxhist.a.arflags ../tgt/cygwin/libxhist.a ../obj/cygwin/xhist.o 	

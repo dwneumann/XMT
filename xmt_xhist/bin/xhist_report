@@ -1,0 +1,110 @@
+#!/bin/perl -w
+#************************************************************************
+#   $Version:$
+#   Package	: xmt_xhist
+#   Purpose	: generate a human-readable report from xhist trace output
+#   Synopsis	: xhist_report [<options>] 
+#   	  --help	print help message & exit.
+#	  --trace=pathspec	execution history trace output
+#	  --map=pathspec	execution history filename map 
+#
+#  Copyright 2018 Visionary Research Inc.   All rights reserved.
+#  			legal@visionary-research.com
+#  Licensed under the Apache License, Version 2.0 (the "License");
+#  you may not use this file except in compliance with the License.
+#  You may obtain a copy of the License at http://www.apache.org/licenses/LICENSE-2.0
+#  
+#  Unless required by applicable law or agreed to in writing, software
+#  distributed under the License is distributed on an "AS IS" BASIS,
+#  WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+#  See the License for the specific language governing permissions and
+#  limitations under the License. 
+#************************************************************************
+
+use Getopt::Long;
+use autodie;
+($pgmname = $0) =~ s{.*/}{};	# rootname of executed script
+
+# construct the help message
+my $help_msg = sprintf( <<__END__ );
+$pgmname [<options>]
+          --help 
+          --trace=<pathspec>	
+          --map=<pathspec>
+__END__
+
+my %opt = ();
+my %filemap = ();
+my ($fh, $mapfile, $srcversion, $numstmts, $tailindex, $intfmt, $bytes, $strlen);
+
+# parse commandline options
+GetOptions( \%opt, "help", "trace=s", "map=s" ) or die $help_msg;
+die "$help_msg" if (!defined $opt{'trace'});
+
+## read the mapfile & populate the filename hash with values
+if (defined $opt{'map'})
+{
+    open $fh, '<', $opt{'map'};
+    while (<$fh>) 
+    {
+	if (/(\S+)\s+=\s+(\S+)\s*$/)
+	{
+	    $filemap{$2} = $1;
+	}
+    }
+    close $fh;
+}
+
+# Read the first 4 bytes from the file to determine byteorder of writer.
+# This should be the size of the writer's 32-bit int (i.e. the number 4).
+# This tells us whether to read MSB first or LSB first for all subsequent data.
+open $fh, '<:raw', $opt{'trace'};
+die "$opt{'trace'}: read error"		unless read( $fh, $bytes, 4) == 4;
+$intfmt = 'x';
+foreach my $i ( qw( N V ) )
+{
+    if (unpack($i, $bytes) == 4)
+    {
+        $intfmt = $i;
+    }
+}
+die "$opt{'trace'}: number format error"	if $intfmt eq 'x';
+
+# now read the table length & index of last statement executed
+die "$opt{'trace'}: read error"		unless read( $fh, $bytes, 2*4) == 2*4;
+($numstmts, $tailindex) = unpack "$intfmt $intfmt", $bytes;
+
+#  read the length & name of the map file created during instrumentation
+die "$opt{'trace'}: read error"		unless read( $fh, $bytes, 4) == 4;
+$strlen = unpack $intfmt, $bytes;
+die "$opt{'trace'}: read error"		unless read( $fh, $bytes, $strlen) == $strlen;
+$mapfile = unpack "a$strlen", $bytes;
+#  read the length & version tag of the instrumented source
+die "$opt{'trace'}: read error"		unless read( $fh, $bytes, 4) == 4;
+$strlen = unpack $intfmt, $bytes;
+die "$opt{'trace'}: read error"		unless read( $fh, $bytes, $strlen) == $strlen;
+$srcversion = unpack "a$strlen", $bytes;
+
+# print some identifying info ...
+printf("execution history of source build %s\n", $srcversion );
+printf("encoded with mapfile %s\n", $mapfile );
+
+# now read the entire execution history log
+die "$opt{'trace'}: read error"	unless read( $fh, $bytes, $numstmts*4) == $numstmts*4;
+push @xhist_tbl, unpack "($intfmt)*", $bytes;
+
+# The last statement executed is at index $tailindex.
+# We want to list the instructions in the order executed,
+# so we start at tailindex+1 and wrap around.
+for (my $i = $tailindex+1; $i != $tailindex; $i++)
+{
+    $filenum = $xhist_tbl[$i] >> 16;
+    $linenum = $xhist_tbl[$i] & 0x00FF;
+    if ($linenum > 0)
+    {
+	printf("%s: %d\n", 
+	    (defined $filemap{$filenum} ? $filemap{$filenum} : "unknown"), $linenum);
+    }
+    $i = -1 if ($i >= $numstmts - 1); # wrap-around so next index is 0
+}
+# we're done.

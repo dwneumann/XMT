@@ -43,9 +43,9 @@ EXE_SFX.c.STM32L4	:= .elf
 # This is the place to define default flags and recipes
 # that are always true for THIS target platform for THIS language.
 #**********************************************************************
-CFLAGS.c.STM32L4 += -Wall -mlittle-endian -mthumb -mcpu=cortex-m4 	\
-	-mthumb-interwork -mfloat-abi=hard -mfpu=fpv4-sp-d16		\
-	-fdata-sections -ffunction-sections 				\
+CFLAGS.c.STM32L4 += -Wall -Wno-unused-const-variable -mlittle-endian -mthumb	\
+	-mcpu=cortex-m4 -mthumb-interwork -mfloat-abi=hard -mfpu=fpv4-sp-d16	\
+	-fdata-sections -ffunction-sections 					\
 	-DUSE_HAL_DRIVER -DSTM32L476xx -DARM_MATH_CM4 -D__FPU_PRESENT=1 	
 
 LDFLAGS.c.STM32L4	+= $(CFLAGS.c.STM32L4) -Wl,-Map=$(TGTDIR)/$(PKG_NM).map \

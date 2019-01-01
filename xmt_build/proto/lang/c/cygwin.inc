@@ -27,32 +27,23 @@
 #**********************************************************************
 # define program paths...
 #**********************************************************************
-GNUROOT			:= arm-none-eabi
-COMPILE.c.STM32F4	:= $(GNUROOT)-gcc
-LD.c.STM32F4		:= $(GNUROOT)-gcc
-AR.c.STM32F4		:= $(GNUROOT)-ar
-DOC.c.STM32F4		:= $(XMTBUILD)/bin/srcdoc 
-LINT.c.STM32F4		:= echo lint not installed
-OBJCOPY.c.STM32F4	:= $(GNUROOT)-objcopy
-LIB_PFX.c.STM32F4	:= lib
-LIB_SFX.c.STM32F4	:= .a
-EXE_PFX.c.STM32F4	:= 
-EXE_SFX.c.STM32F4	:= .elf
+COMPILE.c.cygwin	:= /usr/bin/gcc
+LD.c.cygwin		:= /usr/bin/gcc
+AR.c.cygwin		:= /usr/bin/ar
+DOC.c.cygwin		:= $(XMTBUILD)/bin/srcdoc 
+LINT.c.cygwin		:= echo lint not installed
+LIB_PFX.c.cygwin	:= lib
+LIB_SFX.c.cygwin	:= .a
+EXE_PFX.c.cygwin	:= 
+EXE_SFX.c.cygwin	:= 
 
 #**********************************************************************
-# This is the place to define default flags and recipes
-# that are specific to THIS target platform for THIS language.
+# This is the place to define default flags that are specific to THIS 
+# platform and THIS language.
 #**********************************************************************
-CFLAGS.c.STM32F4 += -Wall -Wno-unused-const-variable -mlittle-endian -mthumb \
-		 -mcpu=cortex-m4 -mthumb-interwork -mfloat-abi=hard -mfpu=fpv4-sp-d16 	
+CFLAGS.c.cygwin += -Wall -Wno-unused-const-variable
+LDFLAGS.c.cygwin	+= $(CFLAGS.c.cygwin) 
+ARFLAGS.c.cygwin	+= -r
+LINTFLAGS.c.cygwin	+= $(CFLAGS.c.cygwin)
+DOCFLAGS.c.cygwin	+= 
 
-LDFLAGS.c.STM32F4	+= $(CFLAGS.c.STM32F4) 
-ARFLAGS.c.STM32F4	+= -rscDv
-LINTFLAGS.c.STM32F4	+= $(CFLAGS.c.STM32F4)
-DOCFLAGS.c.STM32F4	+= 
-
-bin: exe
-	$(OBJCOPY.c.STM32F4) -O binary $(TGTDIR)/$(EXE_NM) $(TGTDIR)/$(PKG_NM).bin
-
-hex: exe
-	$(OBJCOPY.c.STM32F4) -O ihex $(TGTDIR)/$(EXE_NM) $(TGTDIR)/$(PKG_NM).hex

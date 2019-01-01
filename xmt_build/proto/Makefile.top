@@ -46,19 +46,19 @@ allsrcs		= $(sort $(foreach e,$(supp_langs),$(srcs.$(e))))
 #**********************************************************************
 MAKE		= make
 MAKEDEPEND	= makedepend
+ARCH		= $(XMTBUILD_DFLT_ARCH)
 SRCDIR		= .
 TESTDIR		= ../test
 DOCDIR		= ../doc
 DATADIR		= ../src
-OBJDIR		= ../obj/$(ARCH)
-TGTDIR		= ../tgt/$(ARCH)
 CMSOURCES	= co -u SVN/*
 CMCLEAN		= svn update -P -d *
 PKG_NM		= $(notdir $(pkg_dir))
 PKG_TGT         = lib
+OBJDIR		= ../obj/$(ARCH)
+TGTDIR		= ../tgt/$(ARCH)
 LIB_NM          = $(LIB_PFX.$(LANGUAGE).$(ARCH))$(PKG_NM)$(LIB_SFX.$(LANGUAGE).$(ARCH))
 EXE_NM          = $(EXE_PFX.$(LANGUAGE).$(ARCH))$(PKG_NM)$(EXE_SFX.$(LANGUAGE).$(ARCH))
-ARCH		= $(XMTBUILD_DFLT_ARCH)
 LANGUAGE	= c
 BUILD_TGT	= all
 .DEFAULT	= build
@@ -79,7 +79,7 @@ DOCFLAGS	=
 # project-level Makefile,
 # package-level ./Makefile.pkg
 #**********************************************************************
--include ./Makefile.pkg
+-include ./Makefile.pkg	
 -include $(PROJECT)/proto/Makefile.top
 -include $(XMTBUILD)/proto/lang/$(LANGUAGE)/generic.inc
 -include $(XMTBUILD)/proto/lang/$(LANGUAGE)/$(ARCH).inc
@@ -112,8 +112,7 @@ objs: $(objs.$(LANGUAGE)) $(EXTRA_OBJS)
 lib:	$(TGTDIR)/$(LIB_NM)
 $(LIB_NM): $(TGTDIR)/$(LIB_NM)
 $(TGTDIR)/$(LIB_NM): $(objs.$(LANGUAGE)) $(EXTRA_OBJS)
-	@echo 	$(AR.$(LANGUAGE).$(ARCH)) $(ARFLAGS) $(ARFLAGS.$(LANGUAGE))	\
-		$(ARFLAGS.$(LANGUAGE).$(ARCH)) > $@.arflags;
+	@echo 	$(ARFLAGS) $(ARFLAGS.$(LANGUAGE)) $(ARFLAGS.$(LANGUAGE).$(ARCH)) > $@.arflags;
 	$(AR.$(LANGUAGE).$(ARCH)) @$@.arflags $@ $^ 	
 
 pgm:	exe

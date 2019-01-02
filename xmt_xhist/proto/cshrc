@@ -17,5 +17,6 @@
 #*  limitations under the License. 
 #************************************************************************
 
-setenv XMTXHIST $XMT/xmt_xhist
+setenv XMTXHIST "$XMT/xmt_xhist"
+setenv PATH	"$XMTXHIST/bin:${PATH}"
 

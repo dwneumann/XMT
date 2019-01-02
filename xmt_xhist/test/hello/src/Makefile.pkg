@@ -20,5 +20,5 @@ LANGUAGE	= c
 ARCH		= cygwin
 BUILD_TGT	= exe
 EXE_NM		= hellofoo
-LIBS		= $(TGTDIR)/libxhist.a 
-CFLAGS		+= -I../src -g -DXHIST
+LIBS		= $(XMT)/xmt_xhist/libxhist/tgt/$(ARCH)/libxhist.a 
+CFLAGS		+= -I$(XMT)/xmt_xhist/libxhist/src -g -DXHIST

@@ -173,10 +173,10 @@ foreach $k (keys %kw)
 $kw{'Version'}{val} = sprintf("%s-%d [%s]",
 			$kw{'Tag'}{val}, $kw{'BuildNum'}{val}, $kw{'Branch'}{val});
 ## construct BuildDate string of the form  "yyyy-mm-dd-hh-mm-ss"
-$kw{'BuildDate'}{val} = strftime( "%Y-%m-%d-%H:%M:%S", localtime );
+$kw{'BuildDate'}{val} = strftime( "%Y-%m-%d.%H:%M", localtime );
 ## construct default name for xhist_map file
-$kw{'XhistMap'}{val} = ( defined $opt{'xhist_map'} ?
-    $opt{'xhist_map'} : "xhist.$kw{'BuildDate'}{val}.map" );
+($kw{'XhistMap'}{val} = ( defined $opt{'xhist_map'} ?
+    $opt{'xhist_map'} : "xhist.$kw{'Tag'}{val}-$kw{'BuildNum'}{val}-$kw{'Branch'}{val}.map" )) =~ s/[ :]/-/g;
 
 ## list keyword values if any were requested
 if (defined $opt{'list'})

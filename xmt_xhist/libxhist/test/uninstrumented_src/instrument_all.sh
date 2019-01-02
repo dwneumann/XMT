@@ -1,3 +1,3 @@
 foreach f (*.c)
-$XMTCM/bin/git_filter --xhist --xhist_map=../hellofoo.map $f > ../$f
+$XMTCM/bin/git_filter --expand --xhist $f > ../$f
 end

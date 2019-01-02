@@ -67,6 +67,7 @@
 BEGIN {push @INC, "$ENV{XMTXHIST}/bin"}
 use Getopt::Long;
 use Path::Tiny qw(path);
+use POSIX qw(strftime);
 use XMT::Xhist;
 
 ($pgmname = $0) =~ s{.*/}{};	# rootname of executed script
@@ -74,7 +75,9 @@ my %kw =  (
 	Branch		=> { code => '',	val => '' },
 	Tag		=> { code => '',	val => '' },
 	BuildNum	=> { code => '',	val => '' },
+	BuildDate	=> { code => '',	val => '' },
 	Version		=> { code => '',	val => '' },
+	XhistMap	=> { code => '',	val => '' },
 	CommitDate	=> { code => '%ci',	val => '' },
 	CommitSubject	=> { code => '%s',	val => '' },
 	Committer	=> { code => '%cn',	val => '' },
@@ -108,7 +111,7 @@ __END__
 
 # parse commandline options
 my %opt = ();
-GetOptions( \%opt, "help", "verbose", "expand=s", "unexpand", "list:s@", "binary", 
+GetOptions( \%opt, "help", "verbose", "branch=s", "expand", "unexpand", "list:s@", "binary", 
 	    "process", "debug", "xhist", "xhist_map=s" ) or die $help_msg;
 
 # exactly one of "expand", "unexpand" or "list" must be present.
@@ -166,12 +169,14 @@ foreach $k (keys %kw)
     ($kw{$k}{val} = `git log -n 1 --format="$kw{$k}{code}"`) =~ s/\n.*//; 
 }
 
-## construct the full version string of the form  
-## "<Tag>-<BuildNum> [<Branch>]"
+## construct Version string of the form  "<Tag>-<BuildNum> [<Branch>]"
 $kw{'Version'}{val} = sprintf("%s-%d [%s]",
-				$kw{'Tag'}{val},
-				$kw{'BuildNum'}{val}, 
-				$kw{'Branch'}{val});
+			$kw{'Tag'}{val}, $kw{'BuildNum'}{val}, $kw{'Branch'}{val});
+## construct BuildDate string of the form  "yyyy-mm-dd-hh-mm-ss"
+$kw{'BuildDate'}{val} = strftime( "%Y-%m-%d-%H:%M:%S", localtime );
+## construct default name for xhist_map file
+$kw{'XhistMap'}{val} = ( defined $opt{'xhist_map'} ?
+    $opt{'xhist_map'} : "xhist.$kw{'BuildDate'}{val}.map" );
 
 ## list keyword values if any were requested
 if (defined $opt{'list'})
@@ -231,7 +236,7 @@ sub standalone_main
 	{
 	     my $xh = XMT::Xhist::new($ARGV[0], \$inbuf);	# instrument $inbuf
 	     $inbuf = $xh->source();
-	     XMT::Xhist::printmap($opt{'xhist_map'}) if defined($opt{'xhist_map'});	
+	     XMT::Xhist::printmap($kw{'XhistMap'}{val});	
 	}
     }
     print STDOUT $inbuf;
@@ -246,7 +251,7 @@ sub kw_expand
     my $k;
 
     # only do keyword expansion if we are in a branch specified for keyword expansion.
-    if ( $kw{'Branch'}{val} =~ /$opt{'expand'}/ )
+    if ( !defined( $opt{'branch'} ) or $kw{'Branch'}{val} =~ /$opt{'branch'}/ )
     {
 	foreach $k ( keys %kw )
 	{
@@ -371,7 +376,7 @@ sub process_main
 	packet_flush();    # flush content
 	packet_flush();    # empty list, keep "status=success" unchanged
     }
-    XMT::Xhist::printmap($opt{'xhist_map'}) if defined($opt{'xhist_map'});	
+    XMT::Xhist::printmap($kw{'XhistMap'}{val});	
 }
 
 sub packet_read 

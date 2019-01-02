@@ -47,7 +47,7 @@ int main(int argc, char *argv[])
 	exit(1);
     }
     xhist_logdev(fd);
-    xhist_mapfile(argv[argc-1]);
+    xhist_mapfile("$XhistMap:$");
     xhist_version("$Version:$");
     signal(SIGUSR1, xhist_write);
 /* xhist instrument TRUE */

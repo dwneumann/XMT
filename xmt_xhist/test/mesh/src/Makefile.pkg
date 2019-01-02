@@ -1,0 +1,24 @@
+#************************************************************************
+#   Package	: mesh
+#   $Version:$
+#    Copyright 2018 Visionary Research Inc.   All rights reserved.
+#*   			legal@visionary-research.com
+#*   Licensed under the Apache License, Version 2.0 (the "License");
+#*   you may not use this file except in compliance with the License.
+#*   You may obtain a copy of the License at http://www.apache.org/licenses/LICENSE-2.0
+#*   
+#*   Unless required by applicable law or agreed to in writing, software
+#*   distributed under the License is distributed on an "AS IS" BASIS,
+#*   WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+#*   See the License for the specific language governing permissions and
+#*   limitations under the License. 
+#
+#   Synopsis	: included automatically by $(XMTBUILD)/proto/Makefile.top
+#   Purpose	: Customize make environment for the current package.
+#************************************************************************
+LANGUAGE	= c
+ARCH		= cygwin
+BUILD_TGT	= exe
+EXE_NM		= mesh_listener
+LIBS		= $(XMT)/xmt_xhist/libxhist/tgt/$(ARCH)/libxhist.a 
+CFLAGS		+= -I$(XMT)/xmt_xhist/libxhist/src -g -DXHIST

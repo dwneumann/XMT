@@ -27,9 +27,9 @@
 #**********************************************************************
 # define program paths...
 #**********************************************************************
-COMPILE.cpp.linux_x86	:= /bin/g++
+COMPILE.cpp.linux_x86	:= g++
 LD.cpp.linux_x86	:= $(COMPILE.cpp.linux_x86)
-AR.cpp.linux_x86	:= /bin/ar
+AR.cpp.linux_x86	:= ar
 LINT.cpp.linux_x86	:= echo /usr/ucb/lint not installed
 DOC.cpp.linux_x86	:= $(XMTBUILD)/bin/srcdoc 
 #**********************************************************************

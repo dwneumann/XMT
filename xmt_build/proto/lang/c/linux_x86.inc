@@ -27,9 +27,9 @@
 #**********************************************************************
 # define program paths...
 #**********************************************************************
-COMPILE.c.linux_x86	:= /bin/g++
-LD.c.linux_x86		:= /bin/g++
-AR.c.linux_x86		:= /bin/ar
+COMPILE.c.linux_x86	:= gcc
+LD.c.linux_x86		:= gcc
+AR.c.linux_x86		:= ar
 DOC.c.linux_x86		:= $(XMTBUILD)/bin/srcdoc 
 LINT.c.linux_x86	:= echo lint not installed
 LIB_PFX.c.linux_x86	:= lib
@@ -42,8 +42,8 @@ EXE_SFX.c.linux_x86	:=
 # platform and THIS language.
 #**********************************************************************
 CFLAGS.c.linux_x86 += -Wall -Wno-unused-const-variable -m32 
-LDFLAGS.c.linux_x86	+= $(CFLAGS.c.STM32F4) 
+LDFLAGS.c.linux_x86	+= $(CFLAGS.c.linux_x86) 
 ARFLAGS.c.linux_x86	+= -r
-LINTFLAGS.c.linux_x86	+= $(CFLAGS.c.STM32F4)
+LINTFLAGS.c.linux_x86	+= $(CFLAGS.c.linux_x86)
 DOCFLAGS.c.linux_x86	+= 
 

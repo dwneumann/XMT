@@ -53,7 +53,7 @@ au BufNewFile *	0r !$XMTEDIT/bin/hdr %
 
 " set window extra wide for editing makefile output
 if @% =~# '.ERRS'
-set lines=40 columns=200
+set lines=40 columns=130
 so $XMT/xmt_edit/proto/vim/c.vim
 endif
 

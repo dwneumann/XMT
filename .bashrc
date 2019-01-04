@@ -32,11 +32,12 @@ if [[ $- == *i* ]]; then
     source $XMT/xmt_edit/proto/bashrc 
     source $XMT/xmt_build/proto/bashrc 
     source $XMT/xmt_cm/proto/bashrc
-    source $XMT/xmt_doc/proto/bashrc
-    source $XMT/xmt_defect/proto/bashrc
-    source $XMT/xmt_metrics/proto/bashrc
-    source $XMT/xmt_timesht/proto/bashrc
     source $XMT/xmt_xhist/proto/bashrc
+    source $XMT/xmt_wbtest/proto/bashrc
+#    source $XMT/xmt_doc/proto/bashrc
+#    source $XMT/xmt_defect/proto/bashrc
+#    source $XMT/xmt_metrics/proto/bashrc
+#    source $XMT/xmt_timesht/proto/bashrc
 
     #********************************************************************
     # remove duplicate entries from PATH & MANPATH

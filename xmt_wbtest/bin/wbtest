@@ -1,0 +1,58 @@
+#!/bin/perl -w
+#************************************************************************
+#   $Version:$
+#   Package	: xmt_wbtest
+#   Synopsis	:
+#   Purpose	: white box test harness: spawns IUTs under control of debuggers,
+#	then uses Expect to manipulate/test IUT execution via debugger cmds.
+#
+#  Copyright 2018 Visionary Research Inc.   All rights reserved.
+#  			legal@visionary-research.com
+#  Licensed under the Apache License, Version 2.0 (the "License");
+#  you may not use this file except in compliance with the License.
+#  You may obtain a copy of the License at http://www.apache.org/licenses/LICENSE-2.0
+#  
+#  Unless required by applicable law or agreed to in writing, software
+#  distributed under the License is distributed on an "AS IS" BASIS,
+#  WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+#  See the License for the specific language governing permissions and
+#  limitations under the License. 
+#************************************************************************
+
+use Getopt::Long;
+use Env;
+use Expect;
+
+($pgmname = $0) =~ s{.*/}{};
+$usage		= "usage: $pgmname [-u]\n";
+undef $opt_u;	# unnecessary, but it shuts up -w
+GetOptions( "u" ) || die $usage;
+die "$usage" if defined $opt_u;
+
+my $iut = "$XMTXHIST/test/mesh/$T/mesh"; 
+my $session = new Expect;
+$session->spawn("/usr/bin/gdb --args $iut"); 
+
+# clear expect buffer
+$session->expect(20, -re, ".");
+$session->clear_accum();
+
+#now execute test script sequence to interact with the spawned debugger
+print $session "cd \/home\/homedir\r"; 
+$session->expect(90, -re, "bash"); 
+
+# wait
+sleep 20;
+
+# get the results of the command and assign them to an array
+print $session "ls \-altr\r"; 
+my @array = $session->expect(60, -re, "bash");
+$session->clear_accum; 
+
+my @array1 = split('\n', $array[3]);
+
+# print out each element of the array so that they can be further processed
+for (my $i = 0; $i <= $#array1; $i++) { 
+   print "\nElement $i is\n$array1[$i]\n"; 
+}
+

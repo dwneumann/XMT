@@ -1,0 +1,30 @@
+#!/bin/perl -w
+use Getopt::Long;
+use Env;
+
+($pgmname = $0) =~ s{.*/}{};
+$usage		= "usage: $pgmname [-u]\n";
+undef $opt_u;	# unnecessary, but it shuts up -w
+GetOptions( "u" ) || die $usage;
+die "$usage" if defined $opt_u;
+
+
+my $ports = "10000 10001 10002 10003 10004 10005 10006 10007 10008 10009";
+my @children;
+foreach my $i (0 .. 9)
+{
+    $pid = fork();
+    if ($pid == 0)	# child
+    {
+	exec("../$T/mesh $i $ports");
+    }
+    else
+    {
+        push @children, $pid;
+    }
+}
+
+# wait for user intput, then reap child pids & exit 
+print "Press ENTER to terminate test:";
+<STDIN>;
+kill 'INT', @children;

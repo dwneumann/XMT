@@ -47,8 +47,9 @@ map <C-X>+	c0:e! <ESC>f:s +<ESC>;C 0WdW$p<C-X>x
 map <C-X>E	0f:s :e! +<ESC>f:C <ESC>0dW$p<C-X>x
 map <C-X>x	:.y x<CR>@x
 map <C-X><	mh%<%dd'hdd
-map <C-X><	>%<<%<<
-map <> 		<%>>%>>
+map <C-X><	>%<<%<<%
+map <> 		<%>>%>>%
+map >< 		>%<<%<<%
 map F		!} fmt -80 -c<CR>
 map g		:%
 map , 		:'s,'e

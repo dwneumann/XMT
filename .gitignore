@@ -1,11 +1,14 @@
 # ignore all files matching regexp patterns rooted here
 .svn/
 *.map
+*.trace
+*.log
 *.out
 */obj/
 */tgt/
 *.swp
 ERRS.*
+*.ERRS
 *.rel
 *.o
 *.a

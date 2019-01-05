@@ -28,3 +28,5 @@ foreach my $i (0 .. 9)
 print "Press ENTER to terminate test:";
 <STDIN>;
 kill 'INT', @children;
+sleep 2;
+kill 'INT', @children;

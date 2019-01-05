@@ -34,7 +34,7 @@ setenv PATH	"$XMTBUILD/bin:${PATH}"
 #************************************************************************
 setenv	XMTBUILD_SUPP_ARCHS	"STM32F4 STM32L4 AX8052 linux_x86 cygwin"
 if (! $?XMTBUILD_DFLT_ARCH) then
-    setenv	XMTBUILD_DFLT_ARCH	STM32L4
+    setenv	XMTBUILD_DFLT_ARCH	linux_x86
 endif
 
 #************************************************************************

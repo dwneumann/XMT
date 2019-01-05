@@ -35,19 +35,20 @@
 #		  --xhist_db=<pathname>
 #
 #   Synopsis	: git_filter [<options>] [file]
-#   	  --help	print help message & exit.
-#	  --branch=[branchspec] execute only if in a branch matching regex pattern <branchspec>
-#                       (e.g.  git_filter --branch="release|test" --expand --xhist )
-#	  --expand 	expand (i.e. smudge) all keywords of the form \$Keyword:\$ 
+#   	 --help		print help message & exit.
+#	 --expand=[branchspec] only if in a branch matching regex pattern <branchspec>,
+#	  	 	expand (i.e. smudge) all keywords of the form \$Keyword:\$ 
 #                       found in stdin and write substituted data stream to stdout.
-#	  --unexpand	unexpand (i.e. clean) all keyword values found in stdin, 
+#                       (e.g.  git_filter --expand="release|test" )
+#	 --unexpand	unexpand (i.e. clean) all keyword values found in stdin, 
 #			and write cleaned data stream to stdout.
-#   	  --list	print expanded keyword values to stdout; do no substitution.
-#   	  --verbose	list keyword labels with their expanded values to stdout.
-#	  --binary      force substitutions in binary files; 
+#   	 --list		print expanded keyword values to stdout; do no substitution.
+#   	 --verbose	list keyword labels with their expanded values to stdout.
+#	 --binary      force substitutions in binary files; 
 #			by defualt substitution only occurs in ascii files.
 #	 --process      operate as a git long running process using Git filter protocol v2.
-#	 --xhist	instrument files for execution history capture on checkout
+#	 --xhist=[branchspec] only if in a branch matching regex pattern <branchspec>,
+#	 		instrument files for execution history capture on checkout
 #	 --xhist_map=pathname	write execution history filename map to <pathname>.
 #	 --debug	write packet trace log to /tmp/git_filter.log
 #
@@ -90,10 +91,10 @@ my %kw =  (
 # construct the help message
 my $help_msg = sprintf( <<__END__, join("\n                ", keys(%kw)) );
 $pgmname [<options>] [file]
-   --branch=[branchspec] execute only if in a branch matching regex pattern <branchspec>
-                (e.g.  git_filter --branch="release|test" --expand --xhist )
-   --expand     expand (i.e. smudge) all keywords of the form \$Keyword:\$ 
-                found in stdin and write substituted data stream to stdout
+  --expand=[branchspec] only if in a branch matching regex pattern <branchspec>,
+                expand (i.e. smudge) all keywords of the form \$Keyword:\$ 
+                found in stdin and write substituted data stream to stdout.
+                (e.g.  git_filter --expand="release|test" )
    --unexpand   unexpand (i.e. clean) all keyword values found in stdin, 
                 and write cleaned data stream to stdout
   --list       print all recognized keyword values to stdout
@@ -104,20 +105,23 @@ $pgmname [<options>] [file]
   --binary     force substitutions in binary files; 
                 by defualt substitution only occurs in ascii files
   --process     operate as a git long running process using Git filter protocol v2
-  --xhist       instrument files for execution history capture on checkout
+  --xhist=[branchspec] only if in a branch matching regex pattern <branchspec>,
+                instrument files for execution history capture on checkout
   --xhist_map=pathname   write execution history filename map to <pathname>
   --debug       write packet trace log to /tmp/git_filter.log
 __END__
 
 # parse commandline options
 my %opt = ();
-GetOptions( \%opt, "help", "verbose", "branch=s", "expand", "unexpand", "list:s@", "binary", 
-	    "process", "debug", "xhist", "xhist_map=s" ) or die $help_msg;
+GetOptions( \%opt, "help", "verbose", "expand=s", "unexpand", "list:s@", "binary", 
+	    "process", "debug", "xhist=s", "xhist_map=s" ) or die $help_msg;
 
-# exactly one of "expand", "unexpand" or "list" must be present.
+# "expand", "unexpand" and "list" are mutually exclusive.
+# at least one of "expand", "unexpand", "list" or "xhist" must be present.
 # all other args are optional.
 die "$help_msg" if defined $opt{'help'};
-die "$help_msg" if ( defined $opt{'expand'}   and  defined $opt{'unexpand'});
+my @mutually_exclusive = map { /expand|unexpand|list/ ? $_ : () } keys %opt;
+die "$help_msg" if $#mutually_exclusive >= 1;
 die "$help_msg" if (!defined $opt{'expand'}   and !defined $opt{'unexpand'} 
 		    and !defined $opt{'list'} and !defined $opt{'xhist'});
 
@@ -232,7 +236,11 @@ sub standalone_main
 	{
 	    kw_unexpand( \$inbuf );
 	}
-	if (defined $opt{'xhist'})
+	
+	# only do xhist instrumentation if we are in a 
+	# branch specified for xhist instrumentation.
+	if (defined $opt{'xhist'} and
+	    $kw{'Branch'}{val} =~ /$opt{'xhist'}/ )
 	{
 	     my $xh = XMT::Xhist::new($ARGV[0], \$inbuf);	# instrument $inbuf
 	     $inbuf = $xh->source();
@@ -251,7 +259,7 @@ sub kw_expand
     my $k;
 
     # only do keyword expansion if we are in a branch specified for keyword expansion.
-    if ( !defined( $opt{'branch'} ) or $kw{'Branch'}{val} =~ /$opt{'branch'}/ )
+    if ( $kw{'Branch'}{val} =~ /$opt{'expand'}/ )
     {
 	foreach $k ( keys %kw )
 	{
@@ -345,8 +353,10 @@ sub process_main
 	    ### Perform smudge here ###
 	    kw_expand(\$inbuf);
 
-	    ## if defined, perform xhist instrumentation here
-	    if (defined $opt{'xhist'})
+	    # only do xhist instrumentation if we are in a 
+	    # branch specified for xhist instrumentation.
+	    if (defined $opt{'xhist'} and
+		$kw{'Branch'}{val} =~ /$opt{'xhist'}/ )
 	    {
 		my $xh = XMT::Xhist::new($ARGV[0], \$inbuf);	# instrument $inbuf
 		$inbuf = $xh->source();

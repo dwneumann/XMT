@@ -50,7 +50,7 @@ int main(int argc, char *argv[])
 	exit(1);
     } 
     xhist_logdev(fd);
-    xhist_mapfile("$XhistMap: xhist.rc5.1.0-41-develop.map $");
+    xhist_mapfile("$XhistMap: xhist.notag-0-develop.map $");
     xhist_version("$Version:$");
     signal(SIGUSR1, xhist_write);
 /* xhist instrument TRUE */

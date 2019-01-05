@@ -103,7 +103,7 @@ sub instrument_c
     local $identifier    	= qr([a-zA-Z0-9_]+)				;
     local $operator		= qr([-+<>=!\^\(])				;
     local $func_start		= qr(^\{\s*$)					;
-    local $func_end		= qr(^\}\s*$)					;
+    local $func_end		= qr(^\})					;
     local $declaration		= qr(^\s*$identifier\**\s+\(?\**$identifier.*[,;]$);
     local $for_stmt		= qr(\s+for\s+\(.*;.*$)				;
     local $rtn_stmt		= qr(\s+return\s*\(*.*\)*\s*;)			;
@@ -113,12 +113,6 @@ sub instrument_c
     local $xh_instrument_true	= qr(/\*\s+xhist\s+instrument\s+TRUE\s*\*\/)	;
     local $xh_instrument_false	= qr(/\*\s+xhist\s+instrument\s+FALSE\s*\*\/)	;
     local $trace_stmt		= '	_XH_ADD( FNUM, LNUM );'			; 
-
-    $self->{buf} = <<__END__ . $self->{buf};
-#ifdef XHIST
-#include "xhist.h"
-#endif 
-__END__
 
     $self->_instrument();
 }
@@ -144,10 +138,6 @@ sub instrument_java
     local $xh_instrument_true	= qr(/\*\s+xhist\s+instrument\s+TRUE\s*\*\/)	;
     local $xh_instrument_false	= qr(/\*\s+xhist\s+instrument\s+FALSE\s*\*\/)	;
     local $trace_stmt		= '	Xhist.add( FNUM, LNUM );'		; 
-
-    $self->{buf} = <<__END__ . $self->{buf};
-import Xhist.*;
-__END__
 
     $self->_instrument();
 }
@@ -256,7 +246,7 @@ sub _instrument
 	}
 	else	# matches nothing; just output original line
 	{
-	    $self->{buf} .= "$_ \n";	
+	    $self->{buf} .= "$_\n";	
 	}
     }
 }

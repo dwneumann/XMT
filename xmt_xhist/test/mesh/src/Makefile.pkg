@@ -8,6 +8,8 @@
 #************************************************************************
 LANGUAGE	= c
 ARCH		= linux_x86
-CFLAGS.c	+= -g
+CFLAGS.c	+= -g -DXHIST -I$(XMTXHIST)/libxhist/src
 BUILD_TGT	= exe
+LIBS		= $(XMTXHIST)/libxhist/tgt/$(ARCH)/libxhist.a 
 
+mesh.c : ../data/mesh.c	; $(XMTCM)/bin/git_filter --expand=. --xhist=. $^  > $@

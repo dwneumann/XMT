@@ -24,10 +24,9 @@
 *	void	test_complete()
 *
 ************************************************************************/
-/* xhist debug TRUE */	/*<DEBUG ON>*/
 
 #ifdef EMBED_REVISION_STRINGS
-static const char mesh_c_id[] = "@(#) mesh::mesh.c	$Version:$";	/*<DECL>*/
+static const char mesh_c_id[] = "@(#) mesh::mesh.c	$Version:$";
 #endif
 
 #include <sys/types.h>
@@ -51,21 +50,21 @@ static const char mesh_c_id[] = "@(#) mesh::mesh.c	$Version:$";	/*<DECL>*/
 #define TEST_FAIL	1
 
 #define BACKOUT_IF(ex, msg)	\
-	if (ex) { perror(msg); exit(TEST_FAIL); }	/*<STMT OUTSIDE FUNC>*/
+	if (ex) { perror(msg); exit(TEST_FAIL); }
 
 #define MAX_NODES	100	/* max # nodes in mesh			*/
 
 typedef struct 			/* packet payload to be sent/ack'ed	*/
-{	/*<FUNC START>*/
+{
     int	pkt_src;		/* port # of original sender		*/
     int	pkt_to;			/* port # of ultimate destination 	*/
     int	pkt_num_fwds;		/* # times this pkt has been forwarded	*/
     int	pkt_ttl;		/* # hops this pkt still has to take 	*/
     struct timeval pkt_sent_at;	/* time of departure of packet		*/
-} packet_t;	/*<FUNC END>*/
+} packet_t;
 
 typedef struct 
-{	/*<FUNC START>*/
+{
     int	gl_pkts_to_send;	/* # packets to initiate		*/
     int	gl_pkts_returned;	/* # of ACKs returned to me		*/
     int	gl_total_time;		/* accumulated sum of round trip times	*/
@@ -73,14 +72,14 @@ typedef struct
     int	gl_nodes[MAX_NODES];	/* port #'s of all nodes in mesh	*/
     int	gl_num_nodes;		/* # nodes in mesh			*/
     int	gl_my_nodenum;		/* index of this node within gl_nodes[]	*/
-} mesh_t;	/*<FUNC END>*/
+} mesh_t;
 
-mesh_t	globals	= {0};		/* fields we need to access from signal handler */	/*<STMT OUTSIDE FUNC>*/
+mesh_t	globals	= {0};		/* fields we need to access from signal handler */
 
-void	init_payload(packet_t *payload, int from, int to, int ttl);	/*<DECL>*/
-long	round_trip_ms(struct timeval from);	/*<DECL>*/
-int	is_listening(int port);	/*<DECL>*/
-void	test_complete();	/*<DECL>*/
+void	init_payload(packet_t *payload, int from, int to, int ttl);
+long	round_trip_ms(struct timeval from);
+int	is_listening(int port);
+void	test_complete();
 
 /************************************************************************
 *   Synopsis:
@@ -99,67 +98,67 @@ void	test_complete();	/*<DECL>*/
 * 
 ***********************************************************************/
 int main(int argc, char *argv[])
-{	/*<FUNC START>*/
-    int			sock;	/*<DECL>*/
-    packet_t		payload;	/*<DECL>*/
-    struct sockaddr_in	node;	/*<DECL>*/
-    int			next_node;	/*<DECL>*/
+{
+    int			sock;
+    packet_t		payload;
+    struct sockaddr_in	node;
+    int			next_node;
     int			i, nbytes;	/* counters */
 
 #ifdef XHIST
-/* xhist instrument FALSE */	/*<INSTRUMENT OFF>*/
-    int fd;	/*<DECL>*/
-    char logfn[32];	/*<DECL>*/
+/* xhist instrument FALSE */
+    int fd;
+    char logfn[32];
 
-    sprintf(logfn, "xhist.%d.trace", (int) getpid());	/*<STMT>*/
-    BACKOUT_IF((fd=open(logfn, O_RDWR|O_CREAT, 0644)) < 0, logfn); 	/*<STMT>*/
-    xhist_logdev(fd);			/* file or socket to write to		*/	/*<STMT>*/
-    xhist_mapfile("$XhistMap: xhist.meshtest-1.0-0-develop.map $");	/* embed name of file map		*/	/*<STMT>*/
-    xhist_version("$Version:$");	/* embed build tag of source		*/	/*<STMT>*/
-    signal(SIGUSR1, xhist_write);	/* dump trace upon receipt of SIGUSR1	*/	/*<STMT>*/
-/* xhist instrument TRUE */	/*<INSTRUMENT ON>*/
+    sprintf(logfn, "xhist.%d.trace", (int) getpid());
+    BACKOUT_IF((fd=open(logfn, O_RDWR|O_CREAT, 0644)) < 0, logfn); 
+    xhist_logdev(fd);			/* file or socket to write to		*/
+    xhist_mapfile("$XhistMap: xhist.meshtest-1.0-1-develop.map $");	/* embed name of file map		*/
+    xhist_version("$Version:$");	/* embed build tag of source		*/
+    signal(SIGUSR1, xhist_write);	/* dump trace upon receipt of SIGUSR1	*/
+/* xhist instrument TRUE */
 #endif
 
     /* @configure mesh topology */
-    globals.gl_pkts_to_send	= 10;		/*<STMT>*/	_XH_ADD( 24999, 124 );
-    globals.gl_num_hops		= 200;	/*<STMT>*/	_XH_ADD( 24999, 125 );
-    signal(SIGINT, test_complete);	/* print stats & exit upon receipt of SIGINT	*/	/*<STMT>*/	_XH_ADD( 24999, 126 );
-    BACKOUT_IF(argc < 2, "usage: mesh <my (0-based) node index> <port#> <port#> <port#> ...");	/*<STMT>*/	_XH_ADD( 24999, 127 );
-    globals.gl_my_nodenum 	= atoi(argv[1]);	/*<STMT>*/	_XH_ADD( 24999, 128 );
-    for (i = 2; i < argc; ++i)	/*<FOR>*/
+    globals.gl_pkts_to_send	= 10;	_XH_ADD( 24999, 123 );
+    globals.gl_num_hops		= 200;_XH_ADD( 24999, 124 );
+    signal(SIGINT, test_complete);	/* print stats & exit upon receipt of SIGINT	*/_XH_ADD( 24999, 125 );
+    BACKOUT_IF(argc < 2, "usage: mesh <my (0-based) node index> <port#> <port#> <port#> ...");_XH_ADD( 24999, 126 );
+    globals.gl_my_nodenum 	= atoi(argv[1]);_XH_ADD( 24999, 127 );
+    for (i = 2; i < argc; ++i)
     {
-        globals.gl_nodes[i-2] = atoi(argv[i]);	/*<STMT>*/	_XH_ADD( 24999, 131 );
+        globals.gl_nodes[i-2] = atoi(argv[i]);_XH_ADD( 24999, 130 );
     }
-    globals.gl_num_nodes = argc-2;	/*<STMT>*/	_XH_ADD( 24999, 133 );
+    globals.gl_num_nodes = argc-2;_XH_ADD( 24999, 132 );
 
-    BACKOUT_IF((sock = socket(AF_INET, SOCK_DGRAM, 0)) < 0, "socket");	/*<STMT>*/	_XH_ADD( 24999, 135 );
-    memset(&node, 0, sizeof(struct sockaddr_in));	/*<STMT>*/	_XH_ADD( 24999, 136 );
-    node.sin_family	= AF_INET;	/*<STMT>*/	_XH_ADD( 24999, 137 );
-    node.sin_addr.s_addr = inet_addr("127.0.0.1");	/*<STMT>*/	_XH_ADD( 24999, 138 );
-    node.sin_port = htons(globals.gl_nodes[globals.gl_my_nodenum]);	/*<STMT>*/	_XH_ADD( 24999, 139 );
-    BACKOUT_IF(bind(sock, (struct sockaddr *)&node, sizeof(node)) < 0, "bind"); 	/*<STMT>*/	_XH_ADD( 24999, 140 );
+    BACKOUT_IF((sock = socket(AF_INET, SOCK_DGRAM, 0)) < 0, "socket");_XH_ADD( 24999, 134 );
+    memset(&node, 0, sizeof(struct sockaddr_in));_XH_ADD( 24999, 135 );
+    node.sin_family	= AF_INET;_XH_ADD( 24999, 136 );
+    node.sin_addr.s_addr = inet_addr("127.0.0.1");_XH_ADD( 24999, 137 );
+    node.sin_port = htons(globals.gl_nodes[globals.gl_my_nodenum]);_XH_ADD( 24999, 138 );
+    BACKOUT_IF(bind(sock, (struct sockaddr *)&node, sizeof(node)) < 0, "bind"); _XH_ADD( 24999, 139 );
 
     /* wait until the node I'm going to send to has started */
-    next_node = globals.gl_nodes[(globals.gl_my_nodenum+1)%globals.gl_num_nodes];	/*<STMT>*/	_XH_ADD( 24999, 143 );
+    next_node = globals.gl_nodes[(globals.gl_my_nodenum+1)%globals.gl_num_nodes];_XH_ADD( 24999, 142 );
     while ( ! is_listening(next_node) )
     {
-	sleep(1);	/*<STMT>*/	_XH_ADD( 24999, 146 );
+	sleep(1);_XH_ADD( 24999, 145 );
     }
 
     /* @send my initial messages to my first-listed neighbour	*/
-    for (i = 0; i < globals.gl_pkts_to_send; ++i)	/*<FOR>*/
+    for (i = 0; i < globals.gl_pkts_to_send; ++i)
     {
-	node.sin_port = htons(next_node);	/*<STMT>*/	_XH_ADD( 24999, 152 );
-	init_payload(&payload, globals.gl_nodes[globals.gl_my_nodenum], next_node, globals.gl_num_hops);	/*<STMT>*/	_XH_ADD( 24999, 153 );
-	sendto(sock, &payload, sizeof(payload), 0, (struct sockaddr *) &node, sizeof(node));	/*<STMT>*/	_XH_ADD( 24999, 154 );
+	node.sin_port = htons(next_node);_XH_ADD( 24999, 151 );
+	init_payload(&payload, globals.gl_nodes[globals.gl_my_nodenum], next_node, globals.gl_num_hops);_XH_ADD( 24999, 152 );
+	sendto(sock, &payload, sizeof(payload), 0, (struct sockaddr *) &node, sizeof(node));_XH_ADD( 24999, 153 );
     }
 
     /* now just forward or ack messges received from others */
-    next_node = globals.gl_my_nodenum;	/*<STMT>*/	_XH_ADD( 24999, 158 );
-    globals.gl_pkts_returned = 0;	/*<STMT>*/	_XH_ADD( 24999, 159 );
+    next_node = globals.gl_my_nodenum;_XH_ADD( 24999, 157 );
+    globals.gl_pkts_returned = 0;_XH_ADD( 24999, 158 );
     while (1)
     {
-	nbytes = recvfrom(sock, &payload, sizeof(payload), 0, NULL, NULL);	/*<STMT>*/	_XH_ADD( 24999, 162 );
+	nbytes = recvfrom(sock, &payload, sizeof(payload), 0, NULL, NULL);_XH_ADD( 24999, 161 );
 
 	/* @simulate packet corruption here */
 	if (nbytes != sizeof(payload))
@@ -170,40 +169,40 @@ int main(int argc, char *argv[])
 	/* this message was sent by me */
 	if ( payload.pkt_src == globals.gl_nodes[globals.gl_my_nodenum] ) 
 	{
-	    globals.gl_pkts_returned++;	/*<STMT>*/	_XH_ADD( 24999, 173 );
-	    globals.gl_total_time += round_trip_ms(payload.pkt_sent_at);	/*<STMT>*/	_XH_ADD( 24999, 174 );
+	    globals.gl_pkts_returned++;_XH_ADD( 24999, 172 );
+	    globals.gl_total_time += round_trip_ms(payload.pkt_sent_at);_XH_ADD( 24999, 173 );
 	    printf("%2d : RECV'd ACK after %2d hops in %ld ms\n", 
 		globals.gl_nodes[globals.gl_my_nodenum], 
 		payload.pkt_num_fwds, 
-		round_trip_ms(payload.pkt_sent_at));	/*<STMT>*/	_XH_ADD( 24999, 178 );
+		round_trip_ms(payload.pkt_sent_at));_XH_ADD( 24999, 177 );
 	}
 
 	/* @ttl expired; send back to sender as ack */
 	else if (payload.pkt_ttl <= 0)	
 	{
-	    node.sin_port = htons(payload.pkt_src);	/*<STMT>*/	_XH_ADD( 24999, 184 );
-	    payload.pkt_num_fwds++;	/*<STMT>*/	_XH_ADD( 24999, 185 );
-	    payload.pkt_ttl--;	/*<STMT>*/	_XH_ADD( 24999, 186 );
+	    node.sin_port = htons(payload.pkt_src);_XH_ADD( 24999, 183 );
+	    payload.pkt_num_fwds++;_XH_ADD( 24999, 184 );
+	    payload.pkt_ttl--;_XH_ADD( 24999, 185 );
 	    sendto(sock, &payload, sizeof(payload), 0, 
-		(struct sockaddr *) &node, sizeof(node));	/*<STMT>*/	_XH_ADD( 24999, 188 );
+		(struct sockaddr *) &node, sizeof(node));_XH_ADD( 24999, 187 );
 	}
 
 	/* forward message one more hop to someone else */
 	else	
 	{
-	    next_node	  = ((next_node+1) % globals.gl_num_nodes); 	/*<STMT>*/	_XH_ADD( 24999, 194 );
-	    node.sin_port = htons(globals.gl_nodes[next_node]);	/*<STMT>*/	_XH_ADD( 24999, 195 );
-	    payload.pkt_num_fwds++;	/*<STMT>*/	_XH_ADD( 24999, 196 );
-	    payload.pkt_ttl--;	/*<STMT>*/	_XH_ADD( 24999, 197 );
+	    next_node	  = ((next_node+1) % globals.gl_num_nodes); _XH_ADD( 24999, 193 );
+	    node.sin_port = htons(globals.gl_nodes[next_node]);_XH_ADD( 24999, 194 );
+	    payload.pkt_num_fwds++;_XH_ADD( 24999, 195 );
+	    payload.pkt_ttl--;_XH_ADD( 24999, 196 );
 	    sendto(sock, &payload, sizeof(payload), 0, 
-		(struct sockaddr *) &node, sizeof(node));	/*<STMT>*/	_XH_ADD( 24999, 199 );
+		(struct sockaddr *) &node, sizeof(node));_XH_ADD( 24999, 198 );
 	    printf("\t%2d : FWD'd to %2d\n", 
 		globals.gl_nodes[globals.gl_my_nodenum], 
 		globals.gl_nodes[next_node]);
 	}
     }
     /* NOT REACHED */
-}	/*<FUNC END>*/
+}
 
 /************************************************************************
 *   Synopsis:
@@ -223,13 +222,13 @@ int main(int argc, char *argv[])
 * 
 ***********************************************************************/
 void init_payload(packet_t *payload, int from, int to, int ttl)
-{	/*<FUNC START>*/
-    memset(payload, 0, sizeof(packet_t));	/*<STMT>*/	_XH_ADD( 24999, 227 );
-    payload->pkt_src 	= from;	/*<STMT>*/	_XH_ADD( 24999, 228 );
-    payload->pkt_to	= to;	/*<STMT>*/	_XH_ADD( 24999, 229 );
-    payload->pkt_ttl	= ttl;	/*<STMT>*/	_XH_ADD( 24999, 230 );
-    gettimeofday(&(payload->pkt_sent_at), NULL);	/*<STMT>*/	_XH_ADD( 24999, 231 );
-}	/*<FUNC END>*/
+{
+    memset(payload, 0, sizeof(packet_t));_XH_ADD( 24999, 226 );
+    payload->pkt_src 	= from;_XH_ADD( 24999, 227 );
+    payload->pkt_to	= to;_XH_ADD( 24999, 228 );
+    payload->pkt_ttl	= ttl;_XH_ADD( 24999, 229 );
+    gettimeofday(&(payload->pkt_sent_at), NULL);_XH_ADD( 24999, 230 );
+}
 
 
 /************************************************************************
@@ -247,12 +246,12 @@ void init_payload(packet_t *payload, int from, int to, int ttl)
 * 
 ***********************************************************************/
 long round_trip_ms(struct timeval from) 
-{	/*<FUNC START>*/
-    struct timeval to;	/*<DECL>*/
+{
+    struct timeval to;
 
-    gettimeofday(&to, NULL);	/*<STMT>*/	_XH_ADD( 24999, 253 );
-    return( (to.tv_sec - from.tv_sec)*1000 + (to.tv_usec - from.tv_usec + 1)/1000 );	/*<RETURN>*/
-}	/*<FUNC END>*/
+    gettimeofday(&to, NULL);_XH_ADD( 24999, 252 );
+    return( (to.tv_sec - from.tv_sec)*1000 + (to.tv_usec - from.tv_usec + 1)/1000 );
+}
 
 
 /************************************************************************
@@ -271,20 +270,20 @@ long round_trip_ms(struct timeval from)
 * 
 ***********************************************************************/
 int is_listening(int port) 
-{	/*<FUNC START>*/
-    char str[128];	/*<DECL>*/
-    FILE* fp;	/*<DECL>*/
-    int status = 0;	/*<DECL>*/
+{
+    char str[128];
+    FILE* fp;
+    int status = 0;
 
-    sprintf(str, "netstat -lnu | grep %d", port);	/*<STMT>*/	_XH_ADD( 24999, 279 );
-    BACKOUT_IF((fp = popen(str, "r")) == NULL, "popen");	/*<STMT>*/	_XH_ADD( 24999, 280 );
+    sprintf(str, "netstat -lnu | grep %d", port);_XH_ADD( 24999, 278 );
+    BACKOUT_IF((fp = popen(str, "r")) == NULL, "popen");_XH_ADD( 24999, 279 );
     if ( fgets(str, sizeof(str)-1, fp) != NULL )
     {
-	status = 1;	/*<STMT>*/	_XH_ADD( 24999, 283 );
+	status = 1;_XH_ADD( 24999, 282 );
     }
-    fclose(fp); 	/*<STMT>*/	_XH_ADD( 24999, 285 );
-    return(status);	/*<RETURN>*/
-}	/*<FUNC END>*/
+    fclose(fp); _XH_ADD( 24999, 284 );
+    return(status);
+}
 
 
 /************************************************************************
@@ -302,13 +301,13 @@ int is_listening(int port)
 * 
 ***********************************************************************/
 void test_complete()
-{	/*<FUNC START>*/
+{
     printf("%2d : %d pkts sent\t%d pkts ack'd\t%d%% packet loss,\t%d ms total time\t%d ms avg round trip time\n", 
 	globals.gl_nodes[globals.gl_my_nodenum], 
 	globals.gl_pkts_to_send,
 	globals.gl_pkts_returned,
 	(int) ((globals.gl_pkts_to_send - globals.gl_pkts_returned)/globals.gl_pkts_to_send)*100,
 	globals.gl_total_time,
-	(int) (globals.gl_total_time/globals.gl_pkts_returned));	/*<STMT>*/	_XH_ADD( 24999, 312 );
-    exit( (globals.gl_pkts_returned == globals.gl_pkts_to_send) ? TEST_PASS : TEST_FAIL );	/*<STMT>*/	_XH_ADD( 24999, 313 );
-}	/*<FUNC END>*/
+	(int) (globals.gl_total_time/globals.gl_pkts_returned));_XH_ADD( 24999, 311 );
+    exit( (globals.gl_pkts_returned == globals.gl_pkts_to_send) ? TEST_PASS : TEST_FAIL );_XH_ADD( 24999, 312 );
+}

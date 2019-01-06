@@ -112,7 +112,7 @@ sub instrument_c
     local $xh_debug_false	= qr(/\*\s+xhist\s+debug\s+FALSE\s*\*\/)	;
     local $xh_instrument_true	= qr(/\*\s+xhist\s+instrument\s+TRUE\s*\*\/)	;
     local $xh_instrument_false	= qr(/\*\s+xhist\s+instrument\s+FALSE\s*\*\/)	;
-    local $trace_stmt		= '	_XH_ADD( FNUM, LNUM );'			; 
+    local $trace_stmt		= '_XH_ADD( FNUM, LNUM );'			; 
 
     $self->_instrument();
 }
@@ -137,7 +137,7 @@ sub instrument_java
     local $xh_debug_false	= qr(/\*\s+xhist\s+debug\s+FALSE\s*\*\/)	;
     local $xh_instrument_true	= qr(/\*\s+xhist\s+instrument\s+TRUE\s*\*\/)	;
     local $xh_instrument_false	= qr(/\*\s+xhist\s+instrument\s+FALSE\s*\*\/)	;
-    local $trace_stmt		= '	Xhist.add( FNUM, LNUM );'		; 
+    local $trace_stmt		= 'Xhist.add( FNUM, LNUM );'			; 
 
     $self->_instrument();
 }

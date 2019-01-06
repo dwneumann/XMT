@@ -72,7 +72,7 @@ use strict;
 # this is found by running perl -V:installsitelib
 # to instead use a develop version of the XMT::Xhist module
 # uncomment the following line.
-#BEGIN {push @INC, "$ENV{XMTXHIST}/bin"}
+BEGIN {unshift(@INC, "$ENV{XMTXHIST}/bin");}
 use XMT::Xhist;
 
 use Getopt::Long;

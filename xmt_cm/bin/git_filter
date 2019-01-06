@@ -65,11 +65,17 @@
 #  limitations under the License. 
 #************************************************************************
 
-BEGIN {push @INC, "$ENV{XMTXHIST}/bin"}
+# perl expects to find the required XMT modules installed into
+# the standard place that CPAN modules are installed:  
+# this is found by running perl -V:installsitelib
+# to instead use a develop version of the XMT::Xhist module
+# uncomment the following line.
+#BEGIN {push @INC, "$ENV{XMTXHIST}/bin"}
+use XMT::Xhist;
+
 use Getopt::Long;
 use Path::Tiny qw(path);
 use POSIX qw(strftime);
-use XMT::Xhist;
 
 ($pgmname = $0) =~ s{.*/}{};	# rootname of executed script
 my %kw =  ( 

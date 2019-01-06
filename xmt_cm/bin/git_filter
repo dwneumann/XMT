@@ -370,7 +370,7 @@ sub process_main
 	    # branch specified for xhist instrumentation.
 	    if (defined $opt{'xhist'} and $kw{'Branch'}{val} =~ /$opt{'xhist'}/ )
 	    {
-		my $xh = XMT::Xhist::new($ARGV[0], \$inbuf);	# instrument $inbuf
+		my $xh = XMT::Xhist::new($pathname, \$inbuf);	# instrument $inbuf
 		$inbuf = $xh->source();
 	    }
 	    $outbuf = $inbuf;

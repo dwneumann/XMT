@@ -65,6 +65,8 @@
 #  limitations under the License. 
 #************************************************************************
 
+use strict;
+
 # perl expects to find the required XMT modules installed into
 # the standard place that CPAN modules are installed:  
 # this is found by running perl -V:installsitelib
@@ -77,7 +79,7 @@ use Getopt::Long;
 use Path::Tiny qw(path);
 use POSIX qw(strftime);
 
-($pgmname = $0) =~ s{.*/}{};	# rootname of executed script
+(my $pgmname = $0) =~ s{.*/}{};	# rootname of executed script
 my %kw =  ( 
 	Branch		=> { code => '',	val => '' },
 	Tag		=> { code => '',	val => '' },
@@ -93,6 +95,7 @@ my %kw =  (
 	Signer		=> { code => '%GS',	val => '' },
 	SigStatus	=> { code => '%G?',	val => '' },
 	);
+my %kw_specified = ();
 
 # construct the help message
 my $help_msg = sprintf( <<__END__, join("\n                ", keys(%kw)) );
@@ -218,6 +221,8 @@ exit 0;  # we're done.
 #************************************************************************
 sub standalone_main
 {
+    my $inbuf;
+
     ## if a filename was given, read its contents, otherwise read from stdin.
     my $ext = "c";	# default file extension for lexer
     if (scalar(@ARGV) >= 1)
@@ -299,6 +304,8 @@ sub process_main
 {
     my $MAX_PACKET_CONTENT_SIZE = 65516;
     my ($rc, $str);
+    my ($inbuf, $outbuf, $buffer, $done);
+    my ($command, $pathname, $packet);
 
     # receive handshake
     ($rc, $str) = packet_read(); chomp($str);
@@ -329,17 +336,18 @@ sub process_main
     # receive command & data; perform filter & send response
     while (1) 
     {
-	my $command  = packet_read() =~ /^command=(.+)\n$/;
-	my $pathname = packet_read() =~ /^pathname=(.+)\n$/;
+	($rc, $command)  = packet_read();
+	$command  =~ /^command=(.+)\n$/;
+	($rc, $pathname) = packet_read();
+	$pathname =~ /^pathname=(.+)\n$/;
 	die "bad pathname '$pathname'" if ( $pathname eq "" );
 
 	packet_read();	# "flush" packet 0000 follows command
 
-	my $inbuf = "";
+	$inbuf = "";
 	{
 	    binmode(STDIN);
-	    my $buffer;
-	    my $done = 0;
+	    $done = 0;
 	    while ( !$done ) 
 	    {
 		($done, $buffer) = packet_read();
@@ -347,22 +355,20 @@ sub process_main
 	    }
 	}
 
-	my $outbuf;
 	if ( $command =~ /clean/ ) 
 	{
 	    ### Perform clean here ###
-	    kw_unexpand(\$inbuf);
+	    kw_unexpand( \$inbuf );
 	    $outbuf = $inbuf;
 	}
 	elsif ( $command =~ /smudge/ ) 
 	{
 	    ### Perform smudge here ###
-	    kw_expand(\$inbuf);
+	    kw_expand( \$inbuf );
 
 	    # only do xhist instrumentation if we are in a 
 	    # branch specified for xhist instrumentation.
-	    if (defined $opt{'xhist'} and
-		$kw{'Branch'}{val} =~ /$opt{'xhist'}/ )
+	    if (defined $opt{'xhist'} and $kw{'Branch'}{val} =~ /$opt{'xhist'}/ )
 	    {
 		my $xh = XMT::Xhist::new($ARGV[0], \$inbuf);	# instrument $inbuf
 		$inbuf = $xh->source();
@@ -378,7 +384,7 @@ sub process_main
 	packet_flush();
 	while ( length($outbuf) > 0 ) 
 	{
-	    my $packet = substr( $outbuf, 0, $MAX_PACKET_CONTENT_SIZE );
+	    $packet = substr( $outbuf, 0, $MAX_PACKET_CONTENT_SIZE );
 	    packet_bin_write($packet);
 	    if ( length($outbuf) > $MAX_PACKET_CONTENT_SIZE ) 
 	    {
@@ -397,8 +403,9 @@ sub process_main
 
 sub packet_read 
 {
-    my $buffer;
-    my $bytes_read = read STDIN, $buffer, 4;
+   my ($buf, $pkt_size, $bytes_read);
+ 
+    $bytes_read = read STDIN, $buf, 4;
     if ( $bytes_read == 0 ) 
     {
 
@@ -407,9 +414,9 @@ sub packet_read
     }
     elsif ( $bytes_read != 4 ) 
     {
-	die "invalid packet: '$buffer'";
+	die "invalid packet: '$buf'";
     }
-    my $pkt_size = hex($buffer);
+    $pkt_size = hex($buf);
     if ( $pkt_size == 0 ) 
     {
 	dbg_log("> 0000");
@@ -418,13 +425,13 @@ sub packet_read
     elsif ( $pkt_size > 4 ) 
     {
 	my $content_size = $pkt_size - 4;
-	$bytes_read = read STDIN, $buffer, $content_size;
+	$bytes_read = read STDIN, $buf, $content_size;
 	if ( $bytes_read != $content_size ) 
 	{
 	    die "invalid packet ($content_size bytes expected; $bytes_read bytes read)";
 	}
-	dbg_log("> $buffer");
-	return ( 0, $buffer );
+	dbg_log("> $buf");
+	return ( 0, $buf );
     }
     else 
     {

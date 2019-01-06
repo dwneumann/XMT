@@ -114,7 +114,7 @@ int main(int argc, char *argv[])
     sprintf(logfn, "xhist.%d.trace", (int) getpid());	/*<STMT>*/
     BACKOUT_IF((fd=open(logfn, O_RDWR|O_CREAT, 0644)) < 0, logfn); 	/*<STMT>*/
     xhist_logdev(fd);			/* file or socket to write to		*/	/*<STMT>*/
-    xhist_mapfile("$XhistMap: xhist.notag-0-develop.map $");	/* embed name of file map		*/	/*<STMT>*/
+    xhist_mapfile("$XhistMap: xhist.meshtest-1.0-0-develop.map $");	/* embed name of file map		*/	/*<STMT>*/
     xhist_version("$Version:$");	/* embed build tag of source		*/	/*<STMT>*/
     signal(SIGUSR1, xhist_write);	/* dump trace upon receipt of SIGUSR1	*/	/*<STMT>*/
 /* xhist instrument TRUE */	/*<INSTRUMENT ON>*/

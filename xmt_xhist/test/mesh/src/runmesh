@@ -25,8 +25,8 @@ foreach my $i (0 .. 9)
 }
 
 # wait for user intput, then reap child pids & exit 
-print "Press ENTER to terminate test:";
+print "Press ENTER to terminate test...\n"; 
 <STDIN>;
-kill 'INT', @children;
-sleep 2;
-kill 'INT', @children;
+kill 'USR1', @children;	# force trace log to be written
+sleep 2;		# wait for that to complete
+kill 'INT', @children;	# then terminate the test

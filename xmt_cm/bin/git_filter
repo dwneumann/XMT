@@ -121,7 +121,7 @@ GetOptions( \%opt, "help", "verbose", "expand=s", "unexpand", "list:s@", "binary
 # all other args are optional.
 die "$help_msg" if defined $opt{'help'};
 my @mutually_exclusive = map { /expand|unexpand|list/ ? $_ : () } keys %opt;
-die "$help_msg" if $#mutually_exclusive >= 1;
+die "$help_msg" if scalar(@mutually_exclusive) > 1;
 die "$help_msg" if (!defined $opt{'expand'}   and !defined $opt{'unexpand'} 
 		    and !defined $opt{'list'} and !defined $opt{'xhist'});
 
@@ -156,7 +156,7 @@ chomp $kw{'Branch'}{val};
 my ($k, $s);
 $s = `git describe --always --long`;
 die "git describe failed \n" if $? != 0;
-if ($s =~ m/(.*?)-(.*?)-(.*?)/) 	
+if ($s =~ m/(.*)-(.*?)-(.*?)/) 	
 {
     $kw{'Tag'}{val}	= $1;
     $kw{'BuildNum'}{val}= $2;

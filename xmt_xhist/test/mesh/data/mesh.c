@@ -24,7 +24,6 @@
 *	void	test_complete()
 *
 ************************************************************************/
-/* xhist debug TRUE */
 
 #ifdef EMBED_REVISION_STRINGS
 static const char mesh_c_id[] = "@(#) mesh::mesh.c	$Version:$";

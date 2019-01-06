@@ -12,4 +12,19 @@ CFLAGS.c	+= -g -DXHIST -I$(XMTXHIST)/libxhist/src
 BUILD_TGT	= exe
 LIBS		= $(XMTXHIST)/libxhist/tgt/$(ARCH)/libxhist.a 
 
-mesh.c : ../data/mesh.c	; $(XMTCM)/bin/git_filter --expand=. --xhist=. $^  > $@
+# if gcov test coverage desired
+CFLAGS.c	+= -ftest-coverage -fprofile-arcs	
+LDFLAGS.c	+= -lgcov --coverage
+
+mesh.c : ../data/mesh.c	
+	-/bin/rm xhist.*.map
+	$(XMTCM)/bin/git_filter --expand=. --xhist=. $^  > $@
+
+gcov:
+	gcov	--object-directory $(OBJDIR) 		\
+		--demangled-names 			\
+		--branch-probabilities			\
+		--function-summaries			\
+		--human-readable			\
+		--use-colors				\
+		$(allsrcs)

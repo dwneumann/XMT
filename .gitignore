@@ -1,11 +1,12 @@
 # ignore all files matching regexp patterns rooted here
 .svn/
+*/obj/
+*/tgt/
+*/tmp/
 *.map
 *.trace
 *.log
 *.out
-*/obj/
-*/tgt/
 *.swp
 ERRS.*
 *.ERRS
@@ -14,6 +15,8 @@ ERRS.*
 *.a
 *.cflags
 *.ldflags
+*.gcda
+*.gcno
 cscope.*
 *.lo
 *.la

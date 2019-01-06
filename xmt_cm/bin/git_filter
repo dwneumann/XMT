@@ -36,7 +36,7 @@
 #
 #   Synopsis	: git_filter [<options>] [file]
 #   	 --help		print help message & exit.
-#	 --expand=[branchspec] only if in a branch matching regex pattern <branchspec>,
+#	 --expand=<branchspec> only if in a branch matching regex pattern <branchspec>,
 #	  	 	expand (i.e. smudge) all keywords of the form \$Keyword:\$ 
 #                       found in stdin and write substituted data stream to stdout.
 #                       (e.g.  git_filter --expand="release|test" )
@@ -47,7 +47,9 @@
 #	 --binary      force substitutions in binary files; 
 #			by defualt substitution only occurs in ascii files.
 #	 --process      operate as a git long running process using Git filter protocol v2.
-#	 --xhist=[branchspec] only if in a branch matching regex pattern <branchspec>,
+#	 --fname=<pathspec>	read contents of file from STDIN but use <pathspec>
+#			as the file name for instrumentation purposes
+#	 --xhist=<branchspec> only if in a branch matching regex pattern <branchspec>,
 #	 		instrument files for execution history capture on checkout
 #	 --xhist_map=pathname	write execution history filename map to <pathname>.
 #	 --debug	write packet trace log to /tmp/git_filter.log
@@ -100,13 +102,13 @@ my %kw_specified = ();
 # construct the help message
 my $help_msg = sprintf( <<__END__, join("\n                ", keys(%kw)) );
 $pgmname [<options>] [file]
-  --expand=[branchspec] only if in a branch matching regex pattern <branchspec>,
+  --expand=<branchspec> only if in a branch matching regex pattern <branchspec>,
                 expand (i.e. smudge) all keywords of the form \$Keyword:\$ 
                 found in stdin and write substituted data stream to stdout.
                 (e.g.  git_filter --expand="release|test" )
-   --unexpand   unexpand (i.e. clean) all keyword values found in stdin, 
+  --unexpand    unexpand (i.e. clean) all keyword values found in stdin, 
                 and write cleaned data stream to stdout
-  --list       print all recognized keyword values to stdout
+  --list        print all recognized keyword values to stdout
   --list [keyword,keyword, ...]  print specified keyword values to stdout
                 Recognized keywords include: 
                 %s
@@ -114,16 +116,18 @@ $pgmname [<options>] [file]
   --binary     force substitutions in binary files; 
                 by defualt substitution only occurs in ascii files
   --process     operate as a git long running process using Git filter protocol v2
-  --xhist=[branchspec] only if in a branch matching regex pattern <branchspec>,
+  --xhist=<branchspec> only if in a branch matching regex pattern <branchspec>,
                 instrument files for execution history capture on checkout
   --xhist_map=pathname   write execution history filename map to <pathname>
+  --fname=<pathspec>	read contents of file from STDIN but use <pathspec>
+                as the file name for instrumentation purposes
   --debug       write packet trace log to /tmp/git_filter.log
 __END__
 
 # parse commandline options
 my %opt = ();
 GetOptions( \%opt, "help", "verbose", "expand=s", "unexpand", "list:s@", "binary", 
-	    "process", "debug", "xhist=s", "xhist_map=s" ) or die $help_msg;
+	    "process", "debug", "xhist=s", "xhist_map=s", "fname=s") or die $help_msg;
 
 # "expand", "unexpand" and "list" are mutually exclusive.
 # at least one of "expand", "unexpand", "list" or "xhist" must be present.
@@ -222,16 +226,20 @@ exit 0;  # we're done.
 sub standalone_main
 {
     my $inbuf;
+    my $pathname;
 
-    ## if a filename was given, read its contents, otherwise read from stdin.
+    # if a filename was given on the commandline, read its contents, 
+    # otherwise read from stdin & use the --fname option as the filename.
     my $ext = "c";	# default file extension for lexer
     if (scalar(@ARGV) >= 1)
     {
-	($ext = $ARGV[0]) =~ s/.*\.//;			# get file extension
-	$inbuf = path($ARGV[0])->slurp;			# slurp entire file
+	$pathname = $ARGV[0];
+	($ext = $pathname) =~ s/.*\.//;			# get file extension
+	$inbuf = path($pathname)->slurp;		# slurp entire file
     }
     else
     {
+	$pathname = $opt{'fname'} if defined $opt{'fname'};
 	$inbuf = do { local $/ = undef; <STDIN> };	# slurp stdin
     }
     my $is_ascii = ! ($inbuf =~ /[[:^ascii:]]/);	# check for non-ascii chars
@@ -253,7 +261,7 @@ sub standalone_main
 	if (defined $opt{'xhist'} and
 	    $kw{'Branch'}{val} =~ /$opt{'xhist'}/ )
 	{
-	     my $xh = XMT::Xhist::new($ARGV[0], \$inbuf);	# instrument $inbuf
+	     my $xh = XMT::Xhist::new($pathname, \$inbuf);	# instrument $inbuf
 	     $inbuf = $xh->source();
 	     XMT::Xhist::printmap($kw{'XhistMap'}{val});	
 	}

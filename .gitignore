@@ -1,4 +1,6 @@
 # ignore all files matching regexp patterns rooted here
+.gitattributes
+.gitignore
 .svn/
 */obj/
 */tgt/

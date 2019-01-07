@@ -50,7 +50,7 @@ sub new
     $self->{fname}	= $f  if defined($f);
     ($self->{fext}	= $self->{fname}) =~ s/.*\.([^\.]*)/$1/;
     $self->{fnum}	= crc16($self->{fname});	# calculate hash of fname
-    $self->{fnum}++  while ( grep $self->{fnum}, values %filemap ); # handle collisions
+    $self->{fnum}++  while ( grep /$self->{fnum}/, values %filemap ); # handle collisions
     $filemap{$self->{fname}} = $self->{fnum};	# add name & hash to filemap
     $self->{lnum}	= 0;
     $self->{buf}	= $$bufp;

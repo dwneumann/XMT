@@ -38,7 +38,8 @@ sub process_main
 {
     my $MAX_PACKET_CONTENT_SIZE = 65516;
     my ($rc, $str);
-    my $outbuf;
+    my ($inbuf, $outbuf, $buffer, $done);
+    my ($command, $pathname, $packet);
 
     # receive handshake
     ($rc, $str) = packet_read(); chomp($str);
@@ -69,16 +70,17 @@ sub process_main
     # receive command & data; save data & send response
     while (1) 
     {
-	my $command  = packet_read() =~ /^command=(.+)\n$/;
-	my $pathname = packet_read() =~ /^pathname=(.+)\n$/;
+	($rc, $command)  = packet_read();
+	$command  =~ /^command=(.+)\n$/;
+	($rc, $pathname) = packet_read();
+	$pathname =~ /^pathname=(.+)\n$/;
 	die "bad pathname '$pathname'" if ( $pathname eq "" );
 
 	packet_read();	# "flush" packet 0000 follows command
 
-	my $inbuf = "";
+	$inbuf = "";
 	{
 	    binmode(STDIN);
-	    my $buffer;
 	    my $done = 0;
 	    while ( !$done ) 
 	    {
@@ -89,17 +91,17 @@ sub process_main
 
 	packet_txt_write("status=success");
 	packet_flush();
-	while ( length($outbuf) > 0 ) 
+	while ( length($inbuf) > 0 ) 
 	{
-	    my $packet = substr( $outbuf, 0, $MAX_PACKET_CONTENT_SIZE );
+	    $packet = substr( $inbuf, 0, $MAX_PACKET_CONTENT_SIZE );
 	    packet_bin_write($packet);
-	    if ( length($outbuf) > $MAX_PACKET_CONTENT_SIZE ) 
+	    if ( length($inbuf) > $MAX_PACKET_CONTENT_SIZE ) 
 	    {
-		$outbuf = substr( $outbuf, $MAX_PACKET_CONTENT_SIZE );
+		$inbuf = substr( $inbuf, $MAX_PACKET_CONTENT_SIZE );
 	    }
 	    else 
 	    {
-		$outbuf = "";
+		$inbuf = "";
 	    }
 	}
 	packet_flush();    # flush content

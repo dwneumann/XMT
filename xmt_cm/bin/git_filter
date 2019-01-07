@@ -193,7 +193,7 @@ $kw{'Version'}{val} = sprintf("%s-%d [%s]",
 $kw{'BuildDate'}{val} = strftime( "%Y-%m-%d.%H:%M", localtime );
 ## construct default name for xhist_map file
 ($kw{'XhistMap'}{val} = ( defined $opt{'xhist_map'} ?
-    $opt{'xhist_map'} : "xhist.$kw{'Tag'}{val}-$kw{'BuildNum'}{val}-$kw{'Branch'}{val}.map" )) =~ s/[ :]/-/g;
+    $opt{'xhist_map'} : "/tmp/xhist.$kw{'Tag'}{val}-$kw{'BuildNum'}{val}-$kw{'Branch'}{val}.map" )) =~ s/[ :]/-/g;
 
 ## list keyword values if any were requested
 if (defined $opt{'list'})
@@ -344,10 +344,10 @@ sub process_main
     # receive command & data; perform filter & send response
     while (1) 
     {
-	($rc, $command)  = packet_read();
-	$command  =~ /^command=(.+)\n$/;
-	($rc, $pathname) = packet_read();
-	$pathname =~ /^pathname=(.+)\n$/;
+	($rc, $command)  = packet_read(); chomp($command);
+	$command  =~ s/command=(.+)/$1/;
+	($rc, $pathname) = packet_read(); chomp($pathname);
+	$pathname =~ s/pathname=(.+)/$1/;
 	die "bad pathname '$pathname'" if ( $pathname eq "" );
 
 	packet_read();	# "flush" packet 0000 follows command

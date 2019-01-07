@@ -1,4 +1,6 @@
 *.as	binary
 *.so	binary
 * 	text=auto eol=lf
-*	filter=qa
+# invoke the XMT utility git_filter to perform smudge and xhist instrumentation when
+# checking out into QA-owned test and release branches.
+*	filter=instrumentation

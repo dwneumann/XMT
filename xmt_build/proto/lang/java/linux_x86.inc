@@ -1,10 +1,10 @@
 #************************************************************************
 #*   $Version:$
 #*   Package	: xmt_build
-#*   Synopsis	: included by $(XMTBUILD)/proto/Makefile.top
+#*   Synopsis	: included by $(XMTBUILD)/proto/lang/<language>/generic.inc
 #*   Purpose	: 
-#*              This Makefile segment adds language support to
-#*              $(XMTBUILD)/proto/Makefile.top
+#*              This Makefile segment adds architecture support to
+#*              $(XMTBUILD)/proto/lang/<language>/generic.inc
 #*              It is intended to be included by that file only.
 #*
 #*   To add support for a new target architecture,  clone any existing
@@ -25,34 +25,26 @@
 #*  limitations under the License. 
 #************************************************************************
 
-JAVA_PKGTREE	:= .
-srcs.java	:= $(wildcard $(SRCDIR)/*.java)
-hdrs.java	:= 
-objs.java	:= $(patsubst $(SRCDIR)/%.java,$(OBJDIR)/$(JAVA_PKGTREE)/%.class,$(srcs.java))
-docs.java	:= $(patsubst $(SRCDIR)/%.java,$(DOCDIR)/%.html,$(srcs.java))
-lnts.java	:= 
+#**********************************************************************
+# define program paths...
+#**********************************************************************
+COMPILE.java.linux_x86 := javac
+LD.java.linux_x86	:= /bin/true
+AR.java.linux_x86	:= jar
+LINT.java.linux_x86	:= echo no lint installed for Java
+DOC.java.linux_x86	:= javadoc
 
 #**********************************************************************
-# This is the place to define default flags that are common to ALL 
-# supported architectures for THIS language.
+# This is the place to define flags that are specific to THIS language
+# when compiled for THIS architecture.
 #**********************************************************************
-CFLAGS.java	+= -g -d $(OBJDIR) -classpath .:$(OBJDIR)/$(JAVA_PKGTREE):$(TGTDIR):$(CLASSPATH)
-LDFLAGS.java	= 
-ARFLAGS.java	= cf 
-LINTFLAGS.java	= 
-DOCFLAGS.java	= 
-
-$(OBJDIR)/$(JAVA_PKGTREE)/%.class: $(SRCDIR)/%.java
-	@echo	$(CFLAGS) $(CFLAGS.java) $(CFLAGS.java.$(ARCH)) > $@.cflags ;
-	$(COMPILE.java.$(ARCH))	@$@.cflags $<
-
-$(OBJDIR)/%.i	: $(SRCDIR)/%.java
-	echo no preprocessor defined for Java
-
-$(OBJDIR)/%.ln	: $(SRCDIR)/%.java
-	@echo $(LINTFLAGS) $(LINTFLAGS.java) $(LINTFLAGS.java.$(ARCH)) > $@.lintflags ;
-	$(LINT.java.$(ARCH)) @$@.lintflags $<
-
-$(DOCDIR)/%.html: $(SRCDIR)/%.java
-	cd $(DOCDIR); $(DOC.java.$(ARCH)) $(DOCFLAGS) $(DOCFLAGS.java) $(DOCFLAGS.java.$(ARCH)) $<
+CFLAGS.java.linux_x86	= 
+LDFLAGS.java.linux_x86	= 
+ARFLAGS.java.linux_x86	=
+LINTFLAGS.java.linux_x86= 
+DOCFLAGS.java.linux_x86	=
+LIB_PFX.java.linux_x86	:= 
+LIB_SFX.java.linux_x86	:= .jar
+EXE_PFX.java.linux_x86	:= 
+EXE_SFX.java.linux_x86	:= 
 

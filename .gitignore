@@ -5,6 +5,7 @@
 */obj/
 */tgt/
 */tmp/
+*/doc/
 *.map
 *.trace
 *.log
@@ -17,6 +18,9 @@ ERRS.*
 *.a
 *.cflags
 *.ldflags
+*.arlags
+*.class
+*.exe
 *.gcda
 *.gcno
 cscope.*

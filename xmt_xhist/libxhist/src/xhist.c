@@ -173,19 +173,20 @@ void	xhist_logdev(int fd)
 ***********************************************************************/
 void	xhist_write()
 {
-    unsigned long		l;
+    long		l;
+    short		s;
 
     BACKOUT_IF( xhist_logfd < 0, "invalid log device" );
 
     /*
-     *  write 4 bytes containing sizeof(long).  
+     *  write 4 bytes containing the number 4.  
      *  This establishes our byte order for the reader.
      *  Then write the size of the table and the index of the tail pointer.
      */
 
-    l = (unsigned long) sizeof(long);
+    l = (long) 4;
     BACKOUT_IF(write(xhist_logfd, (char *) &l, sizeof(l)) < (ssize_t) sizeof(l), strerror(errno));
-    l = (unsigned long) (sizeof(xhist_tbl) / sizeof(xhist_tbl[0]));
+    l = (long) (sizeof(xhist_tbl) / sizeof(xhist_tbl[0]));
     BACKOUT_IF(write(xhist_logfd, (char *) &l, sizeof(l)) < (ssize_t) sizeof(l), strerror(errno));
     BACKOUT_IF(write(xhist_logfd, (char *) &xhist_tail, sizeof(xhist_tail)) 
     	< (ssize_t) sizeof(xhist_tail), strerror(errno));
@@ -194,15 +195,13 @@ void	xhist_write()
      *  now write the length & name of the map file created during instrumentation
      *  and the length & version tag of the instrumented source
      */
-    l = (unsigned long) XHIST_MAPFNLENGTH;
-    BACKOUT_IF(write(xhist_logfd, (char *) &l, sizeof(l)) < (ssize_t) sizeof(l), strerror(errno));
-    BACKOUT_IF(write(xhist_logfd, (char *) &xhist_mapfn, sizeof(xhist_mapfn)) 
-	< (ssize_t) sizeof(xhist_mapfn), strerror(errno));
+    s = (short) strlen(xhist_mapfn);
+    BACKOUT_IF(write(xhist_logfd, (char *) &s, sizeof(s)) < (ssize_t) sizeof(s), strerror(errno));
+    BACKOUT_IF(write(xhist_logfd, (char *) &xhist_mapfn, s) < (ssize_t) s, strerror(errno));
 
-    l = (unsigned long) XHIST_VERSIONLENGTH;
-    BACKOUT_IF(write(xhist_logfd, (char *) &l, sizeof(l)) < (ssize_t) sizeof(l), strerror(errno));
-    BACKOUT_IF(write(xhist_logfd, (char *) &xhist_buildtag, sizeof(xhist_buildtag)) 
-	< (ssize_t) sizeof(xhist_buildtag), strerror(errno));
+    s = (short) strlen(xhist_buildtag);
+    BACKOUT_IF(write(xhist_logfd, (char *) &s, sizeof(s)) < (ssize_t) sizeof(s), strerror(errno));
+    BACKOUT_IF(write(xhist_logfd, (char *) &xhist_buildtag, s) < (ssize_t) s, strerror(errno));
     
     /*
      *  now write the entire table to the log device

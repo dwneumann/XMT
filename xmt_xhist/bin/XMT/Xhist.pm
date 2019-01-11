@@ -30,17 +30,83 @@ sub version
     return $s;
 }
 $VERSION = &version;
-my %filemap = ();
-my %lexers  = (
-    c		=> instrument_c,
-    java	=> instrument_java,
-    );
+local %filemap = ();
 
+# $tokens is a hash of language-specific tokens to be interpolated at time of pattern matching
+our $tokens = {
+    c		=> {
+	identifier    	=> q:[a-zA-Z0-9_]+:	,
+	operator	=> q:[-+<>=!\^\(]:	,
+	cmt_start	=> q:/\*:		,
+	cmt_end		=> q:\*/:		,
+	indent		=> ""			,	# this changes dynamically
+    },
+    cc	=> {
+	identifier    	=> q:[a-zA-Z0-9_]+:	,
+	operator	=> q:[-+<>=!\^\(]:	,
+	cmt_start	=> q:/\*:		,
+	cmt_end		=> q:\*/:		,
+	indent		=> ""			,	# this changes dynamically
+    },
+    java	=> {
+	identifier    	=> q:[a-zA-Z0-9_]+:	,
+	operator	=> q:[-+<>=!\^\(]:	,
+	cmt_start	=> q:/\*:		,
+	cmt_end		=> q:\*/:		,
+	indent		=> ""			,	# this changes dynamically
+    },
+};
+
+# $templates are language-specific patterns that are interpolated with tokens 
+# at time of parsing.  This allows tokens to dynamically change (e.g. $indent)
+our $templates = {
+    c	=> {
+	func_begin	=> q:^(\s*)\{\s*$:,
+	func_end	=> q:^[% indent %]\}\s*$:,
+	declaration	=> q:^\s*[% identifier %]\**\s+\(?\**[% identifier %].*[,;]:,
+	for_stmt	=> q:\s+for\s+\(.*;.*:,
+	rtn_stmt	=> q:\s+return\s*\(*.*\)*\s*;:,
+	executable	=> q:[% operator %].*;:,
+	xh_dbg_T	=> q:[% cmt_start %]\s+xhist\s+debug\s+TRUE\s*[% cmt_end %]:,
+	xh_dbg_F	=> q:[% cmt_start %]\s+xhist\s+debug\s+FALSE\s*[% cmt_end %]:,
+	xh_inst_T	=> q:[% cmt_start %]\s+xhist\s+instrument\s+TRUE\s*[% cmt_end %]:,
+	xh_inst_F	=> q:[% cmt_start %]\s+xhist\s+instrument\s+FALSE\s*[% cmt_end %]:,
+	trace_stmt	=> q:_XH_ADD( FNUM, LNUM );:,
+    },
+    cc	=> {
+	func_begin	=> q:^(\s*)(public|private|protected).*\{\s*:,
+	func_end	=> q:^[% indent %]\}\s*$:,
+	declaration	=> q:^\s*[% identifier %]\**\s+\(?\**[% identifier %].*[,;]:,
+	for_stmt	=> q:\s+for\s+\(.*;.*:,
+	rtn_stmt	=> q:\s+return\s*\(*.*\)*\s*;:,
+	executable	=> q:[% operator %].*;:,
+	xh_dbg_T	=> q:[% cmt_start %]\s+xhist\s+debug\s+TRUE\s*[% cmt_end %]:,
+	xh_dbg_F	=> q:[% cmt_start %]\s+xhist\s+debug\s+FALSE\s*[% cmt_end %]:,
+	xh_inst_T	=> q:[% cmt_start %]\s+xhist\s+instrument\s+TRUE\s*[% cmt_end %]:,
+	xh_inst_F	=> q:[% cmt_start %]\s+xhist\s+instrument\s+FALSE\s*[% cmt_end %]:,
+	trace_stmt	=> q:Xhist.add( FNUM, LNUM );:,
+    },
+    java	=> {
+	func_begin	=> q:^(\s*)(public|private|protected).*\{\s*:,
+	func_end	=> q:^[% indent %]\}\s*$:,
+	declaration	=> q:^\s*[% identifier %]\**\s+\(?\**[% identifier %].*[,;]:,
+	for_stmt	=> q:\s+for\s+\(.*;.*:,
+	rtn_stmt	=> q:\s+return\s*\(*.*\)*\s*;:,
+	executable	=> q:[% operator %].*;:,
+	xh_dbg_T	=> q:[% cmt_start %]\s+xhist\s+debug\s+TRUE\s*[% cmt_end %]:,
+	xh_dbg_F	=> q:[% cmt_start %]\s+xhist\s+debug\s+FALSE\s*[% cmt_end %]:,
+	xh_inst_T	=> q:[% cmt_start %]\s+xhist\s+instrument\s+TRUE\s*[% cmt_end %]:,
+	xh_inst_F	=> q:[% cmt_start %]\s+xhist\s+instrument\s+FALSE\s*[% cmt_end %]:,
+	trace_stmt	=> q:Xhist.add( FNUM, LNUM );:,
+    },
+};
+
+## nothing below this line should be language-dependent.
 
 #************************************************************************/
 # class method new($f, $$bufp) 
 # instantiates a new Xhist object for filename $f & contents $bufp.
-# Returns the object handle to the instrumented source object.
+# Returns the handle to the object.
 #************************************************************************/
 sub new
 {
@@ -55,12 +121,6 @@ sub new
     $self->{lnum}	= 0;
     $self->{buf}	= $$bufp;
     bless $self;
-
-    # if there is a lexer for this filetype, call it now.
-    if (defined $lexers{$self->{fext}})
-    {
-        &{$lexers{$self->{fext}}}($self);
-    }
     return $self;
 }
  
@@ -93,65 +153,25 @@ sub source
 }
 
 #************************************************************************/
-#  instance method instrument_c instruments a C file 
+# instance method instrument() 
+# Instruments the source code referred to by the object.
+# Returns the instrumented source buffer.
 #************************************************************************/
-sub instrument_c
+sub instrument
 {
     my $self = shift;
-
-    ##  language syntax is captured here...
-    local $identifier    	= qr([a-zA-Z0-9_]+)				;
-    local $operator		= qr([-+<>=!\^\(])				;
-    local $func_start		= qr(^\{\s*$)					;
-    local $func_end		= qr(^\})					;
-    local $declaration		= qr(^\s*$identifier\**\s+\(?\**$identifier.*[,;]$);
-    local $for_stmt		= qr(\s+for\s+\(.*;.*$)				;
-    local $rtn_stmt		= qr(\s+return\s*\(*.*\)*\s*;)			;
-    local $executable_stmt	= qr($operator.*;)				;
-    local $xh_debug_true	= qr(/\*\s+xhist\s+debug\s+TRUE\s*\*\/)		;
-    local $xh_debug_false	= qr(/\*\s+xhist\s+debug\s+FALSE\s*\*\/)	;
-    local $xh_instrument_true	= qr(/\*\s+xhist\s+instrument\s+TRUE\s*\*\/)	;
-    local $xh_instrument_false	= qr(/\*\s+xhist\s+instrument\s+FALSE\s*\*\/)	;
-    local $trace_stmt		= '_XH_ADD( FNUM, LNUM );'			; 
-
-    $self->_instrument();
-}
-
-#************************************************************************/
-#  instance method instrument_c instruments a java file 
-#************************************************************************/
-sub instrument_java
-{
-    my $self = shift;
-
-    ##  language syntax is captured here...
-    local $identifier    	= qr([a-zA-Z0-9_]+)				;
-    local $operator		= qr([-+<>=!\^\(])				;
-    local $func_start		= qr(^(public|private|protected).*\{\s*$)	;
-    local $func_end		= qr(^\}\s*$)					;
-    local $declaration		= qr(^\s*$identifier\**\s+\(?\**$identifier.*[,;]$);
-    local $for_stmt		= qr(\s+for\s+\(.*;.*$)				;
-    local $rtn_stmt		= qr(\s+return\s*\(*.*\)*\s*;)			;
-    local $executable_stmt	= qr($operator.*;)				;
-    local $xh_debug_true	= qr(/\*\s+xhist\s+debug\s+TRUE\s*\*\/)		;
-    local $xh_debug_false	= qr(/\*\s+xhist\s+debug\s+FALSE\s*\*\/)	;
-    local $xh_instrument_true	= qr(/\*\s+xhist\s+instrument\s+TRUE\s*\*\/)	;
-    local $xh_instrument_false	= qr(/\*\s+xhist\s+instrument\s+FALSE\s*\*\/)	;
-    local $trace_stmt		= 'Xhist.add( FNUM, LNUM );'			; 
-
-    $self->_instrument();
-}
-
-#************************************************************************/
-#  language-independent instrumenter instance method invoked from instrument_*
-#************************************************************************/
-sub _instrument
-{
-    my $self = shift;
-    my $in_func		= 0;	# TRUE if inside a routine     
+    my $in_func		= 0;	# increment each time we encounter a nested routine
     my $xh_debug	= 0;	# TRUE if debugging lexer 
     my $xh_instrument	= 1;	# TRUE if instrumenting should occur
+    my $regex;
 
+    # if we don't grok this filetype, return gracefully.
+    if (!defined $tokens->{$self->{fext}})
+    {
+	return $self->{buf};
+    }
+
+    local @indent_fifo	= [""];	# FIFO stack of function indentation levels
     my @lines	 = split /\n/, $self->{buf};
     $self->{lnum} = 0;
     $self->{buf} = '';
@@ -162,76 +182,99 @@ sub _instrument
 
 	# append instrumentation to line ...
 	# "xhist debug TRUE" inside a comment enables tracing 
-	if ( m:${xh_debug_true}: )
+	$regex = interpolate( $templates->{$self->{fext}}{xh_dbg_T}, $self->{fext} );
+	if ( /$regex/ )
 	{
 	    $xh_debug = 1;
 	    $self->{buf} .= "$_\t/*<DEBUG ON>*/\n";
+	    next;
 	}
 
 	# "xhist debug FALSE" inside a comment disables tracing 
-	elsif ( m:${xh_debug_false}: )
+	$regex = interpolate( $templates->{$self->{fext}}{xh_dbg_F}, $self->{fext} );
+	if ( /$regex/ )
 	{
 	    $xh_debug = 0;
 	    $self->{buf} .= "$_\t/*<DEBUG OFF>*/\n";
+	    next;
 	}
 
 	# "xhist instrument TRUE" inside a comment enables instrumentation
-	elsif ( m:${xh_instrument_true}: )
+	$regex = interpolate( $templates->{$self->{fext}}{xh_inst_T}, $self->{fext} );
+	if ( /$regex/ )
 	{
 	    $xh_instrument = 1;
 	    $self->{buf} .= $_ . ($xh_debug ? "\t/*<INSTRUMENT ON>*/" : '') . "\n";
+	    next;
 	}
 
 	# "xhist instrument FALSE" inside a comment disables instrumentation
-	elsif ( m:${xh_instrument_false}: )
+	$regex = interpolate( $templates->{$self->{fext}}{xh_inst_F}, $self->{fext} );
+	if ( /$regex/ )
 	{
 	    $xh_instrument = 0;
 	    $self->{buf} .= $_ . ($xh_debug ? "\t/*<INSTRUMENT OFF>*/" : '') . "\n";
+	    next;
 	}
 
-	elsif ( m:${func_start}: )
+	$regex = interpolate( $templates->{$self->{fext}}{func_begin}, $self->{fext} );
+	if ( /$regex/ )
 	{
-	    $in_func = 1;
+	    unshift @indent_fifo, $1;	# push new indent onto stack
+	    $tokens->{$self->{fext}}{indent} = $indent_fifo[0];	
+	    $in_func++;
 	    $self->{buf} .= $_ . ($xh_debug ? "\t/*<FUNC START>*/" : '') . "\n";
+	    next;
 	}
 
-	elsif ( m:${func_end}: )
+	$regex = interpolate( $templates->{$self->{fext}}{func_end}, $self->{fext} );
+	if ( /$regex/ )
 	{
-	    $in_func = 0;
-	    $self->{buf} .= $_ . ($xh_debug ? "\t/*<FUNC END>*/" : '') . "\n";
+	    shift @indent_fifo;		# pop indent off of stack
+	    $tokens->{$self->{fext}}{indent} = $indent_fifo[0];	
+	    $in_func--; 
+	    $self->{buf} .= $_ . ($xh_debug ? "\t/*<FUNC END>*/" : '') . "\n"; 
+	    next;
 	}
 
-	elsif ( m:${declaration}: )
+	$regex = interpolate( $templates->{$self->{fext}}{declaration}, $self->{fext} );
+	if ( /$regex/ )
 	{
 	    $self->{buf} .= $_ . ($xh_debug ? "\t/*<DECL>*/" : '') . "\n";
+	    next;
 	}
 
-	elsif ( m:${for_stmt}: )
+	$regex = interpolate( $templates->{$self->{fext}}{for_stmt}, $self->{fext} );
+	if ( /$regex/ )
 	{
 	    $self->{buf} .= $_ . ($xh_debug ? "\t/*<FOR>*/" : '') . "\n";
+	    next;
 	}
 
-	elsif ( m:${rtn_stmt}: )
+	$regex = interpolate( $templates->{$self->{fext}}{rtn_stmt}, $self->{fext} );
+	if ( /$regex/ )
 	{
 	    if ( $in_func )
 	    {
-	    $self->{buf} .= $_ . ($xh_debug ? "\t/*<RETURN>*/" : '') . "\n";
+		$self->{buf} .= $_ . ($xh_debug ? "\t/*<RETURN>*/" : '') . "\n";
 	    }
 	    else
 	    {
 		$self->{buf} .= $_ . ($xh_debug ? "\t/*<RETURN OUTSIDE FUNC>*/" : '') . "\n";
 	    }
+	    next;
 	}
 
 	# a line containing an operator and terminating with a semicolon indicates 
 	# an executable statement. this is where we append trace statements.
 	# anything else is passed through unaltered.
-	elsif ( m:${executable_stmt}: )
+	$regex = interpolate( $templates->{$self->{fext}}{executable}, $self->{fext} );
+	if ( /$regex/ )
 	{
 	    if ( $in_func )
 	    {
 		$self->{buf} .= $_ . ($xh_debug ? "\t/*<STMT>*/" : '');
-		(my $repl = $trace_stmt) =~ s/FNUM/$self->{fnum}/g;
+		(my $repl = $templates->{$self->{fext}}{trace_stmt}) =~ s/FNUM/$self->{fnum}/g;
 		$repl =~ s/LNUM/$self->{lnum}/g;
 		if ($xh_instrument == 1)
 		{
@@ -243,12 +286,65 @@ sub _instrument
 	    {
 		$self->{buf} .= $_ . ($xh_debug ? "\t/*<STMT OUTSIDE FUNC>*/" : '') . "\n";
 	    }
+	    next;
 	}
 	else	# matches nothing; just output original line
 	{
 	    $self->{buf} .= "$_\n";	
 	}
     }
+    return $self->{buf};
+}
+
+#************************************************************************/
+# instance method uninstrument() 
+# Uninstruments the source code referred to by the object.
+# Returns the uninstrumented source buffer.
+#************************************************************************/
+sub uninstrument
+{
+    my $self = shift;
+    my $ptn;
+
+    # if we don't grok this filetype, return gracefully.
+    if (!defined $tokens->{$self->{fext}})
+    {
+	return $self->{buf};
+    }
+
+    $self->{buf} =~ s:\t/*<DEBUG ON>*/::g;
+    $self->{buf} =~ s:\t/*<DEBUG OFF>*/::g;
+    $self->{buf} =~ s:\t/*<INSTRUMENT ON>*/::g;
+    $self->{buf} =~ s:\t/*<INSTRUMENT OFF>*/::g;
+    $self->{buf} =~ s:\t/*<FUNC START>*/::g;
+    $self->{buf} =~ s:\t/*<FUNC END>*/::g;
+    $self->{buf} =~ s:\t/*<DECL>*/::g;
+    $self->{buf} =~ s:\t/*<FOR>*/::g;
+    $self->{buf} =~ s:"\t/*<RETURN>*/::g;
+    $self->{buf} =~ s:\t/*<RETURN OUTSIDE FUNC>*/::g;
+    $self->{buf} =~ s:"\t/*<STMT>*/::g;
+    $self->{buf} =~ s:\t/*<STMT OUTSIDE FUNC>*/::g;
+    ($ptn = $templates->{$self->{fext}}{trace_stmt}) =~ s/.NUM/\\d+/g;
+
+    $ptn =~ s/\(/\\(/g;
+    $ptn =~ s/\)/\\(/g;
+    $self->{buf} =~ s:$ptn::g;
+    return $self->{buf};
+}
+
+#************************************************************************/
+# private function interpolate returns $ptn with all token values interpolated 
+#************************************************************************/
+sub interpolate
+{
+    my ($ptn, $ext) = @_;
+    my $output = $ptn;
+
+    foreach my $key (keys %{$tokens->{$ext}})
+    {
+        $output =~ s/\[% $key %\]/$tokens->{$ext}{$key}/g;
+    }
+    return $output;
 }
 
 1;

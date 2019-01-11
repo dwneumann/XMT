@@ -75,13 +75,13 @@ die "$opt{'trace'}: read error"		unless read( $fh, $bytes, 2*4) == 2*4;
 ($numstmts, $tailindex) = unpack "$intfmt $intfmt", $bytes;
 
 #  read the length & name of the map file created during instrumentation
-die "$opt{'trace'}: read error"		unless read( $fh, $bytes, 4) == 4;
-$strlen = unpack $intfmt, $bytes;
+die "$opt{'trace'}: read error"		unless read( $fh, $bytes, 2) == 2;
+$strlen = unpack lc $intfmt, $bytes;
 die "$opt{'trace'}: read error"		unless read( $fh, $bytes, $strlen) == $strlen;
 $mapfile = unpack "a$strlen", $bytes;
 #  read the length & version tag of the instrumented source
-die "$opt{'trace'}: read error"		unless read( $fh, $bytes, 4) == 4;
-$strlen = unpack $intfmt, $bytes;
+die "$opt{'trace'}: read error"		unless read( $fh, $bytes, 2) == 2;
+$strlen = unpack lc $intfmt, $bytes;
 die "$opt{'trace'}: read error"		unless read( $fh, $bytes, $strlen) == $strlen;
 $srcversion = unpack "a$strlen", $bytes;
 

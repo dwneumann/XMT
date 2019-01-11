@@ -52,6 +52,8 @@
 #	 --xhist=<branchspec> only if in a branch matching regex pattern <branchspec>,
 #	 		instrument files for execution history capture on checkout
 #	 --xhist_map=pathname	write execution history filename map to <pathname>.
+#	 --unxhist	unxhist (i.e. clean) xhist instrumentation found in stdin, 
+#			and write cleaned data stream to stdout.
 #	 --debug	write packet trace log to /tmp/git_filter.log
 #
 #  Copyright 2018 Visionary Research Inc.   All rights reserved.
@@ -119,6 +121,8 @@ $pgmname [<options>] [file]
   --xhist=<branchspec> only if in a branch matching regex pattern <branchspec>,
                 instrument files for execution history capture on checkout
   --xhist_map=pathname   write execution history filename map to <pathname>
+  --unxhist     unxhist (i.e. clean) xhist instrumentation found in stdin, 
+                and write cleaned data stream to stdout.
   --fname=<pathspec>	read contents of file from STDIN but use <pathspec>
                 as the file name for instrumentation purposes
   --debug       write packet trace log to /tmp/git_filter.log
@@ -127,16 +131,17 @@ __END__
 # parse commandline options
 my %opt = ();
 GetOptions( \%opt, "help", "verbose", "expand=s", "unexpand", "list:s@", "binary", 
-	    "process", "debug", "xhist=s", "xhist_map=s", "fname=s") or die $help_msg;
+	    "process", "debug", "xhist=s", "unxhist", "xhist_map=s", "fname=s") 
+	    or die $help_msg;
 
 # "expand", "unexpand" and "list" are mutually exclusive.
-# at least one of "expand", "unexpand", "list" or "xhist" must be present.
+# at least one of "expand", "unexpand", "list", "xhist" or "unxhist" must be present.
 # all other args are optional.
 die "$help_msg" if defined $opt{'help'};
 my @mutually_exclusive = map { /expand|unexpand|list/ ? $_ : () } keys %opt;
 die "$help_msg" if scalar(@mutually_exclusive) > 1;
-die "$help_msg" if (!defined $opt{'expand'}   and !defined $opt{'unexpand'} 
-		    and !defined $opt{'list'} and !defined $opt{'xhist'});
+die "$help_msg" if (!defined $opt{'expand'} and !defined $opt{'unexpand'} 
+    and !defined $opt{'list'} and !defined $opt{'xhist'} and !defined $opt{'unxhist'});
 
 if (defined $opt{'debug'})
 {
@@ -247,7 +252,10 @@ sub standalone_main
     ## perform substitutions & write the output.
     if ($is_ascii || defined $opt{'binary'})
     {
-	if (defined $opt{'expand'})
+	# only do keyword expansion if we are in a 
+	# branch specified for keyword expansion.
+	if ( defined $opt{'expand'}  and
+	     $kw{'Branch'}{val} =~ /$opt{'expand'}/ )
 	{
 	    kw_expand( \$inbuf );
 	}
@@ -258,12 +266,17 @@ sub standalone_main
 	
 	# only do xhist instrumentation if we are in a 
 	# branch specified for xhist instrumentation.
-	if (defined $opt{'xhist'} and
-	    $kw{'Branch'}{val} =~ /$opt{'xhist'}/ )
+	if ( defined $opt{'xhist'} and
+	     $kw{'Branch'}{val} =~ /$opt{'xhist'}/ )
 	{
-	     my $xh = XMT::Xhist::new($pathname, \$inbuf);	# instrument $inbuf
-	     $inbuf = $xh->source();
+	     my $xh = XMT::Xhist::new($pathname, \$inbuf);	
+	     $inbuf = $xh->instrument(); 
 	     XMT::Xhist::printmap($kw{'XhistMap'}{val});	
+	}
+	elsif ( defined $opt{'unxhist'} )
+	{
+	    my $xh = XMT::Xhist::new($pathname, \$inbuf);	
+	    $inbuf = $xh->uninstrument();
 	}
     }
     print STDOUT $inbuf;
@@ -277,13 +290,9 @@ sub kw_expand
     my $buf_ref = shift;
     my $k;
 
-    # only do keyword expansion if we are in a branch specified for keyword expansion.
-    if ( $kw{'Branch'}{val} =~ /$opt{'expand'}/ )
+    foreach $k ( keys %kw )
     {
-	foreach $k ( keys %kw )
-	{
-	    $$buf_ref =~ s/\$$k:\$/\$$k: $kw{$k}{val} \$/g;
-	}
+	$$buf_ref =~ s/\$$k:\$/\$$k: $kw{$k}{val} \$/g;
     }
 }
 
@@ -367,19 +376,31 @@ sub process_main
 	{
 	    ### Perform clean here ###
 	    kw_unexpand( \$inbuf );
+
+	    if ( defined $opt{'unxhist'} )
+	    {
+		my $xh = XMT::Xhist::new($pathname, \$inbuf);	
+		$inbuf = $xh->uninstrument();
+	    }
 	    $outbuf = $inbuf;
 	}
 	elsif ( $command =~ /smudge/ ) 
 	{
 	    ### Perform smudge here ###
-	    kw_expand( \$inbuf );
+	    # only do keyword expansion if we are in a 
+	    # branch specified for keyword expansion.
+	    if ( defined $opt{'expand'}  and
+		$kw{'Branch'}{val} =~ /$opt{'expand'}/ )
+	    {
+		kw_expand( \$inbuf );
+	    }
 
 	    # only do xhist instrumentation if we are in a 
 	    # branch specified for xhist instrumentation.
 	    if (defined $opt{'xhist'} and $kw{'Branch'}{val} =~ /$opt{'xhist'}/ )
 	    {
-		my $xh = XMT::Xhist::new($pathname, \$inbuf);	# instrument $inbuf
-		$inbuf = $xh->source();
+		my $xh = XMT::Xhist::new($pathname, \$inbuf);	
+		$inbuf = $xh->instrument();
 	    }
 	    $outbuf = $inbuf;
 	}

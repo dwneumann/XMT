@@ -78,7 +78,7 @@ public	class		Xhist
     * @param	fnum		filename hash (mapping stored in mapfile())
     * @param	lnum		line number just executed
     */
-    public	static void add( short fnum,  short lnum ) { 
+    public	static void add( int fnum,  int lnum ) { 
 	tbl[tail] = (((short) fnum << 16) | (short) lnum);
 	tail = (short) ((tail+1) % XhistTableSize);
     }
@@ -121,6 +121,7 @@ public	class		Xhist
 	 *  (xhist_report is agnostic to the language and architecture of the writer).
 	 *  Then write the size of the table and the index of the tail pointer.
 	 */
+
 	logStream.writeInt(4);
 	logStream.writeInt(tbl.length);
 	logStream.writeInt(tail);
@@ -129,10 +130,8 @@ public	class		Xhist
 	 *  now write the length & name of the map file created during instrumentation
 	 *  and the length & build tag of the instrumented source
 	 */
-	logStream.writeInt(mapFn.length());
-	logStream.writeChars(mapFn);
-	logStream.writeInt(buildTag.length());
-	logStream.writeChars(buildTag);
+	logStream.writeUTF(mapFn);
+	logStream.writeUTF(buildTag);
 	
 	/*
 	 *  now write the entire table to the log device

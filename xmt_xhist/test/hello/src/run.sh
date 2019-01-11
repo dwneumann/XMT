@@ -1,1 +1,0 @@
-../$T/hellofoo.exe 

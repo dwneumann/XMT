@@ -11,6 +11,7 @@
  *    See the License for the specific language governing permissions and
  *    limitations under the License. 
  */
+/* xhist debug FALSE */
 
 //import sun.misc.Signal;
 //import sun.misc.SignalHandler;

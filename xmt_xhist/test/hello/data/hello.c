@@ -35,7 +35,7 @@ static const char hello_c_id[] = "@(#) libxhist::hello.c	$Version:$";
 #include "xhist.h" 
 #endif  
  
-extern void foo();
+void foo();
  
 int main(int argc, char *argv[]) 
 {
@@ -58,8 +58,13 @@ int main(int argc, char *argv[])
  
     for (i = 0; i < 10; i++)
     { 
-	sleep(1);	_XH_ADD( 65024, 61 );
-	foo();	_XH_ADD( 65024, 62 );
+	sleep(1);	
+	foo();	
     } 
-    xhist_write();	_XH_ADD( 65024, 64 );
+    xhist_write();	
+}
+
+void foo()
+{
+    printf("hello foo\n");
 }

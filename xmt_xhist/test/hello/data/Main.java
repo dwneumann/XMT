@@ -13,8 +13,7 @@
  */
 /* xhist debug FALSE */
 
-//import sun.misc.Signal;
-//import sun.misc.SignalHandler;
+import java.lang.Runtime;
 import java.io.DataOutputStream;
 import java.io.FileOutputStream;
 
@@ -29,17 +28,22 @@ public	class		Main
 	DataOutputStream	fd;
     
 	try {
-	    fd = new DataOutputStream(new FileOutputStream("./xhist.trace")); 
+	    fd = new DataOutputStream(new FileOutputStream("./Main.trace")); 
 	    Xhist.logdev(fd);
 	    Xhist.mapfile("$XhistMap:$");
 	    Xhist.version("$Version:$");
-	    /*
-	    Signal.handle(new Signal("INT"), new SignalHandler() { 
-		public void handle(Signal sig) {
-		    Xhist.write();
+
+	    Runtime.getRuntime().addShutdownHook( new Thread() {
+		@Override
+		public void run() {
+		    try {
+			Xhist.write();
+		    }
+		    catch (java.io.IOException e) {
+			/* do nothing */
+		    }
 		}
 	    });
-	    */
 	} 
 	catch (java.io.FileNotFoundException e) {
 	    System.out.println("cannot open DataOutputStream");
@@ -57,12 +61,6 @@ public	class		Main
 	    }
 	    foo();
 	} 
-	try {
-	    Xhist.write();
-	}
-	catch (java.io.IOException e) {
-	    /* do nothing */
-	}
     }
 
     public static void foo() {

@@ -17,19 +17,13 @@
 #   Purpose	: Customize make environment for the current package.
 #************************************************************************
 
-LANGUAGE	= c
+#LANGUAGE	= c
+LANGUAGE	= java
 ARCH		= linux_x86
 BUILD_TGT	= exe
-PKG_NM		= xhist
-EXE_NM		= hellofoo
-LIBS		= $(XMT)/xmt_xhist/libxhist/tgt/$(ARCH)/libxhist.a 
+PKG_NM		= Xhist
+#EXE_NM		= hellofoo
+#LIBS		= $(XMT)/xmt_xhist/libxhist/tgt/$(ARCH)/libxhist.a 
 CFLAGS.c	+= -I$(XMT)/xmt_xhist/libxhist/src -g -DXHIST
-#CFLAGS.java	+= -classpath $(XMT)/xmt_xhist/libxhist/tgt/$(ARCH)/Xhist.jar
-
-c:
-	$(MAKE) build;
-
-java:
-	$(MAKE) LANGUAGE=java exe;
-#	$(MAKE) LANGUAGE=java doc;
+CFLAGS.java	+= -classpath $(XMTXHIST)/libxhist/tgt/$(ARCH)/Xhist.jar
 

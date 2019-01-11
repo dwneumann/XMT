@@ -28,7 +28,7 @@
 #**********************************************************************
 # define program paths...
 #**********************************************************************
-COMPILE.java.linux_x86 := javac
+COMPILE.java.linux_x86	:= javac
 LD.java.linux_x86	:= /bin/true
 AR.java.linux_x86	:= jar
 LINT.java.linux_x86	:= echo no lint installed for Java

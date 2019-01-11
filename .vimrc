@@ -28,7 +28,8 @@ set magic
 " shell escapes should run bash open in the working directory
 " Without --login, Cygwin won't mount some directories such as /usr/bin/
 " # this works for both console vim & gvim, with or without named file
-set shell=C:/cygwin32/bin/bash.exe
+"set shell=C:/cygwin32/bin/bash.exe
+set shell=/bin/bash
 set shellcmdflag=-c\ 
 set noshelltemp
 set shellslash

@@ -58,7 +58,7 @@
  *    limitations under the License. 
  */
 
-//package XMT;
+package XMT;
 import java.io.*;
 import java.io.DataOutputStream;
 

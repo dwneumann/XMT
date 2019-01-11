@@ -16,17 +16,11 @@
 #   Synopsis	: included automatically by $(XMTBUILD)/proto/Makefile.top
 #   Purpose	: Customize make environment for the current package.
 #************************************************************************
-LANGUAGE	= c
+#LANGUAGE	= c
+LANGUAGE	= java
 ARCH		= linux_x86
 BUILD_TGT	= lib
-PKG_NM		= xhist
+PKG_NM		= Xhist
+JAVA_PKGROOT	= XMT
 CFLAGS.c	+= -g -DUSING_XMTBUILD -DHAVE_STDIO_H -DHAVE_ERRNO_H -DHAVE_UNISTD_H -DHAVE_STRING_H 
-
-c:
-	$(MAKE) build;
-
-java:
-#	$(MAKE) LANGUAGE=java JAVA_PKGTREE=XMT PKG_NM=XMT lib;
-	$(MAKE) LANGUAGE=java PKG_NM=Xhist lib;
-	$(MAKE) LANGUAGE=java doc;
 

@@ -25,34 +25,39 @@
 #*  limitations under the License. 
 #************************************************************************
 
-JAVA_PKGTREE	:= .
-srcs.java	:= $(wildcard $(SRCDIR)/*.java)
+srcs.java	:= $(wildcard $(SRCDIR)/$(JAVA_PKGROOT)/*.java)
 hdrs.java	:= 
-objs.java	:= $(patsubst $(SRCDIR)/%.java,$(OBJDIR)/$(JAVA_PKGTREE)/%.class,$(srcs.java))
-docs.java	:= $(patsubst $(SRCDIR)/%.java,$(DOCDIR)/%.html,$(srcs.java))
+objs.java	:= $(patsubst $(SRCDIR)/$(JAVA_PKGROOT)/%.java,$(JAVA_PKGROOT)/%.class,$(srcs.java))
+docs.java	:= $(patsubst $(SRCDIR)/$(JAVA_PKGROOT)/%.java,$(DOCDIR)/%.html,$(srcs.java))
 lnts.java	:= 
 
 #**********************************************************************
 # This is the place to define default flags that are common to ALL 
 # supported architectures for THIS language.
 #**********************************************************************
-CFLAGS.java	+= -g -d $(OBJDIR) -classpath .:$(OBJDIR)/$(JAVA_PKGTREE):$(TGTDIR):$(CLASSPATH)
+CFLAGS.java	+= -g -d $(OBJDIR) -classpath .:$(OBJDIR):$(CLASSPATH)
 LDFLAGS.java	= 
 ARFLAGS.java	= cf 
 LINTFLAGS.java	= 
 DOCFLAGS.java	= 
 
-$(OBJDIR)/$(JAVA_PKGTREE)/%.class: $(SRCDIR)/%.java
+$(OBJDIR)/$(JAVA_PKGROOT)/%.class: $(SRCDIR)/$(JAVA_PKGROOT)/%.java
+	@mkdir -p $(OBJDIR)/$(JAVA_PKGROOT);
 	@echo	$(CFLAGS) $(CFLAGS.java) $(CFLAGS.java.$(ARCH)) > $@.cflags ;
 	$(COMPILE.java.$(ARCH))	@$@.cflags $<
 
-$(OBJDIR)/%.i	: $(SRCDIR)/%.java
-	echo no preprocessor defined for Java
-
-$(OBJDIR)/%.ln	: $(SRCDIR)/%.java
-	@echo $(LINTFLAGS) $(LINTFLAGS.java) $(LINTFLAGS.java.$(ARCH)) > $@.lintflags ;
-	$(LINT.java.$(ARCH)) @$@.lintflags $<
-
-$(DOCDIR)/%.html: $(SRCDIR)/%.java
+$(DOCDIR)/%.html: $(SRCDIR)/$(JAVA_PKGROOT)/%.java
 	cd $(DOCDIR); $(DOC.java.$(ARCH)) $(DOCFLAGS) $(DOCFLAGS.java) $(DOCFLAGS.java.$(ARCH)) $<
+
+$(JAVA_PKGROOT)/%.class: $(OBJDIR)/$(JAVA_PKGROOT)/%.class
+lib.$(LANGUAGE):	$(TGTDIR)/$(LIB_NM)
+$(JAVA_PKGROOT)/%.class:
+exe.$(LANGUAGE):	$(objs.java)
+$(JAVA_PKGROOT)/%.class: $(OBJDIR)/%.class
+$(TGTDIR)/$(LIB_NM): $(objs.$(LANGUAGE)) $(EXTRA_OBJS)
+	(cd $(OBJDIR);  \
+	echo $(ARFLAGS) $(ARFLAGS.$(LANGUAGE)) $(ARFLAGS.$(LANGUAGE).$(ARCH)) > $(LIB_NM).arflags;\
+	$(AR.$(LANGUAGE).$(ARCH)) @$(LIB_NM).arflags -C ../$(OBJDIR) $(LIB_NM) $(objs.java) ;	)
+	-/bin/mv $(OBJDIR)/$(LIB_NM) $(TGTDIR)/$(LIB_NM)
+
 

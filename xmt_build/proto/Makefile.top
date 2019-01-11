@@ -53,6 +53,7 @@ DOCDIR		= ../doc
 DATADIR		= ../data
 CMSOURCES	= co -u SVN/*
 CMCLEAN		= svn update -P -d *
+JAVA_PKGTREE	= .
 PKG_NM		= $(notdir $(pkg_dir))
 PKG_TGT         = lib
 OBJDIR		= ../obj/$(ARCH)
@@ -104,30 +105,17 @@ sources:
 	(cd $(SRCDIR); $(CMSOURCES))
 
 lint:	$(lnts.$(LANGUAGE))
-
 doc:	$(docs.$(LANGUAGE))
-
 objs: $(objs.$(LANGUAGE)) $(EXTRA_OBJS)
+lib:	lib.$(LANGUAGE)
+exe:	exe.$(LANGUAGE)
 
-lib:	$(TGTDIR)/$(LIB_NM)
-$(LIB_NM): $(TGTDIR)/$(LIB_NM)
-$(TGTDIR)/$(LIB_NM): $(objs.$(LANGUAGE)) $(EXTRA_OBJS)
-	@echo 	$(ARFLAGS) $(ARFLAGS.$(LANGUAGE)) $(ARFLAGS.$(LANGUAGE).$(ARCH)) > $@.arflags;
-	$(AR.$(LANGUAGE).$(ARCH)) @$@.arflags $@ $^ 	
-
-pgm:	exe
-exe:	$(TGTDIR)/$(EXE_NM)
-$(EXE_NM): $(TGTDIR)/$(EXE_NM)
-$(TGTDIR)/$(EXE_NM): $(objs.$(LANGUAGE)) $(EXTRA_OBJS) 
-	@echo $(LDFLAGS) $(LDFLAGS.$(LANGUAGE)) $(LDFLAGS.$(LANGUAGE).$(ARCH)) > $@.ldflags;
-	$(LD.$(LANGUAGE).$(ARCH)) @$@.ldflags $^ \
-	    $(LIBS) $(LIBS.$(LANGUAGE)) $(LIBS.$(LANGUAGE).$(ARCH)) 
 
 ifneq "$(tgtdir)" "$(srcdir)"
-$(tgtdir)/%	: $(srcdir)/%	; /bin/mv $< $@
+$(tgtdir)/%	:: $(srcdir)/%	; /bin/mv $< $@
 endif
 ifneq "$(docdir)" "$(srcdir)"
-$(docdir)/%	: $(srcdir)/%	; /bin/mv $< $@
+$(docdir)/%	:: $(srcdir)/%	; /bin/mv $< $@
 endif
 
 #**********************************************************************

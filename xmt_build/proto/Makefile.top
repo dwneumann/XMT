@@ -33,11 +33,13 @@
 #**********************************************************************
 # lower-case variables are for internal use only;
 # these not intended to be user-changable...
+#   := assignements are evaluated during lexical scan;
+#    = assignemtns are recursively evaluated during rule parsing
 #**********************************************************************
-shell		= /bin/sh
-pkg_dir		= $(shell cd ..;pwd)
+shell		:= /bin/sh
+pkg_dir		:= $(shell cd ..;pwd)
 supp_langs	:= $(notdir $(wildcard $(XMTBUILD)/proto/lang/*))
-allsrcs		= $(sort $(foreach e,$(supp_langs),$(srcs.$(e))))
+allsrcs		:= $(sort $(foreach e,$(supp_langs),$(srcs.$(e))))
 
 #**********************************************************************
 # Upper-case variables may be specified on the commandline or these
@@ -107,8 +109,8 @@ sources:
 lint:	$(lnts.$(LANGUAGE))
 doc:	$(docs.$(LANGUAGE))
 objs: $(objs.$(LANGUAGE)) $(EXTRA_OBJS)
-lib:	lib.$(LANGUAGE)
-exe:	exe.$(LANGUAGE)
+lib:	.lib.$(LANGUAGE)
+exe:	.exe.$(LANGUAGE)
 
 
 ifneq "$(tgtdir)" "$(srcdir)"

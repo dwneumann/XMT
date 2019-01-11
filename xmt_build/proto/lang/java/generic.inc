@@ -25,6 +25,8 @@
 #*  limitations under the License. 
 #************************************************************************
 
+#   := assignements are evaluated during lexical scan;
+#    = assignemtns are recursively evaluated during rule parsing
 srcs.java	:= $(wildcard $(SRCDIR)/$(JAVA_PKGROOT)/*.java)
 hdrs.java	:= 
 objs.java	:= $(patsubst $(SRCDIR)/$(JAVA_PKGROOT)/%.java,$(JAVA_PKGROOT)/%.class,$(srcs.java))
@@ -50,9 +52,9 @@ $(DOCDIR)/%.html: $(SRCDIR)/$(JAVA_PKGROOT)/%.java
 	cd $(DOCDIR); $(DOC.java.$(ARCH)) $(DOCFLAGS) $(DOCFLAGS.java) $(DOCFLAGS.java.$(ARCH)) $<
 
 $(JAVA_PKGROOT)/%.class: $(OBJDIR)/$(JAVA_PKGROOT)/%.class
-lib.$(LANGUAGE):	$(TGTDIR)/$(LIB_NM)
+.lib.$(LANGUAGE):	$(TGTDIR)/$(LIB_NM)
 $(JAVA_PKGROOT)/%.class:
-exe.$(LANGUAGE):	$(objs.java)
+.exe.$(LANGUAGE):	$(objs.java)
 $(JAVA_PKGROOT)/%.class: $(OBJDIR)/%.class
 $(TGTDIR)/$(LIB_NM): $(objs.$(LANGUAGE)) $(EXTRA_OBJS)
 	(cd $(OBJDIR);  \

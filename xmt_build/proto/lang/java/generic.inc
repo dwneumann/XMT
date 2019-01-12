@@ -38,7 +38,7 @@ lnts.java	:=
 # This is the place to define default flags that are common to ALL 
 # supported architectures for THIS language.
 #**********************************************************************
-CFLAGS.java	+= -g -d $(OBJDIR) -cp .:$(OBJDIR)
+CFLAGS.java	+= -g -d $(OBJDIR) 
 LDFLAGS.java	= 
 ARFLAGS.java	= cf 
 LINTFLAGS.java	= 

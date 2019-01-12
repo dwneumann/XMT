@@ -25,6 +25,7 @@
 #*  limitations under the License. 
 #************************************************************************
 
+
 #**********************************************************************
 # define program paths...
 #**********************************************************************
@@ -47,4 +48,21 @@ LIB_PFX.java.linux_x86	:=
 LIB_SFX.java.linux_x86	:= .jar
 EXE_PFX.java.linux_x86	:= 
 EXE_SFX.java.linux_x86	:= 
+
+$(JAVA_PKGROOT)/%.class: $(SRCDIR)/$(JAVA_PKGROOT)/%.java
+	@mkdir -p $(OBJDIR)/$(JAVA_PKGROOT);
+	@echo	$(CFLAGS) $(CFLAGS.java) $(CFLAGS.java.$(ARCH)) > $(OBJDIR)/$@.cflags ;
+	$(COMPILE.java.$(ARCH))	@$(OBJDIR)/$@.cflags $<
+
+$(DOCDIR)/%.html: $(SRCDIR)/$(JAVA_PKGROOT)/%.java
+	cd $(DOCDIR); $(DOC.java.$(ARCH)) $(DOCFLAGS) $(DOCFLAGS.java) $(DOCFLAGS.java.$(ARCH)) $<
+
+.lib.$(LANGUAGE):	$(TGTDIR)/$(LIB_NM)
+.exe.$(LANGUAGE):	$(objs.java)
+$(TGTDIR)/$(LIB_NM): $(objs.$(LANGUAGE)) $(EXTRA_OBJS)
+	(cd $(OBJDIR);  \
+	echo $(ARFLAGS) $(ARFLAGS.$(LANGUAGE)) $(ARFLAGS.$(LANGUAGE).$(ARCH)) > $(LIB_NM).arflags;\
+	$(AR.$(LANGUAGE).$(ARCH)) @$(LIB_NM).arflags $(LIB_NM) $(objs.java) ;	)
+	-/bin/mv $(OBJDIR)/$(LIB_NM) $(TGTDIR)/$(LIB_NM)
+
 

@@ -24,6 +24,7 @@
 #*  limitations under the License. 
 #************************************************************************
 
+
 CMSIS	= $(STM32_FW)/Libraries/CMSIS
 
 #**********************************************************************
@@ -53,8 +54,49 @@ ARFLAGS.cc.STM32F4	+= -rscDv
 LINTFLAGS.cc.STM32F4	+= $(CFLAGS.cc.STM32F4)
 DOCFLAGS.cc.STM32F4	+= 
 
+
 bin: exe
 	$(OBJCOPY.cc.STM32F4) -O binary $(TGTDIR)/$(EXE_NM) $(TGTDIR)/$(PKG_NM).bin
 
 hex: exe
 	$(OBJCOPY.cc.STM32F4) -O ihex $(TGTDIR)/$(EXE_NM) $(TGTDIR)/$(PKG_NM).hex
+
+
+
+$(OBJDIR)/%.o	: %.S
+	@echo $(CFLAGS) $(CFLAGS.c) $(CFLAGS.c.$(ARCH)) > $@.cflags ; 
+	$(COMPILE.c.$(ARCH)) @$@.cflags $< 
+
+$(OBJDIR)/%.o	: %.s
+	@echo $(CFLAGS) $(CFLAGS.c) $(CFLAGS.c.$(ARCH)) > $@.cflags ; 
+	$(COMPILE.c.$(ARCH)) @$@.cflags $< 
+
+$(OBJDIR)/%.o	: %.c
+	@echo $(CFLAGS) $(CFLAGS.c) $(CFLAGS.c.$(ARCH)) > $@.cflags ; 
+	$(COMPILE.c.$(ARCH)) @$@.cflags $< 
+
+$(OBJDIR)/%.i	: /%.c
+	@echo -E $(CFLAGS) $(CFLAGS.c) $(CFLAGS.c.$(ARCH)) > $@.cflags ; 
+	$(COMPILE.c.$(ARCH)) @$@.cflags $< 
+
+$(OBJDIR)/%.ln	: %.c
+	@echo $(LINTFLAGS) $(LINTFLAGS.c) $(LINTFLAGS.c.$(ARCH)) > $@.lintflags ; 
+	$(LINT.c.$(ARCH)) @$@.lintflags $< 
+
+$(DOCDIR)/%.html: $(SRCDIR)/%.c
+	@echo $(DOCFLAGS) $(DOCFLAGS.c) $(DOCFLAGS.c.$(ARCH)) > $@.docflags ; 
+	$(DOC.c.$(ARCH)) @$@.docflags $< 
+
+.lib.$(LANGUAGE):	$(TGTDIR)/$(LIB_NM)
+$(LIB_NM): $(TGTDIR)/$(LIB_NM)
+$(TGTDIR)/$(LIB_NM): $(objs.$(LANGUAGE)) $(EXTRA_OBJS)
+	@echo 	$(ARFLAGS) $(ARFLAGS.$(LANGUAGE)) $(ARFLAGS.$(LANGUAGE).$(ARCH)) > $@.arflags;
+	$(AR.$(LANGUAGE).$(ARCH)) @$@.arflags $@ $^ 	
+
+.exe.$(LANGUAGE):	$(TGTDIR)/$(EXE_NM)
+$(EXE_NM): $(TGTDIR)/$(EXE_NM)
+$(TGTDIR)/$(EXE_NM): $(objs.$(LANGUAGE)) $(EXTRA_OBJS) 
+	@echo $(LDFLAGS) $(LDFLAGS.$(LANGUAGE)) $(LDFLAGS.$(LANGUAGE).$(ARCH)) > $@.ldflags;
+	$(LD.$(LANGUAGE).$(ARCH)) @$@.ldflags $^ \
+	    $(LIBS) $(LIBS.$(LANGUAGE)) $(LIBS.$(LANGUAGE).$(ARCH)) 
+

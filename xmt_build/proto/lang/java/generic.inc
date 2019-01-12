@@ -25,8 +25,9 @@
 #*  limitations under the License. 
 #************************************************************************
 
+
 #   := assignements are evaluated during lexical scan;
-#    = assignemtns are recursively evaluated during rule parsing
+#    = assignments are recursively expanded during rule parsing
 srcs.java	:= $(wildcard $(SRCDIR)/$(JAVA_PKGROOT)/*.java)
 hdrs.java	:= 
 objs.java	:= $(patsubst $(SRCDIR)/$(JAVA_PKGROOT)/%.java,$(JAVA_PKGROOT)/%.class,$(srcs.java))
@@ -37,29 +38,11 @@ lnts.java	:=
 # This is the place to define default flags that are common to ALL 
 # supported architectures for THIS language.
 #**********************************************************************
-CFLAGS.java	+= -g -d $(OBJDIR) -classpath .:$(OBJDIR):$(CLASSPATH)
+CFLAGS.java	+= -g -d $(OBJDIR) -cp .:$(OBJDIR)
 LDFLAGS.java	= 
 ARFLAGS.java	= cf 
 LINTFLAGS.java	= 
 DOCFLAGS.java	= 
 
-$(OBJDIR)/$(JAVA_PKGROOT)/%.class: $(SRCDIR)/$(JAVA_PKGROOT)/%.java
-	@mkdir -p $(OBJDIR)/$(JAVA_PKGROOT);
-	@echo	$(CFLAGS) $(CFLAGS.java) $(CFLAGS.java.$(ARCH)) > $@.cflags ;
-	$(COMPILE.java.$(ARCH))	@$@.cflags $<
-
-$(DOCDIR)/%.html: $(SRCDIR)/$(JAVA_PKGROOT)/%.java
-	cd $(DOCDIR); $(DOC.java.$(ARCH)) $(DOCFLAGS) $(DOCFLAGS.java) $(DOCFLAGS.java.$(ARCH)) $<
-
-$(JAVA_PKGROOT)/%.class: $(OBJDIR)/$(JAVA_PKGROOT)/%.class
-.lib.$(LANGUAGE):	$(TGTDIR)/$(LIB_NM)
-$(JAVA_PKGROOT)/%.class:
-.exe.$(LANGUAGE):	$(objs.java)
-$(JAVA_PKGROOT)/%.class: $(OBJDIR)/%.class
-$(TGTDIR)/$(LIB_NM): $(objs.$(LANGUAGE)) $(EXTRA_OBJS)
-	(cd $(OBJDIR);  \
-	echo $(ARFLAGS) $(ARFLAGS.$(LANGUAGE)) $(ARFLAGS.$(LANGUAGE).$(ARCH)) > $(LIB_NM).arflags;\
-	$(AR.$(LANGUAGE).$(ARCH)) @$(LIB_NM).arflags -C ../$(OBJDIR) $(LIB_NM) $(objs.java) ;	)
-	-/bin/mv $(OBJDIR)/$(LIB_NM) $(TGTDIR)/$(LIB_NM)
-
-
+## Define recipes in $(XMTBUILD)/proto/lang/$(LANGUAGE)/$(ARCH)
+## after variables are further defined there 

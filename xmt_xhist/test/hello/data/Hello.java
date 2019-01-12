@@ -18,9 +18,9 @@ import java.io.DataOutputStream;
 import java.io.FileOutputStream;
 import XMT.Xhist;
 
-public	class		Main
+public	class		Hello
 {
-    public static final String id = "@(#) hello.Main $Version:$";
+    public static final String id = "@(#) hello.Hello $Version:$";
 
     public static void main(String []args) {
 
@@ -29,7 +29,7 @@ public	class		Main
 	DataOutputStream	fd;
     
 	try {
-	    fd = new DataOutputStream(new FileOutputStream("./Main.trace")); 
+	    fd = new DataOutputStream(new FileOutputStream("./Hello.trace")); 
 	    Xhist.logdev(fd);
 	    Xhist.mapfile("$XhistMap:$");
 	    Xhist.version("$Version:$");

@@ -11,16 +11,16 @@
  *    See the License for the specific language governing permissions and
  *    limitations under the License. 
  */
-/* xhist debug FALSE */
+/* xhist debug FALSE */	/*<DEBUG OFF>*/
 
 import java.lang.Runtime;
 import java.io.DataOutputStream;
 import java.io.FileOutputStream;
 import XMT.Xhist;
 
-public	class		Main
+public	class		Hello
 {
-    public static final String id = "@(#) hello.Main $Version:$";
+    public static final String id = "@(#) hello.Hello $Version: meshtest-1.0-16 [develop] $";
 
     public static void main(String []args) {
 
@@ -29,10 +29,10 @@ public	class		Main
 	DataOutputStream	fd;
     
 	try {
-	    fd = new DataOutputStream(new FileOutputStream("./Main.trace")); 
+	    fd = new DataOutputStream(new FileOutputStream("./Hello.trace")); 
 	    Xhist.logdev(fd);
-	    Xhist.mapfile("$XhistMap:$");
-	    Xhist.version("$Version:$");
+	    Xhist.mapfile("$XhistMap: Hello.java.map $");
+	    Xhist.version("$Version: meshtest-1.0-16 [develop] $");
 
 	    Runtime.getRuntime().addShutdownHook( new Thread() {
 		@Override
@@ -55,18 +55,17 @@ public	class		Main
 	for (i = 0; i < 10; i++)
 	{ 
 	    try { 
-		Thread.sleep(1000); 
+		Thread.sleep(1000); Xhist.add( 49396, 58 );
 	    } 
 	    catch (InterruptedException e) {
 	        /* do nothig */
 	    }
-	    foo();
+	    foo();Xhist.add( 49396, 63 );
 	} 
     }
 
     public static void foo() {
-        System.out.println("hello foo");
+        System.out.println("hello foo");Xhist.add( 49396, 68 );
     }
 
 }
-

@@ -24,6 +24,7 @@
 #*  limitations under the License. 
 #************************************************************************
 
+
 srcs.cpp	= $(wildcard $(SRCDIR)/*.cpp)
 hdrs.cpp	= $(wildcard $(SRCDIR)/*.h)
 objs.cpp	= $(patsubst $(SRCDIR)/%.cpp,$(OBJDIR)/%.o,$(srcs.cpp))
@@ -61,39 +62,5 @@ LDFLAGS.cpp	+= -o $@
 LINTFLAGS.cpp	+= $(CFLAGS.cpp)
 DOCFLAGS.cpp	+= -o $@
 
-$(OBJDIR)/%.o	: %.S
-	@echo  $(CFLAGS) $(CFLAGS.cpp) $(CFLAGS.cpp.$(ARCH)) > $@.cflags ;
-	$(COMPILE.cpp.$(ARCH)) @$@.cflags $<
-
-$(OBJDIR)/%.o	: %.s
-	@echo  $(CFLAGS) $(CFLAGS.cpp) $(CFLAGS.cpp.$(ARCH)) > $@.cflags ;
-	$(COMPILE.cpp.$(ARCH)) @$@.cflags $<
-
-$(OBJDIR)/%.o	: %.cpp
-	@echo  $(CFLAGS) $(CFLAGS.cpp) $(CFLAGS.cpp.$(ARCH)) > $@.cflags ;
-	$(COMPILE.cpp.$(ARCH)) @$@.cflags $<
-
-$(OBJDIR)/%.i	: /%.cpp
-	@echo  $(CFLAGS) $(CFLAGS.cpp) $(CFLAGS.cpp.$(ARCH)) -E > $@.cflags ;
-	$(COMPILE.cpp.$(ARCH)) @$@.cflags -E $<
-
-$(OBJDIR)/%.ln	: %.cpp
-	@echo  $(LINTFLAGS) $(LINTFLAGS.cpp) $(LINTFLAGS.cpp.$(ARCH)) > $@.lintflags ;
-	$(LINT.cpp.$(ARCH)) @$@.lintflags $<
-
-$(DOCDIR)/%.html: $(SRCDIR)/%.cpp
-	@echo  $(DOCFLAGS) $(DOCFLAGS.cpp) $(DOCFLAGS.cpp.$(ARCH)) > $@.docflags ;
-	$(DOC.cpp.$(ARCH)) @$@.docflags $<
-
-lib.$(LANGUAGE):	$(TGTDIR)/$(LIB_NM)
-$(LIB_NM): $(TGTDIR)/$(LIB_NM)
-$(TGTDIR)/$(LIB_NM): $(objs.$(LANGUAGE)) $(EXTRA_OBJS)
-	@echo 	$(ARFLAGS) $(ARFLAGS.$(LANGUAGE)) $(ARFLAGS.$(LANGUAGE).$(ARCH)) > $@.arflags;
-	$(AR.$(LANGUAGE).$(ARCH)) @$@.arflags $@ $^ 	
-
-exe.$(LANGUAGE):	$(TGTDIR)/$(EXE_NM)
-$(EXE_NM): $(TGTDIR)/$(EXE_NM)
-$(TGTDIR)/$(EXE_NM): $(objs.$(LANGUAGE)) $(EXTRA_OBJS) 
-	@echo $(LDFLAGS) $(LDFLAGS.$(LANGUAGE)) $(LDFLAGS.$(LANGUAGE).$(ARCH)) > $@.ldflags;
-	$(LD.$(LANGUAGE).$(ARCH)) @$@.ldflags $^ \
-	    $(LIBS) $(LIBS.$(LANGUAGE)) $(LIBS.$(LANGUAGE).$(ARCH)) 
+## Define recipes in $(XMTBUILD)/proto/lang/$(LANGUAGE)/$(ARCH)
+## after variables are further defined there 

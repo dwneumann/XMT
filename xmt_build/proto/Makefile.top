@@ -78,21 +78,18 @@ DOCFLAGS	=
 
 #**********************************************************************
 # Now include:
-# language & architecture-specific Makefiles,
-# project-level Makefile,
+# language & architecture-specific Makefiles:
+# project-level Makefile, then
 # package-level ./Makefile.pkg
+# recursive variables are evaluated when a matching recipe is found.
 #**********************************************************************
+
 -include ./Makefile.pkg	
 -include $(PROJECT)/proto/Makefile.top
 -include $(XMTBUILD)/proto/lang/$(LANGUAGE)/generic.inc
 -include $(XMTBUILD)/proto/lang/$(LANGUAGE)/$(ARCH).inc
 
-#**********************************************************************
-# "all" is a convenience target. Change it to make whatever targets
-# you want it to make.
-#**********************************************************************
 all: $(PKG_TGT)
-
 depend: 
 	(cd $(SRCDIR); \
 	$(MAKEDEPEND) -Y -p$(TGTDIR)/ -o.$(LANGUAGE).$(OBJ_SFX.$(LANGUAGE).$(ARCH)) -- \
@@ -101,7 +98,7 @@ depend:
 	>/dev/null 2>&1 )
 
 clean:
-	$(RM) $(OBJDIR)/* $(TGTDIR)/*
+	-/bin/rm $(OBJDIR)/* $(TGTDIR)/*
 
 sources:	
 	(cd $(SRCDIR); $(CMSOURCES))

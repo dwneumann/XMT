@@ -1,22 +1,25 @@
 #!/bin/perl -w
+use strict;
 use Getopt::Long;
 use Env;
 
-($pgmname = $0) =~ s{.*/}{};
-$usage		= "usage: $pgmname [-u]\n";
-undef $opt_u;	# unnecessary, but it shuts up -w
-GetOptions( "u" ) || die $usage;
-die "$usage" if defined $opt_u;
+(my $pgmname = $0) =~ s{.*/}{};
+my $usage	= "usage: $pgmname [--help] --language=[c|java]\n";
+my %opt = ();
+GetOptions( \%opt, "help", "language=s" ) or die "$usage";
+die "$usage" if defined $opt{'help'} or !defined $opt{'language'};
+my $pgm = ($opt{'language'} eq "c" ? "../$T/mesh" : "java ../$T/Mesh" );
+
 
 
 my $ports = "10000 10001 10002 10003 10004 10005 10006 10007 10008 10009";
 my @children;
 foreach my $i (0 .. 9)
 {
-    $pid = fork();
+    my $pid = fork();
     if ($pid == 0)	# child
     {
-	exec("../$T/mesh $i $ports");
+	exec("$pgm $i $ports");
     }
     else
     {

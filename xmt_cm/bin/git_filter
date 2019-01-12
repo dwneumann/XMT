@@ -26,8 +26,6 @@
 #		  instruments the files on checkout to capture execution history by xhist.
 #		  This is achieved by appending a write to a circular buffer after each
 #		  semicolon terminating an executable statment.
-#		  There is NO mechanism for git-filter to strip this instrumentation
-#		  upon checkin.  ie --xhist is not cleaned by the --unexpand flag.
 #                 --xhist produces a map file at instrumentation time,
 #                 for use by xhist_report to reconstruct the collected
 #                 execution trace and present it in human-readable form.

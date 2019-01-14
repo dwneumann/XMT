@@ -6,19 +6,34 @@
 #   Synopsis	: included automatically by $(XMTBUILD)/proto/Makefile.top
 #   Purpose	: Customize make environment for the current package.
 #************************************************************************
-LANGUAGE	= c
-ARCH		= linux_x86
-CFLAGS.c	+= -g -DXHIST -I$(XMTXHIST)/libxhist/src
+
+
+###  Java language settings
+LANGUAGE	= java
 BUILD_TGT	= exe
-LIBS		= $(XMTXHIST)/libxhist/tgt/$(ARCH)/libxhist.a 
+ARCH		= linux_x86
+PKG_NM		= mesh
+EXE_NM		= Mesh
+JAVA_PKGROOT	= .
+CFLAGS.java	+= -cp .:$(OBJDIR):$(XMTXHIST)/libxhist/tgt/$(ARCH)/Xhist.jar
+#%.java : ../data/%.java	
+#	-/bin/rm xhist.*.map
+#	$(XMTCM)/bin/git_filter --expand=. --xhist=. $^  > $@
 
-# if gcov test coverage desired
-CFLAGS.c	+= -ftest-coverage -fprofile-arcs	
-LDFLAGS.c	+= -lgcov --coverage
-
-mesh.c : ../data/mesh.c	
-	-/bin/rm xhist.*.map
-	$(XMTCM)/bin/git_filter --expand=. --xhist=. $^  > $@
+###  C language settings
+#LANGUAGE	= c
+#BUILD_TGT	= exe
+#ARCH		= linux_x86
+#PKG_NM		= mesh
+#EXE_NM		= mesh
+#CFLAGS.c	+= -g -DXHIST -I$(XMTXHIST)/libxhist/src
+#LIBS		= $(XMTXHIST)/libxhist/tgt/$(ARCH)/libXhist.a 
+## gcov test coverage flags
+#CFLAGS.c	+= -ftest-coverage -fprofile-arcs	
+#LDFLAGS.c	+= -lgcov --coverage
+#%.c : ../data/%.c	
+#	-/bin/rm xhist.*.map
+#	$(XMTCM)/bin/git_filter --expand=. --xhist=. $^  > $@
 
 gcov:
 	gcov	--object-directory $(OBJDIR) 		\
@@ -27,4 +42,3 @@ gcov:
 		--function-summaries			\
 		--human-readable			\
 		--use-colors				\
-		$(allsrcs)

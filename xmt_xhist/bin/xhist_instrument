@@ -16,7 +16,7 @@
 #   	 --verbose	list keyword labels with their expanded values to stdout.
 #	 --fname=<pathspec>	read contents of file from STDIN but use <pathspec>
 #			as the file name for instrumentation purposes
-#	 --xhist_map=pathname	write execution history filename map to <pathname>.
+#	 --map=pathname	write execution history filename map to <pathname>.
 #	 --unxhist	unxhist (i.e. clean) xhist instrumentation found in stdin, 
 #			and write cleaned data stream to stdout.
 #
@@ -54,14 +54,14 @@ $pgmname [<options>] [file]
   --verbose     list keyword labels with their expanded values to stdout
   --fname=<pathspec>	read contents of file from STDIN but use <pathspec>
                 as the file name in the mapfile
-  --xhist_map=pathname   write execution history filename map to <pathname>
+  --map=pathname   write execution history filename map to <pathname>
   --unxhist     unxhist (i.e. clean) xhist instrumentation found in stdin, 
                 and write cleaned data stream to stdout.
 __END__
 
 # parse commandline options
 my %opt = ();
-GetOptions( \%opt, "help", "verbose", "unxhist", "xhist_map=s", "fname=s") 
+GetOptions( \%opt, "help", "verbose", "unxhist", "map=s", "fname=s") 
 	    or die $help_msg;
 
 die "$help_msg" if defined $opt{'help'};
@@ -88,7 +88,7 @@ my $xh = XMT::Xhist::new($pathname, \$inbuf);
 if ( ! defined $opt{'unxhist'} )
 {
 	$inbuf = $xh->instrument(); 
-	XMT::Xhist::printmap($opt{'xhist_map'});	
+	XMT::Xhist::printmap($opt{'map'});	
 }
 else
 {

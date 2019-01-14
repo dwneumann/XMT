@@ -11,7 +11,7 @@ die "$usage" if defined $opt{'help'} or !defined $opt{'language'};
 my $pgm = ($opt{'language'} eq "c" ? "../$T/mesh" : "java ../$T/Mesh" );
 
 
-
+chdir('../test');
 my $ports = "10000 10001 10002 10003 10004 10005 10006 10007 10008 10009";
 my @children;
 foreach my $i (0 .. 9)
@@ -31,5 +31,5 @@ foreach my $i (0 .. 9)
 print "Press ENTER to terminate test...\n"; 
 <STDIN>;
 kill 'USR1', @children;	# force trace log to be written
-sleep 2;		# wait for that to complete
-kill 'INT', @children;	# then terminate the test
+sleep 2;
+kill 'INT', @children;	# force trace log to be written

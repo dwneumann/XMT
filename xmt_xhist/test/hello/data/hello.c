@@ -44,7 +44,7 @@ int main(int argc, char *argv[])
 /* xhist instrument FALSE */
     int i, fd;
  
-    if ((fd=open(XHIST_LOGFILE, O_RDWR|O_CREAT, 0644)) < 0) 
+    if ((fd=open("hello.trace", O_RDWR|O_CREAT, 0644)) < 0) 
     { 
         perror(XHIST_LOGFILE);
 	exit(1);
@@ -66,5 +66,5 @@ int main(int argc, char *argv[])
 
 void foo()
 {
-    printf("hello foo\n");
+    printf("hello foo (C version)\n");
 }

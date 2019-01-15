@@ -8,32 +8,21 @@
 #************************************************************************
 
 
-###  Java language settings
-LANGUAGE	= java
-BUILD_TGT	= exe
-ARCH		= linux_x86
-PKG_NM		= mesh
-EXE_NM		= Mesh
-JAVA_PKGROOT	= .
-CFLAGS.java	+= -cp .:$(OBJDIR):$(XMTXHIST)/libxhist/tgt/$(ARCH)/Xhist.jar
-#%.java : ../data/%.java	
-#	-/bin/rm xhist.*.map
-#	$(XMTCM)/bin/git_filter --expand=. --xhist=. $^  > $@
 
-###  C language settings
-#LANGUAGE	= c
-#BUILD_TGT	= exe
-#ARCH		= linux_x86
-#PKG_NM		= mesh
-#EXE_NM		= mesh
-#CFLAGS.c	+= -g -DXHIST -I$(XMTXHIST)/libxhist/src
-#LIBS		= $(XMTXHIST)/libxhist/tgt/$(ARCH)/libXhist.a 
-## gcov test coverage flags
-#CFLAGS.c	+= -ftest-coverage -fprofile-arcs	
-#LDFLAGS.c	+= -lgcov --coverage
-#%.c : ../data/%.c	
-#	-/bin/rm xhist.*.map
-#	$(XMTCM)/bin/git_filter --expand=. --xhist=. $^  > $@
+PKG_NM		= Xhist
+ARCH		= linux_x86
+BUILD_TGT	= exe
+CFLAGS.c	+= -I$(XMT)/xmt_xhist/libxhist/src -g -DXHIST -ftest-coverage -fprofile-arcs
+LIBS.c		= $(XMT)/xmt_xhist/libxhist/tgt/$(ARCH)/libXhist.a 
+LDFLAGS.c	+= -lgcov --coverage
+CFLAGS.java	+= -cp .:$(OBJDIR):$(XMTXHIST)/libxhist/tgt/$(ARCH)/Xhist.jar
+
+java:	
+	$(MAKE) LANGUAGE=java JAVA_PKGROOT=. EXTRA_OBJS='Mesh$$$$1.class' PKG_NM=Mesh EXE_NM=Mesh	exe
+
+c:	
+	$(MAKE) LANGUAGE=c PKG_NM=Xhist EXE_NM=mesh LIBS=$(LIBS.c) 	exe
+
 
 gcov:
 	gcov	--object-directory $(OBJDIR) 		\

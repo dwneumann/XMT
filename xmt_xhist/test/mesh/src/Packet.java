@@ -21,10 +21,10 @@ import XMT.Xhist;
  * <p>
  * [full description]
  * <p>
- * @version	$Version:$
+ * @version	$Version: notag-0 [develop] $
  */
 public	class		Packet {
-    public static final String id = "@(#) mesh.Packet $Version:$";
+    public static final String id = "@(#) mesh.Packet $Version: notag-0 [develop] $";
     public int	src;		/* port # of original sender		*/
     public int	dest;		/* port # of ultimate destination 	*/
     public int	hops;		/* # times this pkt has been forwarded	*/
@@ -34,13 +34,13 @@ public	class		Packet {
     public DatagramPacket datagram;
 
     public	Packet( int src, int dest, int ttl ) {
-	this.src	= src;
-	this.dest	= dest;
-	this.hops	= 0;
-	this.ttl	= ttl;
-	this.sentAt	= 0;
-	this.receivedAt	= 0;
-	this.datagram	= new DatagramPacket(new byte[512], 512);
+	this.src	= src;Xhist.add( 10708, 37 );
+	this.dest	= dest;Xhist.add( 10708, 38 );
+	this.hops	= 0;Xhist.add( 10708, 39 );
+	this.ttl	= ttl;Xhist.add( 10708, 40 );
+	this.sentAt	= 0;Xhist.add( 10708, 41 );
+	this.receivedAt	= 0;Xhist.add( 10708, 42 );
+	this.datagram	= new DatagramPacket(new byte[512], 512);Xhist.add( 10708, 43 );
     }
 
     public int	src()	{
@@ -48,7 +48,7 @@ public	class		Packet {
     }
 
     public void	setSrc(int port)	{
-	this.src	= port;
+	this.src	= port;Xhist.add( 10708, 51 );
     }
 
     public int	dest()	{
@@ -56,7 +56,7 @@ public	class		Packet {
     }
 
     public void	setDest(int port)	{
-	this.dest	= port;
+	this.dest	= port;Xhist.add( 10708, 59 );
     }
 
     public int	hops()	{
@@ -64,11 +64,11 @@ public	class		Packet {
     }
 
     public void	setHops(int n)	{
-	this.hops	= n;
+	this.hops	= n;Xhist.add( 10708, 67 );
     }
 
     public void	incrementHops()	{
-	this.hops++;
+	this.hops++;Xhist.add( 10708, 71 );
     }
 
     public int	ttl()	{
@@ -76,11 +76,11 @@ public	class		Packet {
     }
 
     public void	setTtl(int n)	{
-	this.ttl	= n;
+	this.ttl	= n;Xhist.add( 10708, 79 );
     }
 
     public void	decrementTtl()	{
-	this.ttl--;
+	this.ttl--;Xhist.add( 10708, 83 );
     }
 
     public long	sentAt()	{
@@ -88,11 +88,11 @@ public	class		Packet {
     }
 
     public void	setSentAt(int n)	{
-	this.sentAt	= n;
+	this.sentAt	= n;Xhist.add( 10708, 91 );
     }
 
     public void	setSentAtNow()	{
-	this.sentAt	= System.currentTimeMillis();
+	this.sentAt	= System.currentTimeMillis();Xhist.add( 10708, 95 );
     }
 
     public long	receivedAt()	{
@@ -100,11 +100,11 @@ public	class		Packet {
     }
 
     public void	setReceivedAt(int n)	{
-	this.receivedAt	= n;
+	this.receivedAt	= n;Xhist.add( 10708, 103 );
     }
 
     public void	setReceivedAtNow()	{
-	this.receivedAt	= System.currentTimeMillis();
+	this.receivedAt	= System.currentTimeMillis();Xhist.add( 10708, 107 );
     }
 
     public DatagramPacket	datagram()	{
@@ -116,4 +116,3 @@ public	class		Packet {
     }
 
 }
-

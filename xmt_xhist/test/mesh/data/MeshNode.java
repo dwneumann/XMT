@@ -39,7 +39,7 @@ public	class		MeshNode {
 	this.pktsReturned	= 0;
 	this.totalTime		= 0;
 	this.numHops		= 0;
-	this.port		= 0;
+	this.port		= port;
 	this.socket		= new DatagramSocket(null);
 	InetSocketAddress address = new InetSocketAddress("127.0.0.1", this.port);
         this.socket.bind(address);
@@ -119,14 +119,12 @@ public	class		MeshNode {
     }
 
     public void reportResults() {
-	System.out.format(	"%2d : %d pkts sent\t%d pkts ack'd" 	+
-				"\t%d%% packet loss,"			+
-				"\t%d ms total time\t%d ms avg round trip time\n", 
+	System.out.format(	"%2d : %d pkts sent" 		+
+				"\t%d%% packet loss,"		+
+				"\t%d ms avg round trip time\n", 
 	    this.port, 
 	    this.pktsToSend,
-	    this.pktsReturned,
 	    (int) ((this.pktsToSend - this.pktsReturned)/this.pktsToSend)*100,
-	    this.totalTime(),
 	    (int) (this.totalTime()/(1 + this.pktsReturned)));
 	    System.out.println( (this.pktsReturned == this.pktsToSend) ? 
 		TEST_PASS : TEST_FAIL );

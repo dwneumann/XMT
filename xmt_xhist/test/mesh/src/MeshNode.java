@@ -21,10 +21,10 @@ import XMT.Xhist;
  * <p>
  * [full description]
  * <p>
- * @version	$Version:$
+ * @version	$Version: notag-0 [develop] $
  */
 public	class		MeshNode {
-    public static final String id = "@(#) mesh.MeshNode $Version:$";
+    public static final String id = "@(#) mesh.MeshNode $Version: notag-0 [develop] $";
     public static final String TEST_PASS	= "TEST PASS";
     public static final String TEST_FAIL	= "TEST FAIL";
     public int	pktsToSend;	/* # packets to initiate		*/
@@ -35,14 +35,14 @@ public	class		MeshNode {
     public DatagramSocket socket;
 
     public	MeshNode(int port) throws SocketException { 
-	this.pktsToSend		= 0;
-	this.pktsReturned	= 0;
-	this.totalTime		= 0;
-	this.numHops		= 0;
-	this.port		= 0;
-	this.socket		= new DatagramSocket(null);
+	this.pktsToSend		= 0;Xhist.add( 40978, 38 );
+	this.pktsReturned	= 0;Xhist.add( 40978, 39 );
+	this.totalTime		= 0;Xhist.add( 40978, 40 );
+	this.numHops		= 0;Xhist.add( 40978, 41 );
+	this.port		= port;Xhist.add( 40978, 42 );
+	this.socket		= new DatagramSocket(null);Xhist.add( 40978, 43 );
 	InetSocketAddress address = new InetSocketAddress("127.0.0.1", this.port);
-        this.socket.bind(address);
+        this.socket.bind(address);Xhist.add( 40978, 45 );
     }
 
     public int	pktsToSend() {
@@ -50,7 +50,7 @@ public	class		MeshNode {
     }
 
     public void	setPktsToSend(int n) {
-	this.pktsToSend	= n;
+	this.pktsToSend	= n;Xhist.add( 40978, 53 );
     }
 
     public int pktsReturned() {
@@ -58,7 +58,7 @@ public	class		MeshNode {
     }
 
     public void	setPktsReturned(int n) {
-	this.pktsReturned = n;
+	this.pktsReturned = n;Xhist.add( 40978, 61 );
     }
 
     public int	totalTime() {
@@ -66,11 +66,11 @@ public	class		MeshNode {
     }
 
     public void	setTotalTime(int n) {
-	this.totalTime	= n;
+	this.totalTime	= n;Xhist.add( 40978, 69 );
     }
 
     public void	addTotalTime(int n) {
-	this.totalTime	+= n;
+	this.totalTime	+= n;Xhist.add( 40978, 73 );
     }
 
     public int	numHops() {
@@ -78,7 +78,7 @@ public	class		MeshNode {
     }
 
     public void	setNumHops(int n) {
-	this.numHops	= n;
+	this.numHops	= n;Xhist.add( 40978, 81 );
     }
 
     public int	port() {
@@ -86,7 +86,7 @@ public	class		MeshNode {
     }
 
     public void incrementPktsReturned() {
-	this.pktsReturned++;
+	this.pktsReturned++;Xhist.add( 40978, 89 );
     }
 
     public DatagramSocket	socket() {
@@ -94,10 +94,10 @@ public	class		MeshNode {
     }
 
     public void send(Packet p) {
-	p.setSentAtNow();
+	p.setSentAtNow();Xhist.add( 40978, 97 );
 	try
 	{
-	    this.socket.send(p.datagram());
+	    this.socket.send(p.datagram());Xhist.add( 40978, 100 );
 	}
 	catch (IOException e)
 	{
@@ -109,27 +109,24 @@ public	class		MeshNode {
     public void receive(Packet p) {
 	try
 	{
-	    this.socket.receive(p.datagram());
+	    this.socket.receive(p.datagram());Xhist.add( 40978, 112 );
 	}
 	catch (IOException e)
 	{
 	    ; /* ignore the failure.  will be treated as a lost packet. */
 	}
-	p.setReceivedAtNow();
+	p.setReceivedAtNow();Xhist.add( 40978, 118 );
     }
 
     public void reportResults() {
-	System.out.format(	"%2d : %d pkts sent\t%d pkts ack'd" 	+
-				"\t%d%% packet loss,"			+
-				"\t%d ms total time\t%d ms avg round trip time\n", 
+	System.out.format(	"%2d : %d pkts sent" 		+
+				"\t%d%% packet loss,"		+
+				"\t%d ms avg round trip time\n", 
 	    this.port, 
 	    this.pktsToSend,
-	    this.pktsReturned,
 	    (int) ((this.pktsToSend - this.pktsReturned)/this.pktsToSend)*100,
-	    this.totalTime(),
-	    (int) (this.totalTime()/(1 + this.pktsReturned)));
+	    (int) (this.totalTime()/(1 + this.pktsReturned)));Xhist.add( 40978, 128 );
 	    System.out.println( (this.pktsReturned == this.pktsToSend) ? 
 		TEST_PASS : TEST_FAIL );
     }
 }
-

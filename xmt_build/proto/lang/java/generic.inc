@@ -30,6 +30,7 @@
 #    = assignments are recursively expanded during rule parsing
 srcs.java	:= $(wildcard $(SRCDIR)/$(JAVA_PKGROOT)/*.java)
 hdrs.java	:= 
+#srcs.java	:= $(shell find $(SRCDIR)/ -type f -name '*.java')
 objs.java	:= $(patsubst $(SRCDIR)/$(JAVA_PKGROOT)/%.java,$(JAVA_PKGROOT)/%.class,$(srcs.java))
 docs.java	:= $(patsubst $(SRCDIR)/$(JAVA_PKGROOT)/%.java,$(DOCDIR)/%.html,$(srcs.java))
 lnts.java	:= 

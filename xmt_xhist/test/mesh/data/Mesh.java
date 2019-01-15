@@ -12,6 +12,11 @@
  *    limitations under the License. 
  */
 
+import java.lang.Runtime;
+import java.io.DataOutputStream;
+import java.io.FileOutputStream;
+import java.lang.ProcessHandle;
+
 import java.lang.*;
 import java.io.*;
 import java.net.*;
@@ -50,7 +55,8 @@ public	class	Mesh {
     
 	try 
 	{
-	    fd = new DataOutputStream(new FileOutputStream("./Hello.trace")); 
+	    fd = new DataOutputStream(new FileOutputStream(
+		"Mesh." + ProcessHandle.current().pid() + ".trace")); 
 	    Xhist.logdev(fd);
 	    Xhist.mapfile("$XhistMap:$");
 	    Xhist.version("$Version:$");

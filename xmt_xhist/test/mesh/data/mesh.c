@@ -110,7 +110,7 @@ int main(int argc, char *argv[])
     int fd;
     char logfn[32]	= {0};
 
-    sprintf(logfn, "xhist.%d.trace", (int) getpid());
+    sprintf(logfn, "cmesh.%d.trace", (int) getpid());
     BACKOUT_IF((fd=open(logfn, O_RDWR|O_CREAT, 0644)) < 0, logfn); 
     xhist_logdev(fd);			/* file or socket to write to		*/
     xhist_mapfile("$XhistMap:$");	/* embed name of file map		*/
@@ -302,12 +302,10 @@ int is_listening(int port)
 ***********************************************************************/
 void test_complete()
 {
-    printf("%2d : %d pkts sent\t%d pkts ack'd\t%d%% packet loss,\t%d ms total time\t%d ms avg round trip time\n", 
+    printf("%2d : %d pkts sent\t%d%% packet loss,\t%d ms avg round trip time\n", 
 	globals.gl_nodes[globals.gl_my_nodenum], 
 	globals.gl_pkts_to_send,
-	globals.gl_pkts_returned,
 	(int) ((globals.gl_pkts_to_send - globals.gl_pkts_returned)/globals.gl_pkts_to_send)*100,
-	globals.gl_total_time,
 	(int) (globals.gl_total_time/(1 + globals.gl_pkts_returned)));
     exit( (globals.gl_pkts_returned == globals.gl_pkts_to_send) ? TEST_PASS : TEST_FAIL );
 }

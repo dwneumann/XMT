@@ -12,6 +12,11 @@
  *    limitations under the License. 
  */
 
+import java.lang.Runtime;
+import java.io.DataOutputStream;
+import java.io.FileOutputStream;
+import java.lang.ProcessHandle;
+
 import java.lang.*;
 import java.io.*;
 import java.net.*;
@@ -27,10 +32,10 @@ import XMT.Xhist;
  *  to/from the other nodes.  
  *  Prints statistics on packet loss & latency.
  * <p>
- * @version	$Version:$
+ * @version	$Version: notag-0 [develop] $
  */
 public	class	Mesh {
-    public static final String id = "@(#) mesh.Mesh $Version:$";
+    public static final String id = "@(#) mesh.Mesh $Version: notag-0 [develop] $";
     public static final int MAX_NODES	= 100;		/* max # nodes in mesh		*/
     public static MeshNode	myNode	= null;		/* this Node			*/
 
@@ -50,10 +55,11 @@ public	class	Mesh {
     
 	try 
 	{
-	    fd = new DataOutputStream(new FileOutputStream("./Hello.trace")); 
+	    fd = new DataOutputStream(new FileOutputStream(
+		"Mesh." + ProcessHandle.current().pid() + ".trace")); 
 	    Xhist.logdev(fd);
-	    Xhist.mapfile("$XhistMap:$");
-	    Xhist.version("$Version:$");
+	    Xhist.mapfile("$XhistMap: ../test/javamesh.map $");
+	    Xhist.version("$Version: notag-0 [develop] $");
 
 	    Runtime.getRuntime().addShutdownHook( new Thread() 
 	    {
@@ -80,49 +86,49 @@ public	class	Mesh {
 	/* xhist instrument TRUE */
 
 	/* usage: mesh <my (0-based) myNode index> <port#> <port#> <port#> ... */
-	numNodes = -1;
+	numNodes = -1;Xhist.add( 58278, 89 );
 	for (String s: args)
 	{
 	    if (numNodes < 0)
 	    {
-		myNodeIndex = Integer.parseInt(s);
-		numNodes++;
+		myNodeIndex = Integer.parseInt(s);Xhist.add( 58278, 94 );
+		numNodes++;Xhist.add( 58278, 95 );
 	    }
 	    else
 	    {
-		nodes[numNodes++] = Integer.parseInt(s);
+		nodes[numNodes++] = Integer.parseInt(s);Xhist.add( 58278, 99 );
 	    }
 	}
 
 	/* create the MeshNode and associated socket */
 	try 
 	{
-	    myNode = new MeshNode( nodes[myNodeIndex] ); /* bind to my port # */
+	    myNode = new MeshNode( nodes[myNodeIndex] ); /* bind to my port # */Xhist.add( 58278, 106 );
 	}
 	catch (SocketException e) 
 	{
 	    /* we can't go on.  log the error & exit gracefully. */
-	    System.out.println("fatal error: cannot create MeshNode\n");
-	    System.exit(1);
+	    System.out.println("fatal error: cannot create MeshNode\n");Xhist.add( 58278, 111 );
+	    System.exit(1);Xhist.add( 58278, 112 );
 	}
 
 	/* configure the test  */
-	myNode.setPktsToSend( dfltPktsToSend );	
-	myNode.setNumHops( dfltHops );
+	myNode.setPktsToSend( dfltPktsToSend );	Xhist.add( 58278, 116 );
+	myNode.setNumHops( dfltHops );Xhist.add( 58278, 117 );
 
 
 	/* wait until the node I'm going to send to has started */
-	nextPort = nodes[ (myNodeIndex +1) % numNodes ];
+	nextPort = nodes[ (myNodeIndex +1) % numNodes ];Xhist.add( 58278, 121 );
 	try 
 	{
-	    waitForNode(nextPort);			
+	    waitForNode(nextPort);			Xhist.add( 58278, 124 );
 	}
 	catch (IOException e)
 	{
 	    /* wait failed.  try a different approach.  */
 	    try 
 	    { 
-		Thread.sleep(1000); 
+		Thread.sleep(1000); Xhist.add( 58278, 131 );
 	    } 
 	    catch (InterruptedException e2) 
 	    {
@@ -134,41 +140,41 @@ public	class	Mesh {
 	/* send N messages to my first-listed neighbour	*/
 	for (i = 0; i < myNode.pktsToSend(); ++i)
 	{
-	    pkt = new Packet( myNode.port(), nextPort, myNode.numHops() );
-	    myNode.send(pkt);
+	    pkt = new Packet( myNode.port(), nextPort, myNode.numHops() );Xhist.add( 58278, 143 );
+	    myNode.send(pkt);Xhist.add( 58278, 144 );
 	}
 
 	/* now just forward or ack messges received from others */
-	myNode.setPktsReturned(0);
+	myNode.setPktsReturned(0);Xhist.add( 58278, 148 );
 	while (true)
 	{
-	    myNode.receive(pkt);
+	    myNode.receive(pkt);Xhist.add( 58278, 151 );
 
 	    /* the message just received was originated by me, so this is an ACK */
 	    if ( pkt.src() == myNode.port() ) 
 	    {
-		myNode.incrementPktsReturned();
-		myNode.addTotalTime( pkt.roundTripTime() );
+		myNode.incrementPktsReturned();Xhist.add( 58278, 156 );
+		myNode.addTotalTime( pkt.roundTripTime() );Xhist.add( 58278, 157 );
 		System.out.format( "%2d : RECV'd ACK after %2d hops in %ld ms\n", 
-		    myNode.port(), pkt.hops(), pkt.roundTripTime() );
+		    myNode.port(), pkt.hops(), pkt.roundTripTime() );Xhist.add( 58278, 159 );
 	    }
 
 	    /* ttl expired; send back to sender as ack */
 	    else if (pkt.ttl() <= 0)	
 	    {
-		pkt.setDest(pkt.src());
-		pkt.incrementHops();
-		myNode.send(pkt);
+		pkt.setDest(pkt.src());Xhist.add( 58278, 165 );
+		pkt.incrementHops();Xhist.add( 58278, 166 );
+		myNode.send(pkt);Xhist.add( 58278, 167 );
 	    }
 
 	    /* ttl not yet expired; forward message one more hop to someone else */
 	    else	
 	    {
-		pkt.incrementHops();
-		pkt.decrementTtl();
-		pkt.setDest(nextPort);
-		myNode.send(pkt);
-		System.out.format("\t%2d : FWD'd to %2d\n", myNode.port(), nextPort);
+		pkt.incrementHops();Xhist.add( 58278, 173 );
+		pkt.decrementTtl();Xhist.add( 58278, 174 );
+		pkt.setDest(nextPort);Xhist.add( 58278, 175 );
+		myNode.send(pkt);Xhist.add( 58278, 176 );
+		System.out.format("\t%2d : FWD'd to %2d\n", myNode.port(), nextPort);Xhist.add( 58278, 177 );
 	    }
 	}
 	/* NOT REACHED */
@@ -179,7 +185,7 @@ public	class	Mesh {
 	String cmdLine = String.format("netstat -lnu | grep %d", port);
 	String line;
 
-	processBuilder.command("bash", "-c", cmdLine);
+	processBuilder.command("bash", "-c", cmdLine);Xhist.add( 58278, 188 );
 	while (true) 
 	{
 	    try 
@@ -205,7 +211,7 @@ public	class	Mesh {
 	    }
 
 	    try { 
-		Thread.sleep(1000); 
+		Thread.sleep(1000); Xhist.add( 58278, 214 );
 	    } 
 	    catch (InterruptedException e) 
 	    {
@@ -214,4 +220,3 @@ public	class	Mesh {
 	}
     }
 }
-

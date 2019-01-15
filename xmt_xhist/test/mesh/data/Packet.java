@@ -31,7 +31,6 @@ public	class		Packet {
     public int	ttl;		/* # hops this pkt still has dest take 	*/
     public long sentAt;		/* time of departure of packet		*/
     public long receivedAt;	/* time of return of packet		*/
-    public DatagramPacket datagram;
 
     public	Packet( int src, int dest, int ttl ) {
 	this.src	= src;
@@ -40,7 +39,6 @@ public	class		Packet {
 	this.ttl	= ttl;
 	this.sentAt	= 0;
 	this.receivedAt	= 0;
-	this.datagram	= new DatagramPacket(new byte[512], 512);
     }
 
     public int	src()	{
@@ -107,12 +105,44 @@ public	class		Packet {
 	this.receivedAt	= System.currentTimeMillis();
     }
 
-    public DatagramPacket	datagram()	{
-	return this.datagram;
-    }
-
     public int roundTripTime() {
 	return( (int) (this.receivedAt - this.sentAt) );
+    }
+
+    public void send(DatagramSocket socket) {
+	DatagramPacket dg;
+	String payload = new String;;
+
+	this.setSentAtNow();
+	try
+	{
+	    payload = System.out.format( "%d,%d,%d,%ld",
+		this.src, this.dest, this.ttl, this.sentAt );
+	    byte[] buf 			= payload.getBytes();
+	    InetAddress hostAddr	= getLocalHost();
+	    dg	= new DatagramPacket(buf, buf.length, hostAddr, this.dest);
+	    socket.send(dg);
+	}
+	catch (IOException e)
+	{
+	    ; /* ignore the failure.  will be treated as a lost packet. */
+	}
+
+    }
+
+    public void receive(DatagramSocket socket) {
+	try
+	{
+	    this.payload	= new byte[64];
+	    this.datagram	= new DatagramPacket(payload, payload.length);
+	    this.socket.receive(this.datagram());
+	}
+	catch (IOException e)
+	{
+	    ; /* ignore the failure.  will be treated as a lost packet. */
+	}
+
+	p.setReceivedAtNow();
     }
 
 }

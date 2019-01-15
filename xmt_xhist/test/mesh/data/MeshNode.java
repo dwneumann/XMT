@@ -93,31 +93,6 @@ public	class		MeshNode {
 	return this.socket;
     }
 
-    public void send(Packet p) {
-	p.setSentAtNow();
-	try
-	{
-	    this.socket.send(p.datagram());
-	}
-	catch (IOException e)
-	{
-	    ; /* ignore the failure.  will be treated as a lost packet. */
-	}
-
-    }
-
-    public void receive(Packet p) {
-	try
-	{
-	    this.socket.receive(p.datagram());
-	}
-	catch (IOException e)
-	{
-	    ; /* ignore the failure.  will be treated as a lost packet. */
-	}
-	p.setReceivedAtNow();
-    }
-
     public void reportResults() {
 	System.out.format(	"%2d : %d pkts sent" 		+
 				"\t%d%% packet loss,"		+

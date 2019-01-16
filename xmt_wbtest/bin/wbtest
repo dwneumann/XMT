@@ -20,12 +20,16 @@
 #************************************************************************
 
 use strict;
+
+# perl expects to find the required XMT modules installed into
+# the standard place that CPAN modules are installed:  
+# this is found by running perl -V:installsitelib
+# to instead use a develop version of the XMT::Xtest module
+# uncomment the following line.
+BEGIN {unshift(@INC, "$ENV{XMTXTEST}/bin");}
+use XMT::Xtest;
 use Getopt::Long;
 use Env;
-use Expect;
-use Path::Tiny qw(path);
-
-my $timeout	= 60;		# timeout in seconds for each command-response
 
 (my $pgmname = $0) =~ s{.*/}{};	# rootname of executed script
 # construct the help message
@@ -43,74 +47,9 @@ GetOptions( \%opt, "help", "verbose", "debug", "iut=s", "test=s") or die $help_m
 die "$help_msg" if defined $opt{help};
 die "$help_msg" if !defined $opt{iut} or !defined $opt{test};
 
-# spawn the iut & setup Expect session
-my $session = new Expect;
-$session->exp_internal(1)		if defined $opt{verbose};
-$session->debug(2)			if defined $opt{debug};
-$session->log_stdout(0);
-$session->raw_pty(1);
-$session->restart_timeout_upon_receive(1);
-$session->spawn($opt{iut})		or die "error spawning $opt{iut}\n";
-sleep 2;				# wait for iut to load 
+# instantiate & run the testfile against the iut
+my $xt = XMT::Xtest::new(\%opt)	or die "XMT::Xtest : $Xtest::errstr\n";	
+my $result = $xt->run()		or die "XMT::Xtest : $Xtest::errstr\n";
+printf("%s\t%s\n", $opt{test}, $result);
 
-# push test file name, line# & contents onto stack 
-my (@tests, @lines, $fh, $testfn, $linenum);
-push @tests {	'fn'	=>$opt{test},
-		'line'	=> 0,
-		'buf'	=> path($opt{test})->slurp
-	    }	or die "$opt{test}: $!\n";
-while ( @tests )
-{
-    open $fh, "<", \$tests[0]{fn}	or die "cannot open string as file\n";
-    while (<$fh>)			# read lines as if they were read from file
-    {
-	if ( /^\s*#/ )			# ignore lines beginning with hash 
-	{
-	    $tests[0]{line}++;
-	}
-	elsif ( /^include\s+(.*)/)	# push included file contents onto top of stack
-	{
-	    $tests[0]{line}++;
-	    unshift @tests, {	'fn'	=> $1,
-	    			'line'	=> 0,
-				'buf'	=> path($1)->slurp
-			    }	or die "$1: $!\n";
-	}
-	else
-	{
-	    push @lines {	'fn'	=> $tests[0]{fn},
-				'line'	=> $tests[0]{line},
-				'buf'	=> $_
-			};
-	}
-    }
-    close $fh;
-}
-
-# test file has been read & nested includes have been processed.
-# now itewrate through the sequential list of commands
-while ( @lines )			# send/expect cmd sequence to/from the iut
-{
-    my ($fn, $line, $buf) = shift @lines;
-    my ($cmd, $restofline) =~ /\s*(\S+)\s+(.*)/ $buf;
-    if ( $cmd =~ /send/i )
-    {
-	$session->send(eval $restofline); 
-    }
-    elsif ( $cmd =~ /expect/i )
-    {
-	# get the lines returned by the iut 
-	$session->clear_accum();
-	$session->expect($timeout, -re, $restofline); 
-	if ( !defined $session->match() )
-	{
-	    printf($resfh "FAIL : %s:%d (%s)\n", $fn, $line, $restofline);
-	}
-    }
-
-}
-
-# terminate the test gracefully
-printf($resfh "PASS : $opt{test}\n");
-$session->soft_close();
 

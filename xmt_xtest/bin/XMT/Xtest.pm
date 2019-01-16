@@ -32,15 +32,15 @@ sub version
     return $s;
 }
 $VERSION = &version;
-local %filemap = ();	
 
-$Xtest::errstr	= "";
-my $timeout	= 60;		# timeout in seconds for each command-response
+$Xtest::PASS	= "PASS";	# scalar value to return upon test pass
+$Xtest::FAIL	= "FAIL";	# scalar value to return upon test fail
+$Xtest::timeout	= 60;		# timeout in seconds for each command-response
 
 #************************************************************************/
 # class method new($f, $$bufp) 
 # instantiates a new Xtest object with options specified.
-# Returns the handle to the object.
+# Returns the handle to the object or undef on error.
 #************************************************************************/
 sub new
 {
@@ -49,10 +49,12 @@ sub new
 
     $self->{iut}	= $opts->{iut}   or carp( "iut undefined") && return undef;
     $self->{testfile}	= $opts->{test}  or carp( "test undefined") && return undef;
-    _loadtest($self)	or return undef;
+    $self->{cmds}	= ();
 
+    # parse the test file or die trying
+    _parsetest($self->{testfile}, \$self->{cmds}) or return undef;
 
-    # instantiate an Expect session and get ready to run it
+    # instantiate an Expect session and prepare it for run
     $self->{exp} = new Expect;
     $self->{exp}->exp_internal(1)		if defined $opt->{verbose};
     $self->{exp}->debug(2)			if defined $opt->{debug};
@@ -70,80 +72,76 @@ sub new
 sub DESTROY { }
 
 #************************************************************************
-# instance method runs the named test on the named iut.
+# instance method runs the test sequence on the iut.
 # returns scalar PASS/FAIL result.
 #************************************************************************
 sub run
 {
-    # test file has been read & nested includes have been processed.
-    # now itewrate through the sequential list of commands
-    while ( @lines )			# send/expect cmd sequence to/from the iut
+    my $self = shift;
+
+    # test file has been parsed into a sequence of blocks to be eval'd.
+    # now iterate through the sequence & execute them.
+    my ($fn, $seqnum, $buf);
+    my @cmds = @$self->{cmds};
+    while ($s = shift @cmds)
     {
-	my ($fn, $line, $buf) = shift @lines;
-	my ($cmd, $restofline) =~ /\s*(\S+)\s+(.*)/ $buf;
-	if ( $cmd =~ /send/i )
+	($fn, $seqnum, $buf)	= ($s->{fn}, $s->{seqnum},  $s->{buf});
+
+	# if cmd looks like a Perl comment, ignore the line ...
+	next if ( $s->{buf} =~ /^ \s* # /x );
+
+	# if cmd looks like an include stmt, parse nested file & add to cmd sequence
+	if ( $s->{buf} =~ /^ \s* INCLUDE \s+ "? ( \S+ ) "? /xgi )
 	{
-	    $session->send(eval $restofline); 
-	}
-	elsif ( $cmd =~ /expect/i )
-	{
-	    # get the lines returned by the iut 
-	    $session->clear_accum();
-	    $session->expect($timeout, -re, $restofline); 
-	    if ( !defined $session->match() )
-	    {
-		printf($resfh "FAIL : %s:%d (%s)\n", $fn, $line, $restofline);
-	    }
+	    _parsetestfile($1, \@nested_cmds)	or return $Xtest::FAIL;
+	    unshift @cmds, \@nested_cmds;
+	    unshift @cmds, { 'fn'=>$fn, 'seqnum'=>$s->{seqnum}, 'buf'=>"# " . $1 };
+	    next;
 	}
 
+	# if cmd looks like an eval block, interpolate SEND & EXPECT words then eval it.
+	$session->clear_accum();
+	$s->{buf} =~ s/SEND\s*\(/\$self->{exp}->send(/; 
+	$s->{buf} =~ s/EXPECT\s*\(/\$self->{exp}->expect($Xtest::timeout, -re, /; 
+	if (!defined eval $s->{buf})
+	{
+	    carp "$fn: invalid syntax '$s->{buf}':";
+	    return $Xtest::FAIL;
+	}
+
+	#if we did't get what we expected that's a FAIL
+	if ( !defined $session->match() )
+	{
+	    carp "$fn:\tcommand #seqnum:\t$Xtest::FAIL";
+	    return $Xtest::FAIL;
+	}
     }
     # terminate the test gracefully
     $session->soft_close();
+    return $Xtest::PASS;
 }
 
 #************************************************************************
-# private method _parsetests recursively reads nested test files.
-# Each closure  { ... } is read as a single test.
-# Outside of closures, we can put C-style or Perl-style comments ( /* ... */ or  # ... ) 
-# as well as anything the gcc preprocessor interprets (eg #ifdef, #include, etc).
+# private method _parsetests reads a test file into an array of hashes.
+# Each hash entry contains the filename, line #, and a block  { ... } which 
+# is to be evaluated as a single expect send/receive pair.
 #************************************************************************
-sub _parsetests
+sub _parsetestfile
 {
-    my $self = shift;
+    my ($fn, $arrayref) = @_;
+    my $contents;
+    $contents = path($fn)->slurp or carp "$fn: $!\n" && return undef;
+    my @array = @$arrayref;
 
-    # push test file name, line# & contents onto stack 
-    my (@tests, @lines, $fh, $testfn, $linenum);
-    push @tests {'fn'	=>$opt{test},
-		 'line'	=> 0,
-		 'buf'	=> path($opt{test})->slurp
-		}	or Carp "$opt{test}: $!\n";
-    while ( @tests )
+    my @seqs = $contents =~ /( \{ (?: [^{}]* | (?0) )* \} )/xg; # split into closures
+    # push file name, seq# & contents onto stack 
+    my $i = 1;	# 1-based line/sequence # counting for reporting errors to user
+    foreach $buf (shift @seqs)
     {
-	open $fh, "<", \$tests[0]{fn}	or die "cannot open string as file\n";
-	while (<$fh>)			# read lines as if they were read from file
-	{
-	    if ( /^\s*#/ )			# ignore lines beginning with hash 
-	    {
-		$tests[0]{line}++;
-	    }
-	    elsif ( /^include\s+(.*)/)	# push included file contents onto top of stack
-	    {
-		$tests[0]{line}++;
-		unshift @tests, {	'fn'	=> $1,
-				    'line'	=> 0,
-				    'buf'	=> path($1)->slurp
-				}	or die "$1: $!\n";
-	    }
-	    else
-	    {
-		push @lines {	'fn'	=> $tests[0]{fn},
-				    'line'	=> $tests[0]{line},
-				    'buf'	=> $_
-			    };
-	    }
-	}
-	close $fh;
+	push @array, ('fn' =>$fn, 'seqnum'=>$i, 'buf'=>$buf);
+	$i++;
     }
+    return 1;
 }
 
 1;  # ensure class eval returns true;

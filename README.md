@@ -39,6 +39,9 @@ The following packages are included in the collection:
 - xmt_xhist :
    a debugging tool for collecting execution history in embedded environments lacking semihosting capability.
 
+- xmt_xtest :
+   a Perl implementation of an expect-based test harness for whitebox testing.
+
 ## License
 
 The XMT collection is offered under the terms of the Apache License version 2.0.
@@ -57,43 +60,26 @@ in the collection.  Comment out those you don't want, source the ones you
 do.  Customize as desired.
 
 ## Streams & Branches
-This repository adopts a "multiple release streams" convention:     
-(we don't impose or even advocate that you do likewise, but if you clone or
-download an archive of this repo you should know this):
+This repository adopts the following convention:     
 
-The repo contains 4 long-running branches:     
-master, two release streams and one development branch.
+- The develop branch is where active development occurs.  If you are a collaborator,
+this is the branch you would clone and issue a pull request into.  
 
-- The develop branch is where active development occurs.  Feature branches
-get merged into the develop branch (after unit test) for inclusion in nightly
-builds.  The default branch is set to Develop, so if you are a collaborator,
-this is the branch you would clone and issue a pull request into.  No keyword
-expansion (smudging) is done on this branch.
+- The experimental branch is a release stream. Any release generated in this branch 
+will be tagged as "rcX.Y.Z" (rc for "release candidate") and is deployable into 
+a test environment. 
 
-- The develop branch gets merged into the experimental branch for release
-into a test environment.  The experimental branch is a release stream. By
-convention any release generated in this branch will be tagged as "rcX.Y.Z" 
-( rc for "release candidate") and has been deployed into a test environment. By
-definition the head of this stream is the version currently deployed into
-the test environment.
+- The master branch is the stable mainline of deployable code.  
+  No work gets done in the mainline and no releases get made from the mainline.  
 
-- The master branch is the stable mainline.  No work gets done in the mainline
-and no releases get made from the mainline.  
-
-- The stable branch is a release stream.  Commits get cherry picked from
-master into the release stream as needed to create releases with desired
-functionality. By convention any release generated in this branch will be tagged
-"vX.Y.Z" and has been deployed into a production environment. By definition
-the head of this stream is the version currently deployed into production.
-
-- No pull requests into release streams are accepted.   
+- The stable branch is a release stream.  Any release generated in this branch 
+will be tagged "vX.Y.Z" is deployable into a production environment. 
+ 
 Client side keyword expansion (smudging) is done in the stable and experimental release
-streams using xmt_cm/bin/git_kw so that checking out from
-these streams yields files which are tracable to the release they correspond
-with.     
+streams using xmt_cm/bin/git_filter.      
 i.e. .git/config contains the lines:     
 [filter "kw_expand"]       
-&ensp;&ensp;&ensp;&ensp;&ensp;&ensp; process = git_kw  --process --expand='stable|experimental'  
+   process = git_filter  --process --expand='stable|experimental'  
 
 
 ---------

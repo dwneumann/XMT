@@ -47,12 +47,12 @@ sub new
     my ($opts) = @_;
     my $self = {};
 
-    $self->{iut}	= $opts->{iut}   or $Xtest::errstr = "iut undefined" && return undef;
-    $self->{testfile}	= $opts->{test}  or $Xtest::errstr = "test undefined" && return undef;
+    $self->{iut}	= $opts->{iut}   or carp( "iut undefined") && return undef;
+    $self->{testfile}	= $opts->{test}  or carp( "test undefined") && return undef;
     _loadtest($self)	or return undef;
 
 
-    # instantiate an Expect session
+    # instantiate an Expect session and get ready to run it
     $self->{exp} = new Expect;
     $self->{exp}->exp_internal(1)		if defined $opt->{verbose};
     $self->{exp}->debug(2)			if defined $opt->{debug};
@@ -70,9 +70,44 @@ sub new
 sub DESTROY { }
 
 #************************************************************************
-# private method recursively reads nested test files
+# instance method runs the named test on the named iut.
+# returns scalar PASS/FAIL result.
 #************************************************************************
-sub _loadtest
+sub run
+{
+    # test file has been read & nested includes have been processed.
+    # now itewrate through the sequential list of commands
+    while ( @lines )			# send/expect cmd sequence to/from the iut
+    {
+	my ($fn, $line, $buf) = shift @lines;
+	my ($cmd, $restofline) =~ /\s*(\S+)\s+(.*)/ $buf;
+	if ( $cmd =~ /send/i )
+	{
+	    $session->send(eval $restofline); 
+	}
+	elsif ( $cmd =~ /expect/i )
+	{
+	    # get the lines returned by the iut 
+	    $session->clear_accum();
+	    $session->expect($timeout, -re, $restofline); 
+	    if ( !defined $session->match() )
+	    {
+		printf($resfh "FAIL : %s:%d (%s)\n", $fn, $line, $restofline);
+	    }
+	}
+
+    }
+    # terminate the test gracefully
+    $session->soft_close();
+}
+
+#************************************************************************
+# private method _parsetests recursively reads nested test files.
+# Each closure  { ... } is read as a single test.
+# Outside of closures, we can put C-style or Perl-style comments ( /* ... */ or  # ... ) 
+# as well as anything the gcc preprocessor interprets (eg #ifdef, #include, etc).
+#************************************************************************
+sub _parsetests
 {
     my $self = shift;
 
@@ -81,7 +116,7 @@ sub _loadtest
     push @tests {'fn'	=>$opt{test},
 		 'line'	=> 0,
 		 'buf'	=> path($opt{test})->slurp
-		}	or die "$opt{test}: $!\n";
+		}	or Carp "$opt{test}: $!\n";
     while ( @tests )
     {
 	open $fh, "<", \$tests[0]{fn}	or die "cannot open string as file\n";
@@ -111,32 +146,4 @@ sub _loadtest
     }
 }
 
-sub run
-{
-    # test file has been read & nested includes have been processed.
-    # now itewrate through the sequential list of commands
-    while ( @lines )			# send/expect cmd sequence to/from the iut
-    {
-	my ($fn, $line, $buf) = shift @lines;
-	my ($cmd, $restofline) =~ /\s*(\S+)\s+(.*)/ $buf;
-	if ( $cmd =~ /send/i )
-	{
-	    $session->send(eval $restofline); 
-	}
-	elsif ( $cmd =~ /expect/i )
-	{
-	    # get the lines returned by the iut 
-	    $session->clear_accum();
-	    $session->expect($timeout, -re, $restofline); 
-	    if ( !defined $session->match() )
-	    {
-		printf($resfh "FAIL : %s:%d (%s)\n", $fn, $line, $restofline);
-	    }
-	}
-
-    }
-    # terminate the test gracefully
-    $session->soft_close();
-}
-
-1;
+1;  # ensure class eval returns true;

@@ -46,8 +46,8 @@ public	class	Mesh {
 	int		numNodes	= 0;		/* # nodes in mesh		*/
 	int		myNodeIndex	= 0;		/* index of my port#		*/
 	int		nextPort	= 0;		/* value of nodes[myNodeIndex+1]*/
-	int		dfltPktsToSend	= 10;		/* # pkts to initiate		*/
-	int		dfltHops	= 100;		/* # hops before ack		*/
+	int		dfltPktsToSend	= 1;		/* # pkts to initiate		*/
+	int		dfltHops	= 1;		/* # hops before ack		*/
 	int		i		= 0;
 
 	/* xhist instrument FALSE */
@@ -137,47 +137,45 @@ public	class	Mesh {
 
 	}
 
-	/* send N messages to my first-listed neighbour	*/
-	for (i = 0; i < myNode.pktsToSend(); ++i)
-	{
-	    pkt = new Packet( myNode.port(), nextPort, myNode.numHops() );
-	    myNode.send(pkt);
-	}
-
-	/* now just forward or ack messges received from others */
+	/* now send and receive packets */
+	pkt = new Packet( myNode.port() );
 	myNode.setPktsReturned(0);
-	while (true)
+	for (i = 0; i < numNodes * myNode.pktsToSend(); ++i)
 	{
-	    myNode.receive(pkt);
+	    /* initiate message to my first-listed neighbour	*/
+	    if ( i < myNode.pktsToSend() )
+	    {
+		pkt.setSrc(myNode.port());
+		pkt.setDest(nextPort);
+		pkt.setTtl(myNode.numHops());
+		pkt.send(myNode);
+	    }
+
+	    /* forward or ack messge received from others */
+	    pkt.receive(myNode);
 
 	    /* the message just received was originated by me, so this is an ACK */
 	    if ( pkt.src() == myNode.port() ) 
 	    {
 		myNode.incrementPktsReturned();
-		myNode.addTotalTime( pkt.roundTripTime() );
-		System.out.format( "%2d : RECV'd ACK after %2d hops in %ld ms\n", 
-		    myNode.port(), pkt.hops(), pkt.roundTripTime() );
 	    }
 
 	    /* ttl expired; send back to sender as ack */
 	    else if (pkt.ttl() <= 0)	
 	    {
 		pkt.setDest(pkt.src());
-		pkt.incrementHops();
-		myNode.send(pkt);
+		pkt.decrementTtl();
+		pkt.send(myNode);
 	    }
 
 	    /* ttl not yet expired; forward message one more hop to someone else */
 	    else	
 	    {
-		pkt.incrementHops();
 		pkt.decrementTtl();
 		pkt.setDest(nextPort);
-		myNode.send(pkt);
-		System.out.format("\t%2d : FWD'd to %2d\n", myNode.port(), nextPort);
+		pkt.send(myNode);
 	    }
 	}
-	/* NOT REACHED */
     }
 
     public static void waitForNode(int port) throws IOException {

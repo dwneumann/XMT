@@ -14,6 +14,7 @@
 
 import java.io.*;
 import java.net.*;
+import java.nio.ByteBuffer;
 import XMT.Xhist;
 
 /**
@@ -29,16 +30,12 @@ public	class		Packet {
     public int	dest;		/* port # of ultimate destination 	*/
     public int	hops;		/* # times this pkt has been forwarded	*/
     public int	ttl;		/* # hops this pkt still has dest take 	*/
-    public long sentAt;		/* time of departure of packet		*/
-    public long receivedAt;	/* time of return of packet		*/
 
-    public	Packet( int src, int dest, int ttl ) {
+    public	Packet( int src ) {
 	this.src	= src;
-	this.dest	= dest;
+	this.dest	= 0;
 	this.hops	= 0;
-	this.ttl	= ttl;
-	this.sentAt	= 0;
-	this.receivedAt	= 0;
+	this.ttl	= 0;
     }
 
     public int	src()	{
@@ -81,68 +78,59 @@ public	class		Packet {
 	this.ttl--;
     }
 
-    public long	sentAt()	{
-	return this.sentAt;
-    }
 
-    public void	setSentAt(int n)	{
-	this.sentAt	= n;
-    }
-
-    public void	setSentAtNow()	{
-	this.sentAt	= System.currentTimeMillis();
-    }
-
-    public long	receivedAt()	{
-	return this.receivedAt;
-    }
-
-    public void	setReceivedAt(int n)	{
-	this.receivedAt	= n;
-    }
-
-    public void	setReceivedAtNow()	{
-	this.receivedAt	= System.currentTimeMillis();
-    }
-
-    public int roundTripTime() {
-	return( (int) (this.receivedAt - this.sentAt) );
-    }
-
-    public void send(DatagramSocket socket) {
+    public void send(MeshNode n) {
 	DatagramPacket dg;
-	String payload = new String;;
+	ByteBuffer bb	=  ByteBuffer.allocate(64);
+	byte[] payload	= bb.array();
+	InetAddress hostAddr = null;
 
-	this.setSentAtNow();
+	bb.putInt(this.src); 
+	bb.putInt(this.dest);
+	bb.putInt(this.ttl);
 	try
 	{
-	    payload = System.out.format( "%d,%d,%d,%ld",
-		this.src, this.dest, this.ttl, this.sentAt );
-	    byte[] buf 			= payload.getBytes();
-	    InetAddress hostAddr	= getLocalHost();
-	    dg	= new DatagramPacket(buf, buf.length, hostAddr, this.dest);
-	    socket.send(dg);
+	    hostAddr = InetAddress.getByName("localhost");
+	}
+	catch (UnknownHostException e)
+	{
+	    System.out.println( "InetAddress.getByName: " + e.getMessage());
+	    ; /* ignore the failure.  will be treated as a lost packet. */
+	}
+	dg = new DatagramPacket(payload, payload.length, hostAddr, this.dest);
+	try
+	{
+	    n.socket.send(dg);
+	    System.out.format("%d : sent src=%d, dest=%d, ttl=%d\n", 
+			    n.port(), this.src, this.dest, this.ttl );
 	}
 	catch (IOException e)
 	{
+	    System.out.println( "socket.send: " + e.getMessage());
 	    ; /* ignore the failure.  will be treated as a lost packet. */
 	}
-
     }
 
-    public void receive(DatagramSocket socket) {
+    public void receive(MeshNode n) {
+	DatagramPacket dg;
+	ByteBuffer bb	=  ByteBuffer.allocate(64);
+	byte[] payload	= bb.array();
+
+	    dg	= new DatagramPacket(payload, payload.length);
 	try
 	{
-	    this.payload	= new byte[64];
-	    this.datagram	= new DatagramPacket(payload, payload.length);
-	    this.socket.receive(this.datagram());
+	    n.socket.receive(dg);
 	}
 	catch (IOException e)
 	{
+	    System.out.println( "socket receive: " + e.getMessage());
 	    ; /* ignore the failure.  will be treated as a lost packet. */
 	}
-
-	p.setReceivedAtNow();
+	this.src	= bb.getInt();
+	this.dest	= bb.getInt();
+	this.ttl	= bb.getInt();
+	System.out.format("%d : rcvd src=%d, dest=%d, ttl=%d\n", 
+			n.port(), this.src, this.dest, this.ttl );
     }
 
 }

@@ -12,26 +12,18 @@ die "$usage" if defined $opt{'help'} or !defined $opt{'language'};
 chdir("../test") or die "chdir: $!\n";
 my $pgm = ($opt{'language'} eq "c" ?  "../$T/mesh" : 
 	    "java -cp ../$T/Mesh.jar:$XMTXHIST/libxhist/$T/Xhist.jar Mesh" );
-my $ports = "10000 10001 10002 10003 10004 10005 10006 10007 10008 10009";
+my $ports = "10000 10001 10002";
 my @children;
 
-foreach my $i (0 .. 9)
+foreach my $i (0 .. 2)
 {
     my $pid = fork();
     if ($pid == 0)	# child
     {
-	exec("$pgm $i $ports");
+	exec("$pgm $i $ports > $i.out");
     }
     else		# parent
     {
         push @children, $pid;
     }
 }
-
-sleep 2;
-# wait for user intput, then reap child pids & exit 
-print "Press ENTER to terminate test...\n"; 
-<STDIN>;
-kill 'USR1', @children;	# force trace log to be written
-sleep 1;
-kill 'INT', @children;	# force trace log to be written

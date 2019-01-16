@@ -21,28 +21,26 @@ import XMT.Xhist;
  * <p>
  * [full description]
  * <p>
- * @version	$Version: notag-0 [develop] $
+ * @version	$Version: meshtest-1.0-22 [develop] $
  */
 public	class		MeshNode {
-    public static final String id = "@(#) mesh.MeshNode $Version: notag-0 [develop] $";
+    public static final String id = "@(#) mesh.MeshNode $Version: meshtest-1.0-22 [develop] $";
     public static final String TEST_PASS	= "TEST PASS";
     public static final String TEST_FAIL	= "TEST FAIL";
     public int	pktsToSend;	/* # packets to initiate		*/
     public int	pktsReturned;	/* # of ACKs returned to me		*/
-    public int	totalTime;	/* accumulated sum of round trip times	*/
     public int	numHops;	/* # hops to fwd each packet		*/
     public int	port;		
     public DatagramSocket socket;
 
     public	MeshNode(int port) throws SocketException { 
-	this.pktsToSend		= 0;Xhist.add( 40978, 38 );
-	this.pktsReturned	= 0;Xhist.add( 40978, 39 );
-	this.totalTime		= 0;Xhist.add( 40978, 40 );
-	this.numHops		= 0;Xhist.add( 40978, 41 );
-	this.port		= port;Xhist.add( 40978, 42 );
-	this.socket		= new DatagramSocket(null);Xhist.add( 40978, 43 );
+	this.pktsToSend		= 0;Xhist.add( 40978, 37 );
+	this.pktsReturned	= 0;Xhist.add( 40978, 38 );
+	this.numHops		= 0;Xhist.add( 40978, 39 );
+	this.port		= port;Xhist.add( 40978, 40 );
+	this.socket		= new DatagramSocket(null);Xhist.add( 40978, 41 );
 	InetSocketAddress address = new InetSocketAddress("127.0.0.1", this.port);
-        this.socket.bind(address);Xhist.add( 40978, 45 );
+        this.socket.bind(address);Xhist.add( 40978, 43 );
     }
 
     public int	pktsToSend() {
@@ -50,7 +48,7 @@ public	class		MeshNode {
     }
 
     public void	setPktsToSend(int n) {
-	this.pktsToSend	= n;Xhist.add( 40978, 53 );
+	this.pktsToSend	= n;Xhist.add( 40978, 51 );
     }
 
     public int pktsReturned() {
@@ -58,19 +56,7 @@ public	class		MeshNode {
     }
 
     public void	setPktsReturned(int n) {
-	this.pktsReturned = n;Xhist.add( 40978, 61 );
-    }
-
-    public int	totalTime() {
-	return this.totalTime;
-    }
-
-    public void	setTotalTime(int n) {
-	this.totalTime	= n;Xhist.add( 40978, 69 );
-    }
-
-    public void	addTotalTime(int n) {
-	this.totalTime	+= n;Xhist.add( 40978, 73 );
+	this.pktsReturned = n;Xhist.add( 40978, 59 );
     }
 
     public int	numHops() {
@@ -78,7 +64,7 @@ public	class		MeshNode {
     }
 
     public void	setNumHops(int n) {
-	this.numHops	= n;Xhist.add( 40978, 81 );
+	this.numHops	= n;Xhist.add( 40978, 67 );
     }
 
     public int	port() {
@@ -86,47 +72,16 @@ public	class		MeshNode {
     }
 
     public void incrementPktsReturned() {
-	this.pktsReturned++;Xhist.add( 40978, 89 );
+	this.pktsReturned++;Xhist.add( 40978, 75 );
     }
 
     public DatagramSocket	socket() {
 	return this.socket;
     }
 
-    public void send(Packet p) {
-	p.setSentAtNow();Xhist.add( 40978, 97 );
-	try
-	{
-	    this.socket.send(p.datagram());Xhist.add( 40978, 100 );
-	}
-	catch (IOException e)
-	{
-	    ; /* ignore the failure.  will be treated as a lost packet. */
-	}
-
-    }
-
-    public void receive(Packet p) {
-	try
-	{
-	    this.socket.receive(p.datagram());Xhist.add( 40978, 112 );
-	}
-	catch (IOException e)
-	{
-	    ; /* ignore the failure.  will be treated as a lost packet. */
-	}
-	p.setReceivedAtNow();Xhist.add( 40978, 118 );
-    }
-
     public void reportResults() {
-	System.out.format(	"%2d : %d pkts sent" 		+
-				"\t%d%% packet loss,"		+
-				"\t%d ms avg round trip time\n", 
-	    this.port, 
-	    this.pktsToSend,
-	    (int) ((this.pktsToSend - this.pktsReturned)/this.pktsToSend)*100,
-	    (int) (this.totalTime()/(1 + this.pktsReturned)));Xhist.add( 40978, 128 );
-	    System.out.println( (this.pktsReturned == this.pktsToSend) ? 
-		TEST_PASS : TEST_FAIL );
+	System.out.format( "%2d : %d pkts sent" + "\t%d packets returned \n",
+	    this.port, this.pktsToSend, this.pktsReturned );
+	System.out.println( (this.pktsReturned == this.pktsToSend) ?  TEST_PASS : TEST_FAIL );Xhist.add( 40978, 85 );
     }
 }

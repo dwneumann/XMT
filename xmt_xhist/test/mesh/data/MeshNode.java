@@ -29,7 +29,6 @@ public	class		MeshNode {
     public static final String TEST_FAIL	= "TEST FAIL";
     public int	pktsToSend;	/* # packets to initiate		*/
     public int	pktsReturned;	/* # of ACKs returned to me		*/
-    public int	totalTime;	/* accumulated sum of round trip times	*/
     public int	numHops;	/* # hops to fwd each packet		*/
     public int	port;		
     public DatagramSocket socket;
@@ -37,7 +36,6 @@ public	class		MeshNode {
     public	MeshNode(int port) throws SocketException { 
 	this.pktsToSend		= 0;
 	this.pktsReturned	= 0;
-	this.totalTime		= 0;
 	this.numHops		= 0;
 	this.port		= port;
 	this.socket		= new DatagramSocket(null);
@@ -61,18 +59,6 @@ public	class		MeshNode {
 	this.pktsReturned = n;
     }
 
-    public int	totalTime() {
-	return this.totalTime;
-    }
-
-    public void	setTotalTime(int n) {
-	this.totalTime	= n;
-    }
-
-    public void	addTotalTime(int n) {
-	this.totalTime	+= n;
-    }
-
     public int	numHops() {
 	return this.numHops;
     }
@@ -94,15 +80,9 @@ public	class		MeshNode {
     }
 
     public void reportResults() {
-	System.out.format(	"%2d : %d pkts sent" 		+
-				"\t%d%% packet loss,"		+
-				"\t%d ms avg round trip time\n", 
-	    this.port, 
-	    this.pktsToSend,
-	    (int) ((this.pktsToSend - this.pktsReturned)/this.pktsToSend)*100,
-	    (int) (this.totalTime()/(1 + this.pktsReturned)));
-	    System.out.println( (this.pktsReturned == this.pktsToSend) ? 
-		TEST_PASS : TEST_FAIL );
+	System.out.format( "%2d : %d pkts sent" + "\t%d packets returned \n",
+	    this.port, this.pktsToSend, this.pktsReturned );
+	System.out.println( (this.pktsReturned == this.pktsToSend) ?  TEST_PASS : TEST_FAIL );
     }
 }
 

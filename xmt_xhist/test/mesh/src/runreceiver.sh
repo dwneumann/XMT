@@ -1,1 +1,0 @@
-java -classpath ../$T/Mesh.jar:$XMTXHIST/libxhist/$T/Xhist.jar Mesh 1 10000 10001 10002

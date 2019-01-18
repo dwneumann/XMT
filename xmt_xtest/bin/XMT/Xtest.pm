@@ -90,9 +90,6 @@ sub run
 
 	printf( STDOUT "%s\n", $s->{buf}) if $self->{verbose};
 
-	# if cmd looks like a Perl comment, ignore the line ...
-	next if ( $s->{buf} =~ m/^\s*#/ );
-
 	# if cmd looks like an include stmt, parse nested file & add to cmd sequence
 	if ( $s->{buf} =~ m/^\s*INCLUDE\s+"?(\S+)"?/i )
 	{

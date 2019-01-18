@@ -57,12 +57,11 @@ sub new
 
     # instantiate an Expect session and prepare it for run
     $self->{exp} = new Expect();
-    $self->{exp}->log_stdout(1);
+    $self->{exp}->log_stdout(0);
     $self->{exp}->raw_pty(1);
     $self->{exp}->restart_timeout_upon_receive(1);
-    $self->{exp}->log_file($opts->{log}, "w")	if defined $opts->{log};
-    $self->{exp}->exp_internal(1)		if defined $opts->{log};
-    $self->{exp}->debug(2)			if defined $opts->{log};
+    $self->{exp}->exp_internal(1)		if defined $opts->{debug};
+    $self->{verbose} = 1			if defined $opts->{verbose};
     $self->{exp}->spawn($self->{iut});
 
     bless $self;
@@ -89,6 +88,8 @@ sub run
     {
 	($fn, $seqnum, $buf)	= ($s->{fn}, $s->{seqnum},  $s->{buf});
 
+	printf( STDOUT "%s\n", $s->{buf}) if $self->{verbose};
+
 	# if cmd looks like a Perl comment, ignore the line ...
 	next if ( $s->{buf} =~ m/^\s*#/ );
 
@@ -102,30 +103,25 @@ sub run
 	    next;
 	}
 
-	# if cmd looks like a SEND block, extract cmd string then eval it.
-	if ( $s->{buf} =~ m:SEND\s*\(\s*"(\S+)"\s*\)\s*;:i )
+	# if cmd looks like a SEND block, eval it.
+	if ( $s->{buf} =~ m:SEND\s*\(: )
 	{
-	    #$s->{buf} =~ s/SEND\s*\(/\$self->{exp}->send(/; 
-	    $s->{buf} = $1; 
-	    $self->{exp}->send($s->{buf}); 
+	    $s->{buf} =~ s/SEND\s*/\$self->{exp}->send/; 
+	    eval($s->{buf}); 
 	    next;
 	}
 
-	# if cmd looks like a EXPECT block, extract pattern then eval it.
-	if ( $s->{buf} =~ m:EXPECT\s*\(\s*\/(.*)\/\s*\):i )
+	# if cmd looks like a EXPECT block, eval it.
+	if ( $s->{buf} =~ m:EXPECT\s*\(: )
 	{
+	    $s->{buf} =~ s/EXPECT\s*/\$self->{exp}->expect/; 
 	    $self->{exp}->clear_accum();
-	    #$s->{buf} =~ s/EXPECT\s*\(/\$self->{exp}->expect($Xtest::timeout, -re, /; 
-	    $s->{buf} = "/$1/s";
-	    $self->{exp}->expect($Xtest::timeout, -re, $s->{buf} );
+	    eval($s->{buf});
 
 	    #if we did't get what we expected that's a FAIL
 	    if ( ! $self->{exp}->match() )
 	    {
-		my $rc = $self->{exp}->error();		# useful for debugging
-		my $before = $self->{exp}->before();	# useful for debugging
-		carp "$fn:\tcommand #seqnum:\t$Xtest::FAIL";
-		$self->{exp}->log_file(undef);
+		carp "$fn:\tcommand #$seqnum:\t$Xtest::FAIL";
 		$self->{exp}->hard_close();
 		return $Xtest::FAIL;
 	    }

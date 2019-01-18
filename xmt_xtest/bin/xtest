@@ -37,19 +37,20 @@ my $help_msg = sprintf( <<__END__ );
 $pgmname [<options>] [file]
   --iut=<cmd>   execute the program <cmd> with all specified arguments
   --test=<file> eval <file> for inputs & expected outputs to iut
-  --log=<file>  log every command sent & received to/from iut to <file> 
+  --verbose     print every command sent & expected to/from iut 
+  --debug       show details of every command sent & received to/from iut 
 __END__
 
 # parse commandline options
 my %opt = ();
-GetOptions( \%opt, "help", "iut=s", "test=s", "log=s" ) or die $help_msg;
+GetOptions( \%opt, "help", "iut=s", "test=s", "verbose", "debug" ) or die $help_msg;
 die "$help_msg" if defined $opt{help};
 die "$help_msg" if !defined $opt{iut} or !defined $opt{test};
 
 # instantiate & run the testfile against the iut
 my $xt = XMT::Xtest::new(\%opt)	or die "XMT::Xtest : $Xtest::errstr\n";	
 my $result = $xt->run()		or die "XMT::Xtest : $Xtest::errstr\n";
-printf("%s\t%s\n", $opt{test}, $result);
+printf("%s :\t%s\n", $opt{test}, $result);
 # make exit code reflect pass/fail status.
 exit( $result =~ $Xtest::PASS ? 0 : 1);
 

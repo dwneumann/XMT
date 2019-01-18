@@ -1,4 +1,5 @@
-# this file sends the "version" command to jdb.
-{ EXPECT( /.*Initializing jdb.*/ ); }	# first output of jdb
-{ SEND( "version" ); }
-{ EXPECT( /.*jdb version .*/ ); }		# expected response to cmd
+# this file tests whether we are talking to  version 11 or higher of jdb.
+
+{ EXPECT( 3, -re, "Initializing jdb");	}	# jdb output upon launch 
+{ SEND( 	  "version\n" ); }		# remember to send the newline!
+{ EXPECT( 3, -re, "jdb version 11");	}	# if we get this pattern, that's a PASS

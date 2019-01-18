@@ -1,0 +1,4 @@
+# this file sends the "version" command to jdb.
+{ EXPECT( /.*Initializing jdb.*/ ); }	# first output of jdb
+{ SEND( "version" ); }
+{ EXPECT( /.*jdb version .*/ ); }		# expected response to cmd

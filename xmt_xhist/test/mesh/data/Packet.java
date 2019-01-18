@@ -116,7 +116,7 @@ public	class		Packet {
 	ByteBuffer bb	=  ByteBuffer.allocate(64);
 	byte[] payload	= bb.array();
 
-	    dg	= new DatagramPacket(payload, payload.length);
+	dg	= new DatagramPacket(payload, payload.length);
 	try
 	{
 	    n.socket.receive(dg);

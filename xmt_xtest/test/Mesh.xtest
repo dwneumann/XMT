@@ -1,0 +1,10 @@
+# TEST 00.03   test whether Mesh.jar outputs "1 packets sent 1 packets returned".
+
+# verify that we are talking to jdb.
+{ INCLUDE( "$ENV{XMT}/xmt_xtest/test/init.xtest" );	} 
+
+# launch the iut within jdb.  remember to send the newline!
+{ SEND( "run\n" ); } 
+
+# if we get this pattern, that's a PASS
+{ EXPECT( "1 pkts sent.*1 pkts returned" ); }

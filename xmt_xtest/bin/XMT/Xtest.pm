@@ -57,6 +57,7 @@ sub new
 
     # instantiate an Expect session and prepare it for run
     $self->{exp} = new Expect();
+    $Expect::Multiline_Matching = 0;
     $self->{exp}->log_stdout(1);
     $self->{exp}->raw_pty(1);
     $self->{exp}->restart_timeout_upon_receive(1);

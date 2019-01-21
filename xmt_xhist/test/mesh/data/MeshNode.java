@@ -25,8 +25,6 @@ import XMT.Xhist;
  */
 public	class		MeshNode {
     public static final String id = "@(#) mesh.MeshNode $Version:$";
-    public static final String TEST_PASS	= "TEST PASS";
-    public static final String TEST_FAIL	= "TEST FAIL";
     public int	pktsToSend;	/* # packets to initiate		*/
     public int	pktsReturned;	/* # of ACKs returned to me		*/
     public int	numHops;	/* # hops to fwd each packet		*/
@@ -80,9 +78,8 @@ public	class		MeshNode {
     }
 
     public void reportResults() {
-	System.out.format( "%2d : %d pkts sent" + "\t%d packets returned \n",
+	System.out.format( "%2d : %d pkts sent" + "\t%d pkts returned \n",
 	    this.port, this.pktsToSend, this.pktsReturned );
-	System.out.println( (this.pktsReturned == this.pktsToSend) ?  TEST_PASS : TEST_FAIL );
     }
 }
 

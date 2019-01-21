@@ -22,10 +22,10 @@ import XMT.Xhist;
  * <p>
  * [full description]
  * <p>
- * @version	$Version: meshtest-1.0-22 [develop] $
+ * @version	$Version: meshtest-1.0-38 [develop] $
  */
 public	class		Packet {
-    public static final String id = "@(#) mesh.Packet $Version: meshtest-1.0-22 [develop] $";
+    public static final String id = "@(#) mesh.Packet $Version: meshtest-1.0-38 [develop] $";
     public int	src;		/* port # of original sender		*/
     public int	dest;		/* port # of ultimate destination 	*/
     public int	hops;		/* # times this pkt has been forwarded	*/
@@ -116,7 +116,7 @@ public	class		Packet {
 	ByteBuffer bb	=  ByteBuffer.allocate(64);
 	byte[] payload	= bb.array();Xhist.add( 10708, 117 );
 
-	    dg	= new DatagramPacket(payload, payload.length);Xhist.add( 10708, 119 );
+	dg	= new DatagramPacket(payload, payload.length);Xhist.add( 10708, 119 );
 	try
 	{
 	    n.socket.receive(dg);Xhist.add( 10708, 122 );

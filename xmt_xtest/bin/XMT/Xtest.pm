@@ -57,12 +57,11 @@ sub new
 
     # instantiate an Expect session and prepare it for run
     $self->{exp} = new Expect();
-    $self->{exp}->log_stdout(1);
+    $self->{exp}->log_stdout(0);
     $self->{exp}->raw_pty(1);
     $self->{exp}->restart_timeout_upon_receive(1);
-    $self->{exp}->log_file($opts->{log}, "w")	if defined $opts->{log};
-    $self->{exp}->exp_internal(1)		if defined $opts->{log};
-    $self->{exp}->debug(2)			if defined $opts->{log};
+    $self->{exp}->exp_internal(1)		if defined $opts->{debug};
+    $self->{verbose} = 1			if defined $opts->{verbose};
     $self->{exp}->spawn($self->{iut});
 
     bless $self;
@@ -113,6 +112,7 @@ sub run
 	# if buf looks like a EXPECT block, extract pattern then eval it.
 	elsif ( $s->{buf} =~ m:EXPECT\s*\(: )
 	{
+	    $s->{buf} =~ s/EXPECT\s*/\$self->{exp}->expect/; 
 	    $self->{exp}->clear_accum();
 	    $s->{buf} =~ s/EXPECT\s*\(\s*/\$self->{exp}->expect(\$Xtest::timeout, -re, /; 
 	    eval $s->{buf};

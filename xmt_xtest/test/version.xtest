@@ -7,4 +7,3 @@
 # expect response indicating version 11.x
 { SEND( "version\n" ); 				} 
 { EXPECT( "This is jdb version 11" ); 		} 
-

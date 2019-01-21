@@ -8,6 +8,6 @@ export T=../tgt/$XMTBUILD_DFLT_ARCH;
 #  written to the directory where the executable resides.
 cd ../data;
 f=hello.c
-$XMTCM/bin/git_filter --expand=. --xhist=. --xhist_map=$T/$f.map $f > ../src/$f
+$XMTCM/bin/git_filter --expand=. --xhist=. --xhist_map=$f.map $f > ../src/$f
 f=Hello.java
-$XMTCM/bin/git_filter --expand=. --xhist=. --xhist_map=$T/$f.map $f > ../src/$f
+$XMTCM/bin/git_filter --expand=. --xhist=. --xhist_map=$f.map $f > ../src/$f

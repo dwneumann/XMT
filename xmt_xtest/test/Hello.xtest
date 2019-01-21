@@ -1,5 +1,11 @@
-# this file tests whether Hello.jar outputs the expected "hello foo".
+# TEST 00.02   test whether Hello.jar outputs the expected "hello foo".
 
-{ EXPECT( 3, -re, "Initializing jdb");	} # jdb output upon launch 
-{ SEND( 	  "run\n" ); 		} # remember to send the newline!
-{ EXPECT( 3, -re, "hello foo");		} # if we get this pattern, that's a PASS
+# verify that we are talking to jdb.
+{ INCLUDE( "$ENV{XMT}/xmt_xtest/test/init.xtest" );	} 
+
+# launch the iut within jdb.  remember to send the newline!
+{ SEND(   "run\n" ); 		} 
+
+
+# if we get this pattern, that's a PASS
+{ EXPECT( "hello foo");		} 

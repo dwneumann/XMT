@@ -81,6 +81,7 @@ sub DESTROY { }
 sub run
 {
     my $self = shift;
+    my @nested_cmds; 
 
     # test file has been parsed into a sequence of blocks to be eval'd.
     # now iterate through the sequence & execute them.
@@ -89,47 +90,43 @@ sub run
     {
 	($fn, $seqnum, $buf)	= ($s->{fn}, $s->{seqnum},  $s->{buf});
 
-	# if cmd looks like a Perl comment, ignore the line ...
+	# if buf looks like a Perl comment, ignore the line ...
 	next if ( $s->{buf} =~ m/^\s*#/ );
 
-	# if cmd looks like an include stmt, parse nested file & add to cmd sequence
-	if ( $s->{buf} =~ m/^\s*INCLUDE\s+"?(\S+)"?/i )
+	# if buf looks like an include stmt, parse nested file & add to cmd sequence
+	if ( $s->{buf} =~ m:INCLUDE\s*\(: )
 	{
-	    my @nested_cmds = _parsetestfile($1)	or return $Xtest::FAIL;
+	    $s->{buf} =~ s/INCLUDE\s*/_parsetestfile/;
+	    @nested_cmds = eval $s->{buf} or return $Xtest::FAIL;
 	    unshift @{$self->{cmds}}, @nested_cmds;
-	    my %new_cmd = ( 'fn'=>$fn, 'seqnum'=>$s->{seqnum}, 'buf'=>"# " . $1 );
+	    my %new_cmd = ( 'fn'=>$fn, 'seqnum'=>$s->{seqnum}, 'buf'=>"# " . $s->{buf} );
 	    unshift @{$self->{cmds}}, \%new_cmd;
-	    next;
 	}
 
-	# if cmd looks like a SEND block, extract cmd string then eval it.
-	if ( $s->{buf} =~ m:SEND\s*\(\s*"(\S+)"\s*\)\s*;:i )
+	# if buf looks like a SEND block, extract cmd string then eval it.
+	elsif ( $s->{buf} =~ m:SEND\s*\(: )
 	{
-	    #$s->{buf} =~ s/SEND\s*\(/\$self->{exp}->send(/; 
-	    $s->{buf} = $1; 
-	    $self->{exp}->send($s->{buf}); 
-	    next;
+	    $s->{buf} =~ s/SEND\s*/\$self->{exp}->send/; 
+	    eval $s->{buf}; 
 	}
 
-	# if cmd looks like a EXPECT block, extract pattern then eval it.
-	if ( $s->{buf} =~ m:EXPECT\s*\(\s*\/(.*)\/\s*\):i )
+	# if buf looks like a EXPECT block, extract pattern then eval it.
+	elsif ( $s->{buf} =~ m:EXPECT\s*\(: )
 	{
 	    $self->{exp}->clear_accum();
-	    #$s->{buf} =~ s/EXPECT\s*\(/\$self->{exp}->expect($Xtest::timeout, -re, /; 
-	    $s->{buf} = "/$1/s";
-	    $self->{exp}->expect($Xtest::timeout, -re, $s->{buf} );
+	    $s->{buf} =~ s/EXPECT\s*\(\s*/\$self->{exp}->expect(\$Xtest::timeout, -re, /; 
+	    eval $s->{buf};
 
 	    #if we did't get what we expected that's a FAIL
 	    if ( ! $self->{exp}->match() )
 	    {
 		my $rc = $self->{exp}->error();		# useful for debugging
 		my $before = $self->{exp}->before();	# useful for debugging
-		carp "$fn:\tcommand #seqnum:\t$Xtest::FAIL";
+		carp "$fn:\tcommand # $seqnum:\t$Xtest::FAIL";
 		$self->{exp}->log_file(undef);
 		$self->{exp}->hard_close();
 		return $Xtest::FAIL;
 	    }
-	    next;
 	}
     }
     # terminate the test gracefully

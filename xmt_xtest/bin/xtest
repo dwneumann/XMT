@@ -49,7 +49,7 @@ die "$help_msg" if !defined $opt{iut} or !defined $opt{test};
 # instantiate & run the testfile against the iut
 my $xt = XMT::Xtest::new(\%opt)	or die "XMT::Xtest : $Xtest::errstr\n";	
 my $result = $xt->run()		or die "XMT::Xtest : $Xtest::errstr\n";
-printf("%s\t%s\n", $opt{test}, $result);
+printf("\n%s\t%s\n", $opt{test}, $result);
 # make exit code reflect pass/fail status.
 exit( $result =~ $Xtest::PASS ? 0 : 1);
 

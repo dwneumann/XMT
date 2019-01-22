@@ -82,25 +82,26 @@ sub DESTROY { }
 #************************************************************************
 sub run
 {
-    my $self = shift;
-    my @nested_cmds; 
+    my $self = shift;		# visible insude eval blocks
+    local @nested_cmds; 	# visible insude eval blocks
 
     # test file has been parsed into a sequence of blocks to be eval'd.
     # now iterate through the sequence & execute them.
-    my ($fn, $seqnum, $buf);
+    local ($fn, $seqnum, $buf);
     while ($s = shift @{$self->{cmds}})
     {
 	($fn, $seqnum, $buf)	= ($s->{fn}, $s->{seqnum},  $s->{buf});
 	$fn =~ s:(.*/)([^/]*)/([^/]*$):.../$2/$3:;	# for verbose messages chop long filepaths.
 
-	# if buf looks like a Perl comment, ignore the line ...
-	next if ( $s->{buf} =~ m/^\s*#/ );
+	# strip comments; if there's nothing left, go on to the next block.
+	$s->{buf} =~ s/#.*$//mg;
+	next if ( $s->{buf} =~ m/^[\s\n]*$/ );
 
 	# if buf looks like an include stmt, parse nested file & add to cmd sequence
 	if ( $s->{buf} =~ m:INCLUDE\s*\(: )
 	{
-	    $s->{buf} =~ s/INCLUDE\s*/_parsetestfile/;
-	    @nested_cmds = eval $s->{buf} or return $Xtest::FAIL;
+	    $s->{buf} =~ s/INCLUDE\s*/push \@nested_cmds, _parsetestfile/g;
+	    eval $s->{buf} or return $Xtest::FAIL;
 	    unshift @{$self->{cmds}}, @nested_cmds;
 	    my %new_cmd = ( 'fn'=>$s->{fn}, 'seqnum'=>$s->{seqnum}, 'buf'=>"# " . $s->{buf} );
 	    unshift @{$self->{cmds}}, \%new_cmd;
@@ -110,7 +111,7 @@ sub run
 	elsif ( $s->{buf} =~ m:SEND\s*\(: )
 	{
 	    printf("\n%s\t cmd # %s\t %s\n", $fn, $seqnum, $buf) if (defined $self->{verbose});
-	    $s->{buf} =~ s/SEND\s*/\$self->{exp}->send/; 
+	    $s->{buf} =~ s/SEND\s*/\$self->{exp}->send/g; 
 	    eval $s->{buf}; 
 	}
 
@@ -119,7 +120,7 @@ sub run
 	{
 	    $self->{exp}->clear_accum();
 	    printf("\n%s\t cmd # %s\t %s\n", $fn, $seqnum, $buf) if (defined $self->{verbose});
-	    $s->{buf} =~ s/EXPECT\s*\(\s*/\$self->{exp}->expect(\$Xtest::timeout, -re, /; 
+	    $s->{buf} =~ s/EXPECT\s*\(\s*/\$self->{exp}->expect(\$Xtest::timeout, -re, /g; 
 	    eval $s->{buf};
 
 	    #if we did't get what we expected that's a FAIL

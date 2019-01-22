@@ -36,7 +36,8 @@
 #   := assignements are evaluated during lexical scan;
 #    = assignemtns are recursively evaluated during rule parsing
 #**********************************************************************
-shell		= /bin/sh
+shell		= /bin/bash
+SHELL		= $(shell)
 pkg_dir		= $(shell cd ..;pwd)
 supp_langs	= $(notdir $(wildcard $(XMTBUILD)/proto/lang/*))
 allsrcs		= $(sort $(foreach e,$(supp_langs),$(srcs.$(e))))

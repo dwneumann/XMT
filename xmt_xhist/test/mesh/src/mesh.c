@@ -1,6 +1,6 @@
 /************************************************************************
 *   Package	: mesh
-*   $Version: notag-0 [develop] $
+*   $Version: meshtest-1.0-42 [develop] $
 *    Copyright 2018 Visionary Research Inc.   All rights reserved.
 *  			legal@visionary-research.com
 *   
@@ -26,7 +26,7 @@
 ************************************************************************/
 
 #ifdef EMBED_REVISION_STRINGS
-static const char mesh_c_id[] = "@(#) mesh::mesh.c	$Version: notag-0 [develop] $";
+static const char mesh_c_id[] = "@(#) mesh::mesh.c	$Version: meshtest-1.0-42 [develop] $";
 #endif
 
 #include <sys/types.h>
@@ -113,8 +113,8 @@ int main(int argc, char *argv[])
     sprintf(logfn, "cmesh.%d.trace", (int) getpid());
     BACKOUT_IF((fd=open(logfn, O_RDWR|O_CREAT, 0644)) < 0, logfn); 
     xhist_logdev(fd);			/* file or socket to write to		*/
-    xhist_mapfile("$XhistMap: ../test/cmesh.map $");	/* embed name of file map		*/
-    xhist_version("$Version: notag-0 [develop] $");	/* embed build tag of source		*/
+    xhist_mapfile("$XhistMap: ../test/cMesh.map $");	/* embed name of file map		*/
+    xhist_version("$Version: meshtest-1.0-42 [develop] $");	/* embed build tag of source		*/
     signal(SIGUSR1, xhist_write);	/* dump trace upon receipt of signal	*/
 /* xhist instrument TRUE */
 #endif

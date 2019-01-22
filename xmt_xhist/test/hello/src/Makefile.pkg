@@ -30,3 +30,18 @@ java:
 c:	
 	$(MAKE) LANGUAGE=c PKG_NM=Xhist EXE_NM=hello LIBS=$(LIBS.c) exe
 
+
+# instrument sources for xhist:
+#  cd to $(DATADIR) (where the uninstrumented src resides)
+#  write instrumented sources to $(SRCDIR) for compilation
+#  write xhist_map file to $(TESTDIR) directory 
+instrument:
+	(cd $(DATADIR) ;				\
+	for x in c java ; do				\
+	    m=$(TESTDIR)/$${x}Mesh.map	; 		\
+	    for f in *.$$x ; do				\
+		$(XMTCM)/bin/git_filter --expand=. --xhist=. --xhist_map=$$m $$f  \
+				> $(SRCDIR)/$$f ;	\
+	    done					\
+	done)
+

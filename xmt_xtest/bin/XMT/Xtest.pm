@@ -91,6 +91,7 @@ sub run
     while ($s = shift @{$self->{cmds}})
     {
 	($fn, $seqnum, $buf)	= ($s->{fn}, $s->{seqnum},  $s->{buf});
+	$fn =~ s:(.*/)([^/]*)/([^/]*$):.../$2/$3:;	# for verbose messages chop long filepaths.
 
 	# if buf looks like a Perl comment, ignore the line ...
 	next if ( $s->{buf} =~ m/^\s*#/ );
@@ -101,7 +102,7 @@ sub run
 	    $s->{buf} =~ s/INCLUDE\s*/_parsetestfile/;
 	    @nested_cmds = eval $s->{buf} or return $Xtest::FAIL;
 	    unshift @{$self->{cmds}}, @nested_cmds;
-	    my %new_cmd = ( 'fn'=>$fn, 'seqnum'=>$s->{seqnum}, 'buf'=>"# " . $s->{buf} );
+	    my %new_cmd = ( 'fn'=>$s->{fn}, 'seqnum'=>$s->{seqnum}, 'buf'=>"# " . $s->{buf} );
 	    unshift @{$self->{cmds}}, \%new_cmd;
 	}
 
@@ -126,7 +127,7 @@ sub run
 	    {
 		my $rc = $self->{exp}->error();		# useful for debugging
 		my $before = $self->{exp}->before();	# useful for debugging
-		carp "$fn:\tcommand # $seqnum:\t$Xtest::FAIL";
+		carp "$s->{fn}:\tcommand # $seqnum:\t$Xtest::FAIL";
 		$self->{exp}->log_file(undef);
 		$self->{exp}->hard_close();
 		return $Xtest::FAIL;

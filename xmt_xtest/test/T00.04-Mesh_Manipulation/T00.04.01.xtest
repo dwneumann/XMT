@@ -1,4 +1,4 @@
 # this file expects the jdb "initializing" string then a prompt.
 # If we fail this, jdb is not ready to receive commands.
-{ EXPECT( "Initializing jdb" ); 		} # first output of jdb
+{ EXPECT( "Initializing jdb" );  }	# first output of jdb
 

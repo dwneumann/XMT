@@ -1,9 +1,6 @@
 # TEST T00.04	manipulate mesh topology then see if it drops pkts
 
-{ 
-  $testdir = "$ENV{XMT}/xmt_xtest/test/T00.04-Mesh_Manipulation";
-  INCLUDE( "$testdir/T00.04.01.xtest" );	# initial jdb exchange
-  INCLUDE( "$testdir/T00.04.02.xtest" );	# set breakpoints & set internal state
-  INCLUDE( "$testdir/T00.04.03.xtest" );	# continue pgm execution & check results
-} 
-
+{ $main::testdir = "$ENV{XMT}/xmt_xtest/test/T00.04-Mesh_Manipulation"; }
+{ INCLUDE( "$main::testdir/T00.04.01.xtest" ); } # initial jdb exchange
+{ INCLUDE( "$main::testdir/T00.04.02.xtest" ); } # set breakpoints & set internal state
+{ INCLUDE( "$main::testdir/T00.04.03.xtest" ); } # continue pgm execution & check results

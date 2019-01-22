@@ -1,9 +1,9 @@
 # TEST 00.01	send "version" command to iut & get expected response..
 
 # verify that we are talking to jdb.
-{ INCLUDE( "$ENV{XMT}/xmt_xtest/test/init.xtest" );	} 
+{ INCLUDE( "$ENV{XMT}/xmt_xtest/test/init.xtest" ); }	
 
 # send "version" command: don;t foret the newline.
 # expect response indicating version 11.x
-{ SEND( "version\n" ); 				} 
-{ EXPECT( "This is jdb version 11" ); 		} 
+{ SEND( "version\n" );  }	
+{ EXPECT( "This is jdb version 11" );  }	

@@ -62,7 +62,7 @@ $(DOCDIR)/%.html: $(SRCDIR)/$(JAVA_PKGROOT)/%.java
 $(TGTDIR)/$(LIB_NM): $(objs.$(LANGUAGE)) 
 	(cd $(OBJDIR);  \
 	echo $(ARFLAGS) $(ARFLAGS.$(LANGUAGE)) $(ARFLAGS.$(LANGUAGE).$(ARCH)) > $(LIB_NM).arflags;\
-	$(AR.$(LANGUAGE).$(ARCH)) @$(LIB_NM).arflags $(LIB_NM) *.class ;)
+	$(AR.$(LANGUAGE).$(ARCH)) @$(LIB_NM).arflags $(LIB_NM) $(objs.$(LANGUAGE)) ;)
 	-/bin/mv $(OBJDIR)/$(LIB_NM) $(TGTDIR)/$(LIB_NM)
 
 

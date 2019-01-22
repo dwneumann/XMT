@@ -16,8 +16,8 @@
 #   Synopsis	: included automatically by $(XMTBUILD)/proto/Makefile.top
 #   Purpose	: Customize make environment for the current package.
 #************************************************************************
-LANGUAGE	= c
-#LANGUAGE	= java
+#LANGUAGE	= c
+LANGUAGE	= java
 ARCH		= linux_x86
 BUILD_TGT	= lib
 PKG_NM		= Xhist

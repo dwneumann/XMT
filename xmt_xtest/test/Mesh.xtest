@@ -1,7 +1,7 @@
 # TEST 00.03   test whether executing Mesh.jar generates the expected output.
 
 # verify that we are talking to jdb.
-{ INCLUDE( "$ENV{XMT}/xmt_xtest/test/init.xtest" );	} 
+{ INCLUDE( "$ENV{XMTXTEST}/test/init.xtest" );	} 
 
 # launch the iut within jdb.  remember to send the newline!
 { SEND( "run\n" ); } 

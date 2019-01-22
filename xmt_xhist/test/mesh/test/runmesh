@@ -9,18 +9,18 @@ my %opt = ();
 GetOptions( \%opt, "help", "language=s" ) or die "$usage";
 die "$usage" if defined $opt{'help'} or !defined $opt{'language'};
 
-chdir("../test") or die "chdir: $!\n";
-my $pgm = ($opt{'language'} eq "c" ?  "../$T/mesh" : 
-	    "java -cp ../$T/Mesh.jar:$XMTXHIST/libxhist/$T/Xhist.jar Mesh" );
-my $ports = "10000 10001 10002";
+my $pgm = ($opt{'language'} eq "c" ?  "$XMTXHIST/test/mesh/$T/mesh" : 
+	    "java -cp $XMTXHIST/test/mesh/$T/Mesh.jar:$XMTXHIST/libxhist/$T/Xhist.jar Mesh" );
+my @ports = (10000, 10001, 10002, 10003, 10004, 10005);
 my @children;
 
-foreach my $i (0 .. 2)
+foreach my $i (1 .. 5)	# do not spawn node 0; only all others.
 {
     my $pid = fork();
     if ($pid == 0)	# child
     {
-	exec("$pgm $i $ports > $i.out");
+	my $cmd = "$pgm $i " . join( ' ', @ports) . " > " . $ports[$i] . ".out";
+	exec($cmd);
     }
     else		# parent
     {

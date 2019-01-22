@@ -62,7 +62,7 @@ sub new
     $self->{exp}->raw_pty(1);
     $self->{exp}->restart_timeout_upon_receive(1);
     $self->{exp}->log_file($opts->{log}, "w")	if defined $opts->{log};
-    $self->{exp}->exp_internal(1)		if defined $opts->{log};
+    #$self->{exp}->exp_internal(1)		if defined $opts->{log};
     $self->{exp}->debug(2)			if defined $opts->{log};
     $self->{exp}->spawn($self->{iut});
 

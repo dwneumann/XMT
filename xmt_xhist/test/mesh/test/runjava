@@ -1,3 +1,0 @@
-runreceiver1 &
-runreceiver2 &
-java -cp ../$T/Mesh.jar:$XMTXHIST/libxhist/$T/Xhist.jar Mesh 0 10000 10001 10002

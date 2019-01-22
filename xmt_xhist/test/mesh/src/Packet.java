@@ -22,10 +22,10 @@ import XMT.Xhist;
  * <p>
  * [full description]
  * <p>
- * @version	$Version: meshtest-1.0-39 [develop] $
+ * @version	$Version: notag-0 [develop] $
  */
 public	class		Packet {
-    public static final String id = "@(#) mesh.Packet $Version: meshtest-1.0-39 [develop] $";
+    public static final String id = "@(#) mesh.Packet $Version: notag-0 [develop] $";
     public int	src;		/* port # of original sender		*/
     public int	dest;		/* port # of ultimate destination 	*/
     public int	hops;		/* # times this pkt has been forwarded	*/

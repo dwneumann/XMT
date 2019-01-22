@@ -3,6 +3,6 @@
 * 	text=auto eol=lf
 # invoke the XMT utility git_filter to perform smudge and xhist instrumentation when
 # checking out into QA-owned test and release branches.
-*.c	filter=git_filter
-*.h	filter=git_filter
-*.java	filter=git_filter
+#*.c	filter=git_filter
+#*.h	filter=git_filter
+#*.java	filter=git_filter

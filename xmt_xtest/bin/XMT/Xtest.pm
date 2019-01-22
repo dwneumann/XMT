@@ -50,7 +50,8 @@ sub new
     if ( !defined $opts->{iut} )  { carp( "iut undefined");  return undef; }
     if ( !defined $opts->{test} ) { carp( "test undefined"); return undef; }
     $self->{testfile}	= $opts->{test}  or carp( "test undefined") && return undef;
-    $self->{iut} = $opts->{iut};
+    $self->{iut}	= $opts->{iut};
+    $self->{verbose}	= 1 if ( defined $opts->{verbose});
 
     # parse the test file or die trying
     push @{$self->{cmds}}, _parsetestfile($self->{testfile}) or return undef;
@@ -107,6 +108,7 @@ sub run
 	# if buf looks like a SEND block, extract cmd string then eval it.
 	elsif ( $s->{buf} =~ m:SEND\s*\(: )
 	{
+	    printf("\n%s\t cmd # %s\t %s\n", $fn, $seqnum, $buf) if (defined $self->{verbose});
 	    $s->{buf} =~ s/SEND\s*/\$self->{exp}->send/; 
 	    eval $s->{buf}; 
 	}
@@ -115,6 +117,7 @@ sub run
 	elsif ( $s->{buf} =~ m:EXPECT\s*\(: )
 	{
 	    $self->{exp}->clear_accum();
+	    printf("\n%s\t cmd # %s\t %s\n", $fn, $seqnum, $buf) if (defined $self->{verbose});
 	    $s->{buf} =~ s/EXPECT\s*\(\s*/\$self->{exp}->expect(\$Xtest::timeout, -re, /; 
 	    eval $s->{buf};
 

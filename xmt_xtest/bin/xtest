@@ -38,11 +38,12 @@ $pgmname [<options>] [file]
   --iut=<cmd>   execute the program <cmd> with all specified arguments
   --test=<file> eval <file> for inputs & expected outputs to iut
   --log=<file>  log every command sent & received to/from iut to <file> 
+  --verbose     echo PASS or FAIL of individual commands
 __END__
 
 # parse commandline options
 my %opt = ();
-GetOptions( \%opt, "help", "iut=s", "test=s", "log=s" ) or die $help_msg;
+GetOptions( \%opt, "help", "iut=s", "test=s", "log=s", "verbose" ) or die $help_msg;
 die "$help_msg" if defined $opt{help};
 die "$help_msg" if !defined $opt{iut} or !defined $opt{test};
 

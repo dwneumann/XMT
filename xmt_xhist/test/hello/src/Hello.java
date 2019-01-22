@@ -20,7 +20,7 @@ import XMT.Xhist;
 
 public	class		Hello
 {
-    public static final String id = "@(#) hello.Hello $Version: meshtest-1.0-42 [develop] $";
+    public static final String id = "@(#) hello.Hello $Version: meshtest-1.0-44 [develop] $";
 
     public static void main(String []args) {
 
@@ -31,8 +31,8 @@ public	class		Hello
 	try {
 	    fd = new DataOutputStream(new FileOutputStream("./Hello.trace")); 
 	    Xhist.logdev(fd);
-	    Xhist.mapfile("$XhistMap: ../test/javaMesh.map $");
-	    Xhist.version("$Version: meshtest-1.0-42 [develop] $");
+	    Xhist.mapfile("$XhistMap: /home/dean/Documents/XMT/xmt_xhist/test/hello/src/../test/javaHello.map $");
+	    Xhist.version("$Version: meshtest-1.0-44 [develop] $");
 
 	    Runtime.getRuntime().addShutdownHook( new Thread() {
 		@Override

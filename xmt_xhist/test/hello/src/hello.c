@@ -3,7 +3,7 @@
 #endif  
 /************************************************************************ 
 *   Package	: libxhist 
-*   $Version: meshtest-1.0-42 [develop] $ 
+*   $Version: meshtest-1.0-44 [develop] $ 
 *    Copyright 2018 Visionary Research Inc.   All rights reserved. 
 *    			legal@visionary-research.com 
 *    Licensed under the Apache License, Version 2.0 (the "License");
@@ -22,7 +22,7 @@
 #define __hello_c 
  
 #ifdef EMBED_REVISION_STRINGS 
-static const char hello_c_id[] = "@(#) libxhist::hello.c	$Version: meshtest-1.0-42 [develop] $";
+static const char hello_c_id[] = "@(#) libxhist::hello.c	$Version: meshtest-1.0-44 [develop] $";
 #endif 
  
 #ifdef XHIST 
@@ -50,8 +50,8 @@ int main(int argc, char *argv[])
 	exit(1);
     } 
     xhist_logdev(fd);
-    xhist_mapfile("$XhistMap: ../test/cMesh.map $");
-    xhist_version("$Version: meshtest-1.0-42 [develop] $");
+    xhist_mapfile("$XhistMap: /home/dean/Documents/XMT/xmt_xhist/test/hello/src/../test/cHello.map $");
+    xhist_version("$Version: meshtest-1.0-44 [develop] $");
     signal(SIGUSR1, xhist_write);
 /* xhist instrument TRUE */
 #endif 

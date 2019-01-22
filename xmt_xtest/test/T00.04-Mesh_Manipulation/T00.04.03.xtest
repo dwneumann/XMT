@@ -1,0 +1,4 @@
+
+# continue execution. if we get this pattern, that's a PASS
+{ SEND( "cont\n" ); } 
+{ EXPECT( "2 pkts sent.*2 pkts returned" ); }

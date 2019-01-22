@@ -22,10 +22,10 @@ import XMT.Xhist;
  * <p>
  * [full description]
  * <p>
- * @version	$Version: meshtest-1.0-38 [develop] $
+ * @version	$Version: meshtest-1.0-39 [develop] $
  */
 public	class		Packet {
-    public static final String id = "@(#) mesh.Packet $Version: meshtest-1.0-38 [develop] $";
+    public static final String id = "@(#) mesh.Packet $Version: meshtest-1.0-39 [develop] $";
     public int	src;		/* port # of original sender		*/
     public int	dest;		/* port # of ultimate destination 	*/
     public int	hops;		/* # times this pkt has been forwarded	*/
@@ -101,12 +101,10 @@ public	class		Packet {
 	try
 	{
 	    n.socket.send(dg);Xhist.add( 10708, 103 );
-	    System.out.format("%d : sent src=%d, dest=%d, ttl=%d\n", 
-			    n.port(), this.src, this.dest, this.ttl );Xhist.add( 10708, 105 );
 	}
 	catch (IOException e)
 	{
-	    System.out.println( "socket.send: " + e.getMessage());Xhist.add( 10708, 109 );
+	    System.out.println( "socket.send: " + e.getMessage());Xhist.add( 10708, 107 );
 	    ; /* ignore the failure.  will be treated as a lost packet. */
 	}
     }
@@ -114,23 +112,21 @@ public	class		Packet {
     public void receive(MeshNode n) {
 	DatagramPacket dg;
 	ByteBuffer bb	=  ByteBuffer.allocate(64);
-	byte[] payload	= bb.array();Xhist.add( 10708, 117 );
+	byte[] payload	= bb.array();Xhist.add( 10708, 115 );
 
-	dg	= new DatagramPacket(payload, payload.length);Xhist.add( 10708, 119 );
+	dg	= new DatagramPacket(payload, payload.length);Xhist.add( 10708, 117 );
 	try
 	{
-	    n.socket.receive(dg);Xhist.add( 10708, 122 );
+	    n.socket.receive(dg);Xhist.add( 10708, 120 );
 	}
 	catch (IOException e)
 	{
-	    System.out.println( "socket receive: " + e.getMessage());Xhist.add( 10708, 126 );
+	    System.out.println( "socket receive: " + e.getMessage());Xhist.add( 10708, 124 );
 	    ; /* ignore the failure.  will be treated as a lost packet. */
 	}
-	this.src	= bb.getInt();Xhist.add( 10708, 129 );
-	this.dest	= bb.getInt();Xhist.add( 10708, 130 );
-	this.ttl	= bb.getInt();Xhist.add( 10708, 131 );
-	System.out.format("%d : rcvd src=%d, dest=%d, ttl=%d\n", 
-			n.port(), this.src, this.dest, this.ttl );Xhist.add( 10708, 133 );
+	this.src	= bb.getInt();Xhist.add( 10708, 127 );
+	this.dest	= bb.getInt();Xhist.add( 10708, 128 );
+	this.ttl	= bb.getInt();Xhist.add( 10708, 129 );
     }
 
 }

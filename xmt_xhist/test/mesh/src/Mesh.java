@@ -32,10 +32,10 @@ import XMT.Xhist;
  *  to/from the other nodes.  
  *  Prints statistics on packet loss & latency.
  * <p>
- * @version	$Version: meshtest-1.0-38 [develop] $
+ * @version	$Version: meshtest-1.0-39 [develop] $
  */
 public	class	Mesh {
-    public static final String id = "@(#) mesh.Mesh $Version: meshtest-1.0-38 [develop] $";
+    public static final String id = "@(#) mesh.Mesh $Version: meshtest-1.0-39 [develop] $";
     public static final int MAX_NODES	= 100;		/* max # nodes in mesh		*/
     public static MeshNode	myNode	= null;		/* this Node			*/
 
@@ -46,8 +46,8 @@ public	class	Mesh {
 	int		numNodes	= 0;		/* # nodes in mesh		*/
 	int		myNodeIndex	= 0;		/* index of my port#		*/
 	int		nextPort	= 0;		/* value of nodes[myNodeIndex+1]*/
-	int		dfltPktsToSend	= 1;		/* # pkts to initiate		*/
-	int		dfltHops	= 1;		/* # hops before ack		*/
+	int		dfltPktsToSend	= 10;		/* # pkts to initiate		*/
+	int		dfltHops	= 10;		/* # hops before ack		*/
 	int		i		= 0;
 
 	/* xhist instrument FALSE */
@@ -59,7 +59,7 @@ public	class	Mesh {
 		"Mesh." + ProcessHandle.current().pid() + ".trace")); 
 	    Xhist.logdev(fd);
 	    Xhist.mapfile("$XhistMap: ../test/javamesh.map $");
-	    Xhist.version("$Version: meshtest-1.0-38 [develop] $");
+	    Xhist.version("$Version: meshtest-1.0-39 [develop] $");
 
 	    Runtime.getRuntime().addShutdownHook( new Thread() 
 	    {

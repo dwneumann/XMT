@@ -101,8 +101,6 @@ public	class		Packet {
 	try
 	{
 	    n.socket.send(dg);
-	    System.out.format("%d : sent src=%d, dest=%d, ttl=%d\n", 
-			    n.port(), this.src, this.dest, this.ttl );
 	}
 	catch (IOException e)
 	{
@@ -129,8 +127,6 @@ public	class		Packet {
 	this.src	= bb.getInt();
 	this.dest	= bb.getInt();
 	this.ttl	= bb.getInt();
-	System.out.format("%d : rcvd src=%d, dest=%d, ttl=%d\n", 
-			n.port(), this.src, this.dest, this.ttl );
     }
 
 }

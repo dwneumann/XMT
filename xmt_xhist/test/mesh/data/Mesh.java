@@ -46,8 +46,8 @@ public	class	Mesh {
 	int		numNodes	= 0;		/* # nodes in mesh		*/
 	int		myNodeIndex	= 0;		/* index of my port#		*/
 	int		nextPort	= 0;		/* value of nodes[myNodeIndex+1]*/
-	int		dfltPktsToSend	= 1;		/* # pkts to initiate		*/
-	int		dfltHops	= 1;		/* # hops before ack		*/
+	int		dfltPktsToSend	= 10;		/* # pkts to initiate		*/
+	int		dfltHops	= 10;		/* # hops before ack		*/
 	int		i		= 0;
 
 	/* xhist instrument FALSE */

@@ -15,8 +15,8 @@
 { SEND( "cont\n" );			}	
 { EXPECT( "Breakpoint hit.* line=116" );	}
 
-{ SEND( "set dfltPktsToSend = 2\n" );	}	
-{ EXPECT( "dfltPktsToSend = 2" );	}	
+#{ SEND( "set dfltPktsToSend = 2\n" );	}	
+#{ EXPECT( "dfltPktsToSend = 2" );	}	
 { SEND( "set dfltHops = 5\n" );		}	
 { EXPECT( "dfltHops = 5" );		}	
 

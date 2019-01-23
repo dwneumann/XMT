@@ -118,6 +118,13 @@ public	class		Packet {
 	try
 	{
 	    n.socket.receive(dg);Xhist.add( 10708, 120 );
+	    {
+		boolean forceException = false; 
+		if(forceException) 
+		{
+		    throw new IOException("forceException");
+		}
+	    }
 	}
 	catch (IOException e)
 	{

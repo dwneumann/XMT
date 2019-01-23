@@ -148,6 +148,7 @@ sub _parsetestfile
     $contents = path($fn)->slurp or carp "$fn: $!\n" && return undef;
     my @array;
 
+    $contents =~ s/#.*$//mg;	# strip out comments
     my @seqs = $contents =~ /( \{ (?: [^{}]* | (?0) )* \} )/xg; # split into closures
     # push file name, seq# & contents onto stack 
     my $i = 1;	# 1-based line/sequence # counting for reporting errors to user

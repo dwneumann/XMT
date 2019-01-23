@@ -1,7 +1,15 @@
 
 # precondition:  iut is stopped in intermediate state
-# continue execution. if we get the expected pattern, that's a PASS
-# postcondition:  iut is in terminal state
+# set breakpoint, run to there, force try block to throw exception
+# postcondition: iut is stopped in intermediate state
 
-{ SEND( "cont\n" );  }	
-{ EXPECT( "2 pkts sent.*2 pkts returned" ); }
+
+{ SEND( "stop at Packet:123\n" );	}	
+{ EXPECT( "Set breakpoint" );		}
+
+{ SEND( "cont\n" );			}	
+{ EXPECT( "Breakpoint hit.* line=123" );}
+
+{ SEND( "set forceException = true\n" );}
+{ EXPECT( "forceException = true" );	}
+

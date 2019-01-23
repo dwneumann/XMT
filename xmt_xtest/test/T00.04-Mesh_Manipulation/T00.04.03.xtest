@@ -1,4 +1,7 @@
 
-# continue execution. if we get this pattern, that's a PASS
+# precondition:  iut is stopped in intermediate state
+# continue execution. if we get the expected pattern, that's a PASS
+# postcondition:  iut is in terminal state
+
 { SEND( "cont\n" );  }	
 { EXPECT( "2 pkts sent.*2 pkts returned" ); }

@@ -59,12 +59,11 @@ sub new
     # instantiate an Expect session and prepare it for run
     $self->{exp} = new Expect();
     $Expect::Multiline_Matching = 0;
-    $self->{exp}->log_stdout(1);
+    $self->{exp}->log_stdout(0);
     $self->{exp}->raw_pty(1);
     $self->{exp}->restart_timeout_upon_receive(1);
-    $self->{exp}->log_file($opts->{log}, "w")	if defined $opts->{log};
-    #$self->{exp}->exp_internal(1)		if defined $opts->{log};
-    $self->{exp}->debug(2)			if defined $opts->{log};
+    $self->{exp}->exp_internal(1)		if defined $opts->{debug};
+    $self->{exp}->debug(2)			if defined $opts->{debug};
     $self->{exp}->spawn($self->{iut});
 
     bless $self;
@@ -91,7 +90,7 @@ sub run
     while ($s = shift @{$self->{cmds}})
     {
 	($fn, $seqnum, $buf)	= ($s->{fn}, $s->{seqnum},  $s->{buf});
-	$fn =~ s:(.*/)([^/]*)/([^/]*$):.../$2/$3:;	# for verbose messages chop long filepaths.
+	$fn =~ s:(.*/)([^/]*$):$2:;	# for verbose messages chop long filepaths.
 
 	# strip comments; if there's nothing left, go on to the next block.
 	$s->{buf} =~ s/#.*$//mg;
@@ -108,7 +107,7 @@ sub run
 	# if buf looks like a SEND block, extract cmd string then eval it.
 	elsif ( $s->{buf} =~ m:SEND\s*\(: )
 	{
-	    printf("\n%s\t cmd # %s\t %s\n", $fn, $seqnum, $buf) if (defined $self->{verbose});
+	    printf("%s: %2d: %s\n", $fn, $seqnum, $buf) if (defined $self->{verbose});
 	    $s->{buf} =~ s/SEND\s*/\$self->{exp}->send/g; 
 	    eval $s->{buf}; 
 	}
@@ -117,7 +116,7 @@ sub run
 	elsif ( $s->{buf} =~ m:EXPECT\s*\(: )
 	{
 	    $self->{exp}->clear_accum();
-	    printf("\n%s\t cmd # %s\t %s\n", $fn, $seqnum, $buf) if (defined $self->{verbose});
+	    printf("%s: %2d: %s\n", $fn, $seqnum, $buf) if (defined $self->{verbose});
 	    $s->{buf} =~ s/EXPECT\s*\(\s*/\$self->{exp}->expect(\$Xtest::timeout, -re, /g; 
 	    eval $s->{buf};
 
@@ -126,8 +125,7 @@ sub run
 	    {
 		my $rc = $self->{exp}->error();		# useful for debugging
 		my $before = $self->{exp}->before();	# useful for debugging
-		carp "$s->{fn}:\tcommand # $seqnum:\t$Xtest::FAIL";
-		$self->{exp}->log_file(undef);
+		printf("%s: %2d: %s\n", $fn, $seqnum, $Xtest::FAIL) if (defined $self->{verbose});
 		$self->{exp}->hard_close();
 		return $Xtest::FAIL;
 	    }

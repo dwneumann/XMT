@@ -1,5 +1,5 @@
 
-#line 2 "lex.yy.c"
+#line 3 "lex.yy.c"
 
 #define  YY_INT_ALIGNED short int
 
@@ -489,8 +489,8 @@ int	num_slocs	= 0;
 int	total_lines	= 0;
 int	in_cmt		= 0;
 
-#line 492 "lex.yy.c"
 #line 493 "lex.yy.c"
+#line 494 "lex.yy.c"
 
 #define INITIAL 0
 
@@ -710,7 +710,7 @@ YY_DECL
 #line 30 "sloc.l"
 
 
-#line 713 "lex.yy.c"
+#line 714 "lex.yy.c"
 
 	while ( /*CONSTCOND*/1 )		/* loops until end-of-file is reached */
 		{
@@ -813,7 +813,7 @@ YY_RULE_SETUP
 #line 41 "sloc.l"
 ECHO;
 	YY_BREAK
-#line 816 "lex.yy.c"
+#line 817 "lex.yy.c"
 case YY_STATE_EOF(INITIAL):
 	yyterminate();
 

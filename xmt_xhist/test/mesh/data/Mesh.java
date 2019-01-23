@@ -37,7 +37,7 @@ import XMT.Xhist;
 public	class	Mesh {
     public static final String id = "@(#) mesh.Mesh $Version:$";
     public static final int MAX_NODES	= 100;		/* max # nodes in mesh		*/
-    public static MeshNode	myNode	= null;		/* this Node			*/
+    public static MeshNode	myNode	= new MeshNode();	/* this Node		*/
 
 
     public static void main(String []args) throws NumberFormatException {
@@ -103,7 +103,7 @@ public	class	Mesh {
 	/* create the MeshNode and associated socket */
 	try 
 	{
-	    myNode = new MeshNode( nodes[myNodeIndex] ); /* bind to my port # */
+	    myNode.bind( nodes[myNodeIndex] ); /* bind to my port # */
 	}
 	catch (SocketException e) 
 	{

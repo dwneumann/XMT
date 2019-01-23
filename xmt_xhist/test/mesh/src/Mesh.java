@@ -32,12 +32,12 @@ import XMT.Xhist;
  *  to/from the other nodes.  
  *  Prints statistics on packet loss & latency.
  * <p>
- * @version	$Version: meshtest-1.0-44 [develop] $
+ * @version	$Version: meshtest-1.0-47 [develop] $
  */
 public	class	Mesh {
-    public static final String id = "@(#) mesh.Mesh $Version: meshtest-1.0-44 [develop] $";
+    public static final String id = "@(#) mesh.Mesh $Version: meshtest-1.0-47 [develop] $";
     public static final int MAX_NODES	= 100;		/* max # nodes in mesh		*/
-    public static MeshNode	myNode	= null;		/* this Node			*/
+    public static MeshNode	myNode	= new MeshNode();	/* this Node		*/
 
 
     public static void main(String []args) throws NumberFormatException {
@@ -59,7 +59,7 @@ public	class	Mesh {
 		"Mesh." + ProcessHandle.current().pid() + ".trace")); 
 	    Xhist.logdev(fd);
 	    Xhist.mapfile("$XhistMap: /home/dean/Documents/XMT/xmt_xhist/test/mesh/src/../test/javaMesh.map $");
-	    Xhist.version("$Version: meshtest-1.0-44 [develop] $");
+	    Xhist.version("$Version: meshtest-1.0-47 [develop] $");
 
 	    Runtime.getRuntime().addShutdownHook( new Thread() 
 	    {
@@ -103,7 +103,7 @@ public	class	Mesh {
 	/* create the MeshNode and associated socket */
 	try 
 	{
-	    myNode = new MeshNode( nodes[myNodeIndex] ); /* bind to my port # */Xhist.add( 58278, 106 );
+	    myNode.bind( nodes[myNodeIndex] ); /* bind to my port # */Xhist.add( 58278, 106 );
 	}
 	catch (SocketException e) 
 	{

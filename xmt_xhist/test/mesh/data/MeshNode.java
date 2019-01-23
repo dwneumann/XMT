@@ -31,10 +31,16 @@ public	class		MeshNode {
     public int	port;		
     public DatagramSocket socket;
 
-    public	MeshNode(int port) throws SocketException { 
+    public	MeshNode() { 
 	this.pktsToSend		= 0;
 	this.pktsReturned	= 0;
 	this.numHops		= 0;
+	this.port		= 0;
+	this.socket		= null;
+	InetSocketAddress address = null;
+    }
+
+    public	void bind(int port) throws SocketException { 
 	this.port		= port;
 	this.socket		= new DatagramSocket(null);
 	InetSocketAddress address = new InetSocketAddress("127.0.0.1", this.port);

@@ -82,12 +82,12 @@ sub DESTROY { }
 #************************************************************************
 sub run
 {
-    my $self = shift;		# visible insude eval blocks
-    local @nested_cmds; 	# visible insude eval blocks
+    my $self = shift;		# visible inside eval blocks
+    local @nested_cmds; 	# visible inside eval blocks
 
     # test file has been parsed into a sequence of blocks to be eval'd.
     # now iterate through the sequence & execute them.
-    local ($fn, $seqnum, $buf);
+    local ($fn, $seqnum, $buf);	#local copies ...
     while ($s = shift @{$self->{cmds}})
     {
 	($fn, $seqnum, $buf)	= ($s->{fn}, $s->{seqnum},  $s->{buf});
@@ -103,8 +103,6 @@ sub run
 	    $s->{buf} =~ s/INCLUDE\s*/push \@nested_cmds, _parsetestfile/g;
 	    eval $s->{buf} or return $Xtest::FAIL;
 	    unshift @{$self->{cmds}}, @nested_cmds;
-	    my %new_cmd = ( 'fn'=>$s->{fn}, 'seqnum'=>$s->{seqnum}, 'buf'=>"# " . $s->{buf} );
-	    unshift @{$self->{cmds}}, \%new_cmd;
 	}
 
 	# if buf looks like a SEND block, extract cmd string then eval it.

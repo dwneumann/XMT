@@ -52,6 +52,10 @@
 #	 --xhist_map=pathname	write execution history filename map to <pathname>.
 #	 --unxhist	unxhist (i.e. clean) xhist instrumentation found in stdin, 
 #			and write cleaned data stream to stdout.
+#	 --xtest=<branchspec> only if in a branch matching regex pattern <branchspec>,
+#	 		instrument files for whitebox test on checkout
+#	 --unxtest	uninstrument (i.e. clean) xtest instrumentation found in stdin, 
+#			and write cleaned data stream to stdout.
 #	 --debug	write packet trace log to /tmp/git_filter.log
 #
 #  Copyright 2018 Visionary Research Inc.   All rights reserved.
@@ -76,6 +80,7 @@ use strict;
 # uncomment the following line.
 BEGIN {unshift(@INC, "$ENV{XMTXHIST}/bin");}
 use XMT::Xhist;
+use XMT::Xtest;
 
 use Getopt::Long;
 use Path::Tiny qw(path);
@@ -121,7 +126,11 @@ $pgmname [<options>] [file]
   --xhist_map=pathname   write execution history filename map to <pathname>
   --unxhist     unxhist (i.e. clean) xhist instrumentation found in stdin, 
                 and write cleaned data stream to stdout.
-  --fname=<pathspec>	read contents of file from STDIN but use <pathspec>
+  --xtest=<branchspec> only if in a branch matching regex pattern <branchspec>,
+                instrument files for whitebox test on checkout
+  --unxtest     uninstrument (i.e. clean) xtest instrumentation found in stdin, 
+                and write cleaned data stream to stdout.
+  --fname=<pathspec>    read contents of file from STDIN but use <pathspec>
                 as the file name for instrumentation purposes
   --debug       write packet trace log to /tmp/git_filter.log
 __END__
@@ -129,7 +138,8 @@ __END__
 # parse commandline options
 my %opt = ();
 GetOptions( \%opt, "help", "verbose", "expand=s", "unexpand", "list:s@", "binary", 
-	    "process", "debug", "xhist=s", "unxhist", "xhist_map=s", "fname=s") 
+	    "process", "debug", "xhist=s", "unxhist", "xhist_map=s", "fname=s",
+	    "xtest=s", "unxtest" ) 
 	    or die $help_msg;
 
 # "expand", "unexpand" and "list" are mutually exclusive.
@@ -250,19 +260,23 @@ sub standalone_main
     ## perform substitutions & write the output.
     if ($is_ascii || defined $opt{'binary'})
     {
-	# only do keyword expansion if we are in a 
-	# branch specified for keyword expansion.
-	if ( defined $opt{'expand'}  and
-	     $kw{'Branch'}{val} =~ /$opt{'expand'}/ )
+	# XTEST FIRST.
+	# do xtest instrumentation if we are in a 
+	# branch specified for xtest instrumentation.
+	if ( defined $opt{'xtest'} and
+	     $kw{'Branch'}{val} =~ /$opt{'xtest'}/ )
 	{
-	    kw_expand( \$inbuf );
+	     my $xt = XMT::Xtest::new($pathname, \$inbuf);	
+	     $inbuf = $xt->instrument(); 
 	}
-	elsif (defined $opt{'unexpand'})
+	elsif ( defined $opt{'unxhist'} )
 	{
-	    kw_unexpand( \$inbuf );
+	    my $xt = XMT::Xtest::new($pathname, \$inbuf);	
+	    $inbuf = $xt->uninstrument();
 	}
-	
-	# only do xhist instrumentation if we are in a 
+
+	# XHIST SECOND.
+	# do xhist instrumentation if we are in a 
 	# branch specified for xhist instrumentation.
 	if ( defined $opt{'xhist'} and
 	     $kw{'Branch'}{val} =~ /$opt{'xhist'}/ )
@@ -276,6 +290,20 @@ sub standalone_main
 	    my $xh = XMT::Xhist::new($pathname, \$inbuf);	
 	    $inbuf = $xh->uninstrument();
 	}
+
+	# KEYWORD EXPANSION LAST.
+	# do keyword expansion if we are in a 
+	# branch specified for keyword expansion.
+	if ( defined $opt{'expand'}  and
+	     $kw{'Branch'}{val} =~ /$opt{'expand'}/ )
+	{
+	    kw_expand( \$inbuf );
+	}
+	elsif (defined $opt{'unexpand'})
+	{
+	    kw_unexpand( \$inbuf );
+	}
+	
     }
     print STDOUT $inbuf;
 }
@@ -380,25 +408,43 @@ sub process_main
 		my $xh = XMT::Xhist::new($pathname, \$inbuf);	
 		$inbuf = $xh->uninstrument();
 	    }
+
+	    if ( defined $opt{'unxtest'} )
+	    {
+		my $xt = XMT::Xtest::new($pathname, \$inbuf);	
+		$inbuf = $xt->uninstrument();
+	    }
 	    $outbuf = $inbuf;
 	}
 	elsif ( $command =~ /smudge/ ) 
 	{
 	    ### Perform smudge here ###
-	    # only do keyword expansion if we are in a 
-	    # branch specified for keyword expansion.
-	    if ( defined $opt{'expand'}  and
-		$kw{'Branch'}{val} =~ /$opt{'expand'}/ )
+
+	    # XTEST FIRST.
+	    # do xtest instrumentation if we are in a 
+	    # branch specified for xtest instrumentation.
+	    if ( defined $opt{'xtest'} and
+		$kw{'Branch'}{val} =~ /$opt{'xtest'}/ )
 	    {
-		kw_expand( \$inbuf );
+		my $xt = XMT::Xtest::new($pathname, \$inbuf);	
+		$inbuf = $xt->instrument(); 
 	    }
 
-	    # only do xhist instrumentation if we are in a 
+	    # XHIST SECOND.
+	    # do xhist instrumentation if we are in a 
 	    # branch specified for xhist instrumentation.
 	    if (defined $opt{'xhist'} and $kw{'Branch'}{val} =~ /$opt{'xhist'}/ )
 	    {
 		my $xh = XMT::Xhist::new($pathname, \$inbuf);	
 		$inbuf = $xh->instrument();
+	    }
+
+	    # do keyword expansion if we are in a 
+	    # branch specified for keyword expansion.
+	    if ( defined $opt{'expand'}  and
+		$kw{'Branch'}{val} =~ /$opt{'expand'}/ )
+	    {
+		kw_expand( \$inbuf );
 	    }
 	    $outbuf = $inbuf;
 	}

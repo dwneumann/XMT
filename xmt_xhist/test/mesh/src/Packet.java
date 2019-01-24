@@ -16,26 +16,27 @@ import java.io.*;
 import java.net.*;
 import java.nio.ByteBuffer;
 import XMT.Xhist;
+ /*<XHIST>*/ import XMT.Xhist; /*</XHIST>*/
 
 /**
  * The Packet class defines [short description].
  * <p>
  * [full description]
  * <p>
- * @version	$Version: meshtest-1.0-47 [develop] $
+ * @version	$Version: notag-0 [develop] $
  */
 public	class		Packet {
-    public static final String id = "@(#) mesh.Packet $Version: meshtest-1.0-47 [develop] $";
+    public static final String id = "@(#) mesh.Packet $Version: notag-0 [develop] $";
     public int	src;		/* port # of original sender		*/
     public int	dest;		/* port # of ultimate destination 	*/
     public int	hops;		/* # times this pkt has been forwarded	*/
     public int	ttl;		/* # hops this pkt still has dest take 	*/
 
     public	Packet( int src ) {
-	this.src	= src;Xhist.add( 10708, 35 );
-	this.dest	= 0;Xhist.add( 10708, 36 );
-	this.hops	= 0;Xhist.add( 10708, 37 );
-	this.ttl	= 0;Xhist.add( 10708, 38 );
+	this.src	= src; Xhist.add( 10708, 36 );
+	this.dest	= 0; Xhist.add( 10708, 37 );
+	this.hops	= 0; Xhist.add( 10708, 38 );
+	this.ttl	= 0; Xhist.add( 10708, 39 );
     }
 
     public int	src()	{
@@ -43,7 +44,7 @@ public	class		Packet {
     }
 
     public void	setSrc(int port)	{
-	this.src	= port;Xhist.add( 10708, 46 );
+	this.src	= port; Xhist.add( 10708, 47 );
     }
 
     public int	dest()	{
@@ -51,7 +52,7 @@ public	class		Packet {
     }
 
     public void	setDest(int port)	{
-	this.dest	= port;Xhist.add( 10708, 54 );
+	this.dest	= port; Xhist.add( 10708, 55 );
     }
 
     public int	hops()	{
@@ -59,11 +60,11 @@ public	class		Packet {
     }
 
     public void	setHops(int n)	{
-	this.hops	= n;Xhist.add( 10708, 62 );
+	this.hops	= n; Xhist.add( 10708, 63 );
     }
 
     public void	incrementHops()	{
-	this.hops++;Xhist.add( 10708, 66 );
+	this.hops++; Xhist.add( 10708, 67 );
     }
 
     public int	ttl()	{
@@ -71,40 +72,40 @@ public	class		Packet {
     }
 
     public void	setTtl(int n)	{
-	this.ttl	= n;Xhist.add( 10708, 74 );
+	this.ttl	= n; Xhist.add( 10708, 75 );
     }
 
     public void	decrementTtl()	{
-	this.ttl--;Xhist.add( 10708, 78 );
+	this.ttl--; Xhist.add( 10708, 79 );
     }
 
 
     public void send(MeshNode n) {
 	DatagramPacket dg;
 	ByteBuffer bb	=  ByteBuffer.allocate(64);
-	byte[] payload	= bb.array();Xhist.add( 10708, 85 );
+	byte[] payload	= bb.array(); Xhist.add( 10708, 86 );
 	InetAddress hostAddr = null;
 
-	bb.putInt(this.src); Xhist.add( 10708, 88 );
-	bb.putInt(this.dest);Xhist.add( 10708, 89 );
-	bb.putInt(this.ttl);Xhist.add( 10708, 90 );
+	bb.putInt(this.src);  Xhist.add( 10708, 89 );
+	bb.putInt(this.dest); Xhist.add( 10708, 90 );
+	bb.putInt(this.ttl); Xhist.add( 10708, 91 );
 	try
 	{
-	    hostAddr = InetAddress.getByName("localhost");Xhist.add( 10708, 93 );
+	    hostAddr = InetAddress.getByName("localhost"); Xhist.add( 10708, 94 );
 	}
 	catch (UnknownHostException e)
 	{
-	    System.out.println( "InetAddress.getByName: " + e.getMessage());Xhist.add( 10708, 97 );
+	    System.out.println( "InetAddress.getByName: " + e.getMessage()); Xhist.add( 10708, 98 );
 	    ; /* ignore the failure.  will be treated as a lost packet. */
 	}
-	dg = new DatagramPacket(payload, payload.length, hostAddr, this.dest);Xhist.add( 10708, 100 );
+	dg = new DatagramPacket(payload, payload.length, hostAddr, this.dest); Xhist.add( 10708, 101 );
 	try
 	{
-	    n.socket.send(dg);Xhist.add( 10708, 103 );
+	    n.socket.send(dg); Xhist.add( 10708, 104 );
 	}
 	catch (IOException e)
 	{
-	    System.out.println( "socket.send: " + e.getMessage());Xhist.add( 10708, 107 );
+	    System.out.println( "socket.send: " + e.getMessage()); Xhist.add( 10708, 108 );
 	    ; /* ignore the failure.  will be treated as a lost packet. */
 	}
     }
@@ -112,28 +113,21 @@ public	class		Packet {
     public void receive(MeshNode n) {
 	DatagramPacket dg;
 	ByteBuffer bb	=  ByteBuffer.allocate(64);
-	byte[] payload	= bb.array();Xhist.add( 10708, 115 );
+	byte[] payload	= bb.array(); Xhist.add( 10708, 116 );
 
-	dg	= new DatagramPacket(payload, payload.length);Xhist.add( 10708, 117 );
+	dg	= new DatagramPacket(payload, payload.length); Xhist.add( 10708, 118 );
 	try
 	{
-	    n.socket.receive(dg);Xhist.add( 10708, 120 );
-	    {
-		boolean forceException = false; 
-		if(forceException) 
-		{
-		    throw new IOException("forceException");
-		}
-	    }
+	    n.socket.receive(dg); Xhist.add( 10708, 121 );
 	}
 	catch (IOException e)
 	{
-	    System.out.println( "socket receive: " + e.getMessage());Xhist.add( 10708, 124 );
+	    System.out.println( "socket receive: " + e.getMessage()); Xhist.add( 10708, 125 );
 	    ; /* ignore the failure.  will be treated as a lost packet. */
 	}
-	this.src	= bb.getInt();Xhist.add( 10708, 127 );
-	this.dest	= bb.getInt();Xhist.add( 10708, 128 );
-	this.ttl	= bb.getInt();Xhist.add( 10708, 129 );
+	this.src	= bb.getInt(); Xhist.add( 10708, 128 );
+	this.dest	= bb.getInt(); Xhist.add( 10708, 129 );
+	this.ttl	= bb.getInt(); Xhist.add( 10708, 130 );
     }
 
 }

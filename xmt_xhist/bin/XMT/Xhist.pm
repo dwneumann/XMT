@@ -71,7 +71,9 @@ our $templates = {
 	xh_dbg_F	=> q:[% cmt_start %]\s+xhist\s+debug\s+FALSE\s*[% cmt_end %]:,
 	xh_inst_T	=> q:[% cmt_start %]\s+xhist\s+instrument\s+TRUE\s*[% cmt_end %]:,
 	xh_inst_F	=> q:[% cmt_start %]\s+xhist\s+instrument\s+FALSE\s*[% cmt_end %]:,
-	trace_stmt	=> q:_XH_ADD( FNUM, LNUM );:,
+	xh_startmk	=> q:[% cmt_start %]<XHIST>[% cmt_end %]:,
+	xh_endmk	=> q:[% cmt_start %]</XHIST>[% cmt_end %]:,
+	trace_stmt	=> q: _XH_ADD( FNUM, LNUM );:,
     },
     cc	=> {
 	func_begin	=> q:^(\s*)(public|private|protected).*\{\s*:,
@@ -84,7 +86,9 @@ our $templates = {
 	xh_dbg_F	=> q:[% cmt_start %]\s+xhist\s+debug\s+FALSE\s*[% cmt_end %]:,
 	xh_inst_T	=> q:[% cmt_start %]\s+xhist\s+instrument\s+TRUE\s*[% cmt_end %]:,
 	xh_inst_F	=> q:[% cmt_start %]\s+xhist\s+instrument\s+FALSE\s*[% cmt_end %]:,
-	trace_stmt	=> q:Xhist.add( FNUM, LNUM );:,
+	xh_startmk	=> q:[% cmt_start %]<XHIST>[% cmt_end %]:,
+	xh_endmk	=> q:[% cmt_start %]</XHIST>[% cmt_end %]:,
+	trace_stmt	=> q: Xhist.add( FNUM, LNUM );:,
     },
     java	=> {
 	func_begin	=> q:^(\s*)(public|private|protected).*\{\s*:,
@@ -97,7 +101,9 @@ our $templates = {
 	xh_dbg_F	=> q:[% cmt_start %]\s+xhist\s+debug\s+FALSE\s*[% cmt_end %]:,
 	xh_inst_T	=> q:[% cmt_start %]\s+xhist\s+instrument\s+TRUE\s*[% cmt_end %]:,
 	xh_inst_F	=> q:[% cmt_start %]\s+xhist\s+instrument\s+FALSE\s*[% cmt_end %]:,
-	trace_stmt	=> q:Xhist.add( FNUM, LNUM );:,
+	xh_startmk	=> q:[% cmt_start %]<XHIST>[% cmt_end %]:,
+	xh_endmk	=> q:[% cmt_start %]</XHIST>[% cmt_end %]:,
+	trace_stmt	=> q: Xhist.add( FNUM, LNUM );:,
     },
 };
 
@@ -164,12 +170,29 @@ sub instrument
     my $xh_debug	= 0;	# TRUE if debugging lexer 
     my $xh_instrument	= 1;	# TRUE if instrumenting should occur
     my $regex;
+    my $startmk = interpolate( $templates->{$self->{fext}}{xh_startmk}, $self->{fext} );
+    my $endmk = interpolate( $templates->{$self->{fext}}{xh_endmk}, $self->{fext} );
+    $startmk =~ s/\\//g;
+    $endmk =~ s/\\//g;
 
     # if we don't grok this filetype, return gracefully.
     if (!defined $tokens->{$self->{fext}})
     {
 	return $self->{buf};
     }
+
+    # add import XMT.Xhist 
+    my $repl = '"$& $startmk import XMT.Xhist; $endmk\n"';
+    $self->{buf} =~ s:.*^import\s+.*?\n:$repl:eems;
+
+    # add Xhist.init() call after  <XHIST INIT> comment
+    # put the function call between <XHIST> markers to allow for uninstrumentation
+    my $ptn = '/\*\s*<XHIST INIT>\s*\*/';
+    my $v	= '$' . 'Version' . ':$';
+    my $mf	= '$' . 'XhistMap' . ':$';
+    my $tf	= $self->{fname};
+    $repl 	= '"$& $startmk Xhist.init(\"$tf\", \"$mf\", \"$v\"); $endmk"';
+    $self->{buf} =~ s:$ptn:$repl:ees;
 
     local @indent_fifo	= [""];	# FIFO stack of function indentation levels
     my @lines	 = split /\n/, $self->{buf};
@@ -305,6 +328,10 @@ sub uninstrument
 {
     my $self = shift;
     my $ptn;
+    my $startmk = interpolate( $templates->{$self->{fext}}{xh_startmk}, $self->{fext} );
+    my $endmk = interpolate( $templates->{$self->{fext}}{xh_endmk}, $self->{fext} );
+    $startmk =~ s/\\//g;
+    $endmk =~ s/\\//g;
 
     # if we don't grok this filetype, return gracefully.
     if (!defined $tokens->{$self->{fext}})
@@ -312,6 +339,7 @@ sub uninstrument
 	return $self->{buf};
     }
 
+    $self->{buf} =~ s:$startmk(.*)?$endmk ::esg;
     $self->{buf} =~ s:\t/*<DEBUG ON>*/::g;
     $self->{buf} =~ s:\t/*<DEBUG OFF>*/::g;
     $self->{buf} =~ s:\t/*<INSTRUMENT ON>*/::g;
@@ -325,6 +353,8 @@ sub uninstrument
     $self->{buf} =~ s:"\t/*<STMT>*/::g;
     $self->{buf} =~ s:\t/*<STMT OUTSIDE FUNC>*/::g;
     ($ptn = $templates->{$self->{fext}}{trace_stmt}) =~ s/.NUM/\\d+/g;
+    $self->{buf} =~ s:.*^import\s+.*?\n:$&import XMT.Xhist;\n:ms;
+    $self->{buf} =~ s:.*^import\s+.*?\n:$&import XMT.Xhist;\n:ms;
 
     $ptn =~ s/\(/\\(/g;
     $ptn =~ s/\)/\\(/g;

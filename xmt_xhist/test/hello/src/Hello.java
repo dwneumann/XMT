@@ -17,10 +17,11 @@ import java.lang.Runtime;
 import java.io.DataOutputStream;
 import java.io.FileOutputStream;
 import XMT.Xhist;
+ /*<XHIST>*/ import XMT.Xhist; /*</XHIST>*/
 
 public	class		Hello
 {
-    public static final String id = "@(#) hello.Hello $Version: meshtest-1.0-44 [develop] $";
+    public static final String id = "@(#) hello.Hello $Version: notag-0 [develop] $";
 
     public static void main(String []args) {
 
@@ -31,8 +32,8 @@ public	class		Hello
 	try {
 	    fd = new DataOutputStream(new FileOutputStream("./Hello.trace")); 
 	    Xhist.logdev(fd);
-	    Xhist.mapfile("$XhistMap: /home/dean/Documents/XMT/xmt_xhist/test/hello/src/../test/javaHello.map $");
-	    Xhist.version("$Version: meshtest-1.0-44 [develop] $");
+	    Xhist.mapfile("$XhistMap: /home/dean/Documents/XMT/xmt_xhist/test/hello/src/../test/Hello.java.xmap $");
+	    Xhist.version("$Version: notag-0 [develop] $");
 
 	    Runtime.getRuntime().addShutdownHook( new Thread() {
 		@Override
@@ -55,17 +56,17 @@ public	class		Hello
 	for (i = 0; i < 10; i++)
 	{ 
 	    try { 
-		Thread.sleep(1000); Xhist.add( 49396, 58 );
+		Thread.sleep(1000);  Xhist.add( 49396, 59 );
 	    } 
 	    catch (InterruptedException e) {
 	        /* do nothig */
 	    }
-	    foo();Xhist.add( 49396, 63 );
+	    foo(); Xhist.add( 49396, 64 );
 	} 
     }
 
     public static void foo() {
-        System.out.println("hello foo (Java version)");Xhist.add( 49396, 68 );
+        System.out.println("hello foo (Java version)"); Xhist.add( 49396, 69 );
     }
 
 }

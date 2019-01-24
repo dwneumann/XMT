@@ -13,14 +13,10 @@
  */
 
 import java.lang.Runtime;
-import java.io.DataOutputStream;
-import java.io.FileOutputStream;
-import java.lang.ProcessHandle;
 
 import java.lang.*;
 import java.io.*;
 import java.net.*;
-import XMT.Xhist;
 
 /**
  * The Mesh class implements a toy mesh network to demonstrate execution history tracing
@@ -50,40 +46,7 @@ public	class	Mesh {
 	int		dfltHops	= 10;		/* # hops before ack		*/
 	int		i		= 0;
 
-	/* xhist instrument FALSE */
-	DataOutputStream	fd	= null;
-    
-	try 
-	{
-	    fd = new DataOutputStream(new FileOutputStream(
-		"Mesh." + ProcessHandle.current().pid() + ".trace")); 
-	    Xhist.logdev(fd);
-	    Xhist.mapfile("$XhistMap:$");
-	    Xhist.version("$Version:$");
-
-	    Runtime.getRuntime().addShutdownHook( new Thread() 
-	    {
-		@Override
-		public void run() 
-		{
-		    try 
-		    {
-			Xhist.write();
-			myNode.reportResults();
-		    }
-		    catch (IOException e) 
-		    {
-			; /* we're in the process of shutting down anyway. do nothing */
-		    }
-		}
-	    });
-	} 
-	catch (java.io.FileNotFoundException e) 
-	{
-	    System.out.println("cannot open DataOutputStream");
-	    /* keep executing without the ability to write the trace log */
-	}
-	/* xhist instrument TRUE */
+	/* <XHIST INIT> */
 
 	/* usage: mesh <my (0-based) myNode index> <port#> <port#> <port#> ... */
 	numNodes = -1;

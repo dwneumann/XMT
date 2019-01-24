@@ -60,7 +60,10 @@
 
 package XMT;
 import java.io.*;
+import java.lang.Runtime;
 import java.io.DataOutputStream;
+import java.io.FileOutputStream;
+import java.lang.ProcessHandle;
 
 public	class		Xhist 
 { 
@@ -81,6 +84,45 @@ public	class		Xhist
     public	static void add( int fnum,  int lnum ) { 
 	tbl[tail] = (((short) fnum << 16) | (short) lnum);
 	tail = (short) ((tail+1) % XhistTableSize);
+    }
+
+    /**
+    * initializes xhist execution history logging.	
+    * @param	logNm		filename root for trace log
+    * @param	mapFn		hash filename to store in trace log
+    * @param	version		source build tag to store in trace log
+    */
+    public static void init( String logNm, String mapFn, String version ) {
+	DataOutputStream	fd	= null;
+    
+	try 
+	{
+	    fd = new DataOutputStream(new FileOutputStream(
+		logNm + '.' + ProcessHandle.current().pid() + ".xhist")); 
+	    Xhist.logdev(fd);
+	    Xhist.mapfile(mapFn);
+	    Xhist.version(version);
+
+	    Runtime.getRuntime().addShutdownHook( new Thread() 
+	    {
+		@Override
+		public void run() 
+		{
+		    try 
+		    {
+			Xhist.write();
+		    }
+		    catch (IOException e) 
+		    {
+			; /* we're in the process of shutting down anyway. do nothing */
+		    }
+		}
+	    } );
+	} 
+	catch (java.io.FileNotFoundException e) 
+	{
+	    ; /* keep executing without the ability to write the trace log */
+	}
     }
 
     /**

@@ -3,7 +3,7 @@
 #endif  
 /************************************************************************ 
 *   Package	: libxhist 
-*   $Version: meshtest-1.0-44 [develop] $ 
+*   $Version: notag-0 [develop] $ 
 *    Copyright 2018 Visionary Research Inc.   All rights reserved. 
 *    			legal@visionary-research.com 
 *    Licensed under the Apache License, Version 2.0 (the "License");
@@ -22,7 +22,7 @@
 #define __hello_c 
  
 #ifdef EMBED_REVISION_STRINGS 
-static const char hello_c_id[] = "@(#) libxhist::hello.c	$Version: meshtest-1.0-44 [develop] $";
+static const char hello_c_id[] = "@(#) libxhist::hello.c	$Version: notag-0 [develop] $";
 #endif 
  
 #ifdef XHIST 
@@ -50,21 +50,21 @@ int main(int argc, char *argv[])
 	exit(1);
     } 
     xhist_logdev(fd);
-    xhist_mapfile("$XhistMap: /home/dean/Documents/XMT/xmt_xhist/test/hello/src/../test/cHello.map $");
-    xhist_version("$Version: meshtest-1.0-44 [develop] $");
+    xhist_mapfile("$XhistMap: /home/dean/Documents/XMT/xmt_xhist/test/hello/src/../test/Hello.c.xmap $");
+    xhist_version("$Version: notag-0 [develop] $");
     signal(SIGUSR1, xhist_write);
 /* xhist instrument TRUE */
 #endif 
  
     for (i = 0; i < 10; i++)
     { 
-	sleep(1);	_XH_ADD( 65024, 61 );
-	foo();	_XH_ADD( 65024, 62 );
+	sleep(1);	 _XH_ADD( 65024, 61 );
+	foo();	 _XH_ADD( 65024, 62 );
     } 
-    xhist_write();	_XH_ADD( 65024, 64 );
+    xhist_write();	 _XH_ADD( 65024, 64 );
 }
 
 void foo()
 {
-    printf("hello foo (C version)\n");_XH_ADD( 65024, 69 );
+    printf("hello foo (C version)\n"); _XH_ADD( 65024, 69 );
 }

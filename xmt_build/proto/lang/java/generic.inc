@@ -28,11 +28,11 @@
 
 #   := assignements are evaluated during lexical scan;
 #    = assignments are recursively expanded during rule parsing
-srcs.java	:= $(wildcard $(SRCDIR)/$(JAVA_PKGROOT)/*.java)
+srcs.java	:= $(shell find $(SRCDIR)/ -type f -name '*.java')
+objs.java	:= $(patsubst $(SRCDIR)/%.java,%.class,$(srcs.java))
+#objs.java	:= $(patsubst $(SRCDIR)/%.java,$(OBJDIR)/%.class,$(srcs.java))
+docs.java	:= $(patsubst $(SRCDIR)/%.java,$(DOCDIR)/%.html,$(srcs.java))
 hdrs.java	:= 
-#srcs.java	:= $(shell find $(SRCDIR)/ -type f -name '*.java')
-objs.java	:= $(patsubst $(SRCDIR)/$(JAVA_PKGROOT)/%.java,$(JAVA_PKGROOT)/%.class,$(srcs.java))
-docs.java	:= $(patsubst $(SRCDIR)/$(JAVA_PKGROOT)/%.java,$(DOCDIR)/%.html,$(srcs.java))
 lnts.java	:= 
 
 #**********************************************************************

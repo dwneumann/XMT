@@ -15,16 +15,17 @@
 import java.io.*;
 import java.net.*;
 import XMT.Xhist;
+ /*<XHIST>*/ import XMT.Xhist; /*</XHIST>*/
 
 /**
  * The MeshNode class defines [short description].
  * <p>
  * [full description]
  * <p>
- * @version	$Version: meshtest-1.0-47 [develop] $
+ * @version	$Version: notag-0 [develop] $
  */
 public	class		MeshNode {
-    public static final String id = "@(#) mesh.MeshNode $Version: meshtest-1.0-47 [develop] $";
+    public static final String id = "@(#) mesh.MeshNode $Version: notag-0 [develop] $";
     public int	pktsToSend;	/* # packets to initiate		*/
     public int	pktsReturned;	/* # of ACKs returned to me		*/
     public int	numHops;	/* # hops to fwd each packet		*/
@@ -32,19 +33,19 @@ public	class		MeshNode {
     public DatagramSocket socket;
 
     public	MeshNode() { 
-	this.pktsToSend		= 0;Xhist.add( 40978, 35 );
-	this.pktsReturned	= 0;Xhist.add( 40978, 36 );
-	this.numHops		= 0;Xhist.add( 40978, 37 );
-	this.port		= 0;Xhist.add( 40978, 38 );
-	this.socket		= null;Xhist.add( 40978, 39 );
+	this.pktsToSend		= 0; Xhist.add( 40978, 36 );
+	this.pktsReturned	= 0; Xhist.add( 40978, 37 );
+	this.numHops		= 0; Xhist.add( 40978, 38 );
+	this.port		= 0; Xhist.add( 40978, 39 );
+	this.socket		= null; Xhist.add( 40978, 40 );
 	InetSocketAddress address = null;
     }
 
     public	void bind(int port) throws SocketException { 
-	this.port		= port;Xhist.add( 40978, 44 );
-	this.socket		= new DatagramSocket(null);Xhist.add( 40978, 45 );
+	this.port		= port; Xhist.add( 40978, 45 );
+	this.socket		= new DatagramSocket(null); Xhist.add( 40978, 46 );
 	InetSocketAddress address = new InetSocketAddress("127.0.0.1", this.port);
-        this.socket.bind(address);Xhist.add( 40978, 47 );
+        this.socket.bind(address); Xhist.add( 40978, 48 );
     }
 
     public int	pktsToSend() {
@@ -52,7 +53,7 @@ public	class		MeshNode {
     }
 
     public void	setPktsToSend(int n) {
-	this.pktsToSend	= n;Xhist.add( 40978, 55 );
+	this.pktsToSend	= n; Xhist.add( 40978, 56 );
     }
 
     public int pktsReturned() {
@@ -60,7 +61,7 @@ public	class		MeshNode {
     }
 
     public void	setPktsReturned(int n) {
-	this.pktsReturned = n;Xhist.add( 40978, 63 );
+	this.pktsReturned = n; Xhist.add( 40978, 64 );
     }
 
     public int	numHops() {
@@ -68,7 +69,7 @@ public	class		MeshNode {
     }
 
     public void	setNumHops(int n) {
-	this.numHops	= n;Xhist.add( 40978, 71 );
+	this.numHops	= n; Xhist.add( 40978, 72 );
     }
 
     public int	port() {
@@ -76,7 +77,7 @@ public	class		MeshNode {
     }
 
     public void incrementPktsReturned() {
-	this.pktsReturned++;Xhist.add( 40978, 79 );
+	this.pktsReturned++; Xhist.add( 40978, 80 );
     }
 
     public DatagramSocket	socket() {

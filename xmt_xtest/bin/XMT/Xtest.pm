@@ -187,36 +187,30 @@ sub instrument
 
     $self->{buf} = $$bufp;
 
-    my $ptn = '(\s*)(\} \s* catch \s+ \()(\S*Exception)? (.*?\{)';
-    my $repl = sub {<<'__END__'};
-$1/*<XTEST>*/ 
-$1{
-$1    boolean forceException = false; 
-$1    if(forceException) 
-$1    {
-$1	throw new $3("forceException");
-$1    }
-$1}
-$1/*</XTEST>*/
-$&
+    # add import XMT.Xtest 
+    $self->{buf} =~ s:.*^import\s+.*?\n:$&/*<XTEST>*/ import XMT.Xtest; /*</XTEST>*/\n:ms;
+
+
+    # do try/catch block code injection
+    my $ptn = '(try\s+\{.*?)(\s*)(\}\s*catch\s+\()(\S*Exception)?(.*?\{)';
+    my $repl = <<'__END__';
+"$1$2/*<XTEST>*/ 
+$2    \{
+$2        boolean forceException = false; 
+$2        if(forceException) 
+$2        \{
+$2              throw new $4 (\"forceException\");
+$2        \}
+$2    \}
+$2/*</XTEST>*/
+$2$3$4$5"
 __END__
 
-    while ( $self->{buf} =~ m:$ptn:xs )
-    {
-    $self->{buf} =~ s:$ptn:$repl:eexsg;
+    $repl =~ s/\n//g;
+    $self->{buf} =~ s:$ptn:$repl:eesg;
 
-    $ptn = 'if \s+ \(';
-    $repl = <<'__END__';
-    $& /*<XTEST>*/ !forceFalse && /*</XTEST>*/
-__END__
-
-    $self->{buf} =~ s:$ptn:&$repl:xsg;
-
-
-    $ptn = 'if \s+ \(';
-    $repl = <<'__END__';
-    $& /*<XTEST>*/ !forceFalse && /*</XTEST>*/
-__END__
+    # do if-then block code injection
+    $self->{buf} =~ s:if\s+\(:$& /*<XTEST>*/ !forceFalse && /*</XTEST>*/ :sg;
 
     return $self->{buf};
 }
@@ -232,7 +226,7 @@ sub uninstrument
     my $bufp = shift;
 
     $self->{buf} = $$bufp;
-    $self->{buf} =~ s:/\*<XTEST>\*/(.*)?/\*</XTEST>\*/::sg;
+    $self->{buf} =~ s:/\*<XTEST>\*/(.*)?/\*</XTEST>\*/ ::sg;
     return $self->{buf};
 }
 

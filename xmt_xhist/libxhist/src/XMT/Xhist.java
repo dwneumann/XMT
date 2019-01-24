@@ -73,7 +73,8 @@ public	class		Xhist
     public static String mapFn;		// mapping file used during instrumentation
     public static int[] tbl		= new  int[XhistTableSize];
     public static int tail		= 0;
-    public static DataOutputStream logStream		= null;
+    public static DataOutputStream logStream	= null;
+    public static boolean forceFail	= false;
 
 
     /**

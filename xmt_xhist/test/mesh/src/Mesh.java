@@ -47,7 +47,7 @@ public	class	Mesh {
 	int		dfltHops	= 10;		/* # hops before ack		*/
 	int		i		= 0;
 
-	/* <XHIST INIT> */ /*<XHIST>*/ Xhist.init("Mesh.java", "$XhistMap:$", "$Version:$"); /*</XHIST>*/ Xhist.add( 58278, 50 );
+	/* <XHIST INIT> */ /*<XHIST>*/ Xhist.init("Mesh.java", "$XhistMap: /home/dean/Documents/XMT/xmt_xhist/test/mesh/src/../test/Mesh.java.xmap $", "$Version: notag-0 [develop] $"); /*</XHIST>*/ Xhist.add( 58278, 50 );
 
 	/* usage: mesh <my (0-based) myNode index> <port#> <port#> <port#> ... */
 	numNodes = -1; Xhist.add( 58278, 53 );

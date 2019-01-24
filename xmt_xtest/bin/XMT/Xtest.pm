@@ -188,7 +188,7 @@ sub instrument
     $self->{buf} = $$bufp;
 
     # add import XMT.Xtest 
-    $self->{buf} =~ s:.*^import\s+.*?\n:$&/*<XTEST>*/ import XMT.Xtest; /*</XTEST>*/\n:ms;
+    #$self->{buf} =~ s:.*^import\s+.*?\n:$&/*<XTEST>*/ import XMT.Xtest; /*</XTEST>*/\n:ms;
 
 
     # do try/catch block code injection
@@ -210,7 +210,7 @@ __END__
     $self->{buf} =~ s:$ptn:$repl:eesg;
 
     # do if-then block code injection
-    $self->{buf} =~ s:if\s+\(:$& /*<XTEST>*/ !forceFalse && /*</XTEST>*/ :sg;
+    $self->{buf} =~ s:if\s+\(:$& /*<XTEST>*/ !XMT.Xhist.forceFail && /*</XTEST>*/ :sg;
 
     return $self->{buf};
 }

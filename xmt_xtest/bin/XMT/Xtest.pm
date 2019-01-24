@@ -37,6 +37,7 @@ $Xtest::PASS	= "PASS";	# scalar value to return upon test pass
 $Xtest::FAIL	= "FAIL";	# scalar value to return upon test fail
 $Xtest::timeout	= 30;		# timeout in seconds for each command-response
 
+
 #************************************************************************/
 # class method new($f, $$bufp) 
 # instantiates a new Xtest object with options specified.
@@ -47,11 +48,32 @@ sub new
     my ($opts) = @_;
     my $self = {};
 
-    if ( !defined $opts->{iut} )  { carp( "iut undefined");  return undef; }
-    if ( !defined $opts->{test} ) { carp( "test undefined"); return undef; }
-    $self->{testfile}	= $opts->{test}  or carp( "test undefined") && return undef;
-    $self->{iut}	= $opts->{iut};
+    $self->{testfile}	= undef;
+    $self->{iut}	= undef;
+    $self->{srcbuf}	= undef;
     $self->{verbose}	= 1 if ( defined $opts->{verbose});
+    $self->{exp} 	= undef;
+    bless $self;
+    return $self;
+}
+ 
+#************************************************************************
+# stub DESTROY so the autoloader won't search for it.
+#************************************************************************
+sub DESTROY { }
+
+#************************************************************************/
+# class method loadtest($iut, $testfn) 
+# reads test file & initializes expect session in preparationfor runtest()
+# Returns undef on error.
+#************************************************************************/
+sub loadtest
+{
+    my $self = shift;		
+    my ($iut, $testfn) = @_;
+
+    $self->{iut}	= $iut;
+    $self->{testfile}	= $testfn;
 
     # parse the test file or die trying
     push @{$self->{cmds}}, _parsetestfile($self->{testfile}) or return undef;
@@ -65,21 +87,13 @@ sub new
     $self->{exp}->exp_internal(1)		if defined $opts->{debug};
     $self->{exp}->debug(2)			if defined $opts->{debug};
     $self->{exp}->spawn($self->{iut});
-
-    bless $self;
-    return $self;
 }
  
 #************************************************************************
-# stub DESTROY so the autoloader won't search for it.
-#************************************************************************
-sub DESTROY { }
-
-#************************************************************************
-# instance method runs the test sequence on the iut.
+# instance method runtest executes the test sequence on the iut.
 # returns scalar PASS/FAIL result.
 #************************************************************************
-sub run
+sub runtest
 {
     my $self = shift;		# visible inside eval blocks
     local @nested_cmds; 	# visible inside eval blocks
@@ -159,6 +173,67 @@ sub _parsetestfile
 	$i++;
     }
     return @array;
+}
+
+#************************************************************************/
+# instance method instrument($$inbuf)
+# instruments $$inbuf for xtest whitebox testing.
+# Returns undef on error.
+#************************************************************************/
+sub instrument
+{
+    my $self = shift;
+    my $bufp = shift;
+
+    $self->{buf} = $$bufp;
+
+    my $ptn = '(\s*)(\} \s* catch \s+ \()(\S*Exception)? (.*?\{)';
+    my $repl = sub {<<'__END__'};
+$1/*<XTEST>*/ 
+$1{
+$1    boolean forceException = false; 
+$1    if(forceException) 
+$1    {
+$1	throw new $3("forceException");
+$1    }
+$1}
+$1/*</XTEST>*/
+$&
+__END__
+
+    while ( $self->{buf} =~ m:$ptn:xs )
+    {
+    $self->{buf} =~ s:$ptn:$repl:eexsg;
+
+    $ptn = 'if \s+ \(';
+    $repl = <<'__END__';
+    $& /*<XTEST>*/ !forceFalse && /*</XTEST>*/
+__END__
+
+    $self->{buf} =~ s:$ptn:&$repl:xsg;
+
+
+    $ptn = 'if \s+ \(';
+    $repl = <<'__END__';
+    $& /*<XTEST>*/ !forceFalse && /*</XTEST>*/
+__END__
+
+    return $self->{buf};
+}
+
+#************************************************************************/
+# instance method uninstrument($$inbuf) 
+# Uninstruments the source code referred to by the object.
+# Returns the uninstrumented source buffer.
+#************************************************************************/
+sub uninstrument
+{
+    my $self = shift;
+    my $bufp = shift;
+
+    $self->{buf} = $$bufp;
+    $self->{buf} =~ s:/\*<XTEST>\*/(.*)?/\*</XTEST>\*/::sg;
+    return $self->{buf};
 }
 
 1;  # ensure class eval returns true;

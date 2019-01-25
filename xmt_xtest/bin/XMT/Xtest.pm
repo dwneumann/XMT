@@ -39,7 +39,7 @@ $Xtest::timeout	= 30;		# timeout in seconds for each command-response
 
 
 #************************************************************************/
-# class method new($f, $$bufp) 
+# class method new(\%opts)
 # instantiates a new Xtest object with options specified.
 # Returns the handle to the object or undef on error.
 #************************************************************************/
@@ -48,10 +48,14 @@ sub new
     my ($opts) = @_;
     my $self = {};
 
+    $self->{srcfn}      = $opts->{fname} 	if defined $opts->{fname};
+    $self->{srcbuf}     = $opts->{srcbuf}	if defined $opts->{srcbuf};
+    $self->{iut}	= $opts->{iut} 		if defined $opts->{iut};
+    $self->{testfile}	= $opts->{test} 	if defined $opts->{test};
+    $self->{verbose}	= 1 if ( defined $opts->{verbose});
     $self->{testfile}	= undef;
     $self->{iut}	= undef;
-    $self->{srcbuf}	= undef;
-    $self->{verbose}	= 1 if ( defined $opts->{verbose});
+    $self->{verbose}	= 0;
     $self->{exp} 	= undef;
     bless $self;
     return $self;
@@ -63,17 +67,13 @@ sub new
 sub DESTROY { }
 
 #************************************************************************/
-# class method loadtest($iut, $testfn) 
+# class method loadtest()
 # reads test file & initializes expect session in preparationfor runtest()
 # Returns undef on error.
 #************************************************************************/
 sub loadtest
 {
     my $self = shift;		
-    my ($iut, $testfn) = @_;
-
-    $self->{iut}	= $iut;
-    $self->{testfile}	= $testfn;
 
     # parse the test file or die trying
     push @{$self->{cmds}}, _parsetestfile($self->{testfile}) or return undef;
@@ -103,36 +103,36 @@ sub runtest
     local ($fn, $seqnum, $buf);	#local copies ...
     while ($s = shift @{$self->{cmds}})
     {
-	($fn, $seqnum, $buf)	= ($s->{fn}, $s->{seqnum},  $s->{buf});
+	($fn, $seqnum, $buf)	= ($s->{fn}, $s->{seqnum},  $s->{srcbuf});
 	$fn =~ s:(.*/)([^/]*$):$2:;	# for verbose messages chop long filepaths.
 
 	# strip comments; if there's nothing left, go on to the next block.
-	$s->{buf} =~ s/#.*$//mg;
-	next if ( $s->{buf} =~ m/^[\s\n]*$/ );
+	$s->{srcbuf} =~ s/#.*$//mg;
+	next if ( $s->{srcbuf} =~ m/^[\s\n]*$/ );
 
 	# if buf looks like an include stmt, parse nested file & add to cmd sequence
-	if ( $s->{buf} =~ m:INCLUDE\s*\(: )
+	if ( $s->{srcbuf} =~ m:INCLUDE\s*\(: )
 	{
-	    $s->{buf} =~ s/INCLUDE\s*/push \@nested_cmds, _parsetestfile/g;
-	    eval $s->{buf} or return $Xtest::FAIL;
+	    $s->{srcbuf} =~ s/INCLUDE\s*/push \@nested_cmds, _parsetestfile/g;
+	    eval $s->{srcbuf} or return $Xtest::FAIL;
 	    unshift @{$self->{cmds}}, @nested_cmds;
 	}
 
 	# if buf looks like a SEND block, extract cmd string then eval it.
-	elsif ( $s->{buf} =~ m:SEND\s*\(: )
+	elsif ( $s->{srcbuf} =~ m:SEND\s*\(: )
 	{
 	    printf("%s: %2d: %s\n", $fn, $seqnum, $buf) if (defined $self->{verbose});
-	    $s->{buf} =~ s/SEND\s*/\$self->{exp}->send/g; 
-	    eval $s->{buf}; 
+	    $s->{srcbuf} =~ s/SEND\s*/\$self->{exp}->send/g; 
+	    eval $s->{srcbuf}; 
 	}
 
 	# if buf looks like a EXPECT block, extract pattern then eval it.
-	elsif ( $s->{buf} =~ m:EXPECT\s*\(: )
+	elsif ( $s->{srcbuf} =~ m:EXPECT\s*\(: )
 	{
 	    $self->{exp}->clear_accum();
 	    printf("%s: %2d: %s\n", $fn, $seqnum, $buf) if (defined $self->{verbose});
-	    $s->{buf} =~ s/EXPECT\s*\(\s*/\$self->{exp}->expect(\$Xtest::timeout, -re, /g; 
-	    eval $s->{buf};
+	    $s->{srcbuf} =~ s/EXPECT\s*\(\s*/\$self->{exp}->expect(\$Xtest::timeout, -re, /g; 
+	    eval $s->{srcbuf};
 
 	    #if we did't get what we expected that's a FAIL
 	    if ( ! $self->{exp}->match() )
@@ -176,7 +176,7 @@ sub _parsetestfile
 }
 
 #************************************************************************/
-# instance method instrument($$inbuf)
+# instance method instrument()
 # instruments $$inbuf for xtest whitebox testing.
 # Returns undef on error.
 #************************************************************************/
@@ -185,10 +185,6 @@ sub instrument
     my $self = shift;
     my $bufp = shift;
 
-    $self->{buf} = $$bufp;
-
-    # add import XMT.Xtest 
-    #$self->{buf} =~ s:.*^import\s+.*?\n:$&/*<XTEST>*/ import XMT.Xtest; /*</XTEST>*/\n:ms;
 
 
     # do try/catch block code injection
@@ -207,27 +203,25 @@ $2$3$4$5"
 __END__
 
     $repl =~ s/\n//g;
-    $self->{buf} =~ s:$ptn:$repl:eesg;
+    $self->{srcbuf} =~ s:$ptn:$repl:eesg;
 
     # do if-then block code injection
-    $self->{buf} =~ s:if\s+\(:$& /*<XTEST>*/ !XMT.Xhist.forceFail && /*</XTEST>*/ :sg;
+    $self->{srcbuf} =~ s:if\s+\(:$& /*<XTEST>*/ !XMT.Xhist.forceFail && /*</XTEST>*/ :sg;
 
-    return $self->{buf};
+    return $self->{srcbuf};
 }
 
 #************************************************************************/
-# instance method uninstrument($$inbuf) 
+# instance method uninstrument()
 # Uninstruments the source code referred to by the object.
 # Returns the uninstrumented source buffer.
 #************************************************************************/
 sub uninstrument
 {
     my $self = shift;
-    my $bufp = shift;
 
-    $self->{buf} = $$bufp;
-    $self->{buf} =~ s:/\*<XTEST>\*/(.*)?/\*</XTEST>\*/ ::sg;
-    return $self->{buf};
+    $self->{srcbuf} =~ s:/\*<XTEST>\*/(.*)?/\*</XTEST>\*/ ::sg;
+    return $self->{srcbuf};
 }
 
 1;  # ensure class eval returns true;

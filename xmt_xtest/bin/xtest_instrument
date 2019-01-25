@@ -3,7 +3,7 @@
 #   $Version:$
 #   Package	: xmt_xtest
 #   Purpose	: instrument files for whiteebox testing.  
-#		  This adds clauses to if() statements and to try/catch blocks
+#		  This adds breakointable points to if() statements and to try/catch blocks
 #		  to allow forced failure of if tests and forced throwing of
 #		  exceptions from try blocks.
 #		  Xtest test scripts can then be written which set breakpoints
@@ -12,6 +12,8 @@
 #
 #   Synopsis	: xtest_instrument [<options>] [file]
 #   	 --help		print help message & exit.
+#        --fname=<pathspec>     read contents of file from STDIN but use <pathspec>
+#                       as the file name for instrumentation purposes
 #	 --unxtest	unxtest (i.e. clean) xtest instrumentation found in stdin, 
 #			and write cleaned data stream to stdout.
 #
@@ -45,38 +47,40 @@ use Path::Tiny qw(path);
 # construct the help message
 my $help_msg = sprintf( <<__END__ );
 $pgmname [<options>] [file]
+  --help        print help message & exit.
+  --fname=<pathspec>     read contents of file from STDIN but use <pathspec>
+                as the file name for instrumentation purposes
   --unxtest     unxtest (i.e. clean) xtest instrumentation found in stdin, 
                 and write cleaned data stream to stdout.
 __END__
 
 # parse commandline options
 my %opt = ();
-GetOptions( \%opt, "help", "unxtest" ) or die $help_msg;
+GetOptions( \%opt, "help", "fname=s", "unxtest" ) or die $help_msg;
 die "$help_msg" if defined $opt{'help'};
     
 my $inbuf;
-my $pathname;
 
 # if a filename was given on the commandline, read its contents, 
 # otherwise read from stdin 
 if (scalar(@ARGV) >= 1)
 {
-    $pathname = $ARGV[0];
-    $inbuf = path($pathname)->slurp;		# slurp entire file
+    $opt{fname} = $ARGV[0];
+    $opt{srcbuf} = path($opt{fname})->slurp;		# slurp entire file
 }
 else
 {
-    $inbuf = do { local $/ = undef; <STDIN> };	# slurp stdin
+    $opt{srcbuf} = do { local $/ = undef; <STDIN> };	# slurp stdin
 }
 
 my $xt = XMT::Xtest::new(\%opt)	or die "XMT::Xtest failed\n";	
 if ( ! defined $opt{'unxtest'} )
 {
-    $inbuf = $xt->instrument(\$inbuf); 
+    $inbuf = $xt->instrument(); 
 }
 else
 {
-    $inbuf = $xt->uninstrument(\$inbuf);
+    $inbuf = $xt->uninstrument();
 }
 print STDOUT $inbuf;
 

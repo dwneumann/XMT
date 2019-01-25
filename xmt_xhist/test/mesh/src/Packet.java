@@ -16,27 +16,26 @@ import java.io.*;
 import java.net.*;
 import java.nio.ByteBuffer;
 import XMT.Xhist;
- /*<XHIST>*/ import XMT.Xhist; /*</XHIST>*/
 
 /**
  * The Packet class defines [short description].
  * <p>
  * [full description]
  * <p>
- * @version	$Version: notag-0 [develop] $
+ * @version	$Version: meshtest-1.0-58 [develop] $
  */
 public	class		Packet {
-    public static final String id = "@(#) mesh.Packet $Version: notag-0 [develop] $";
+    public static final String id = "@(#) mesh.Packet $Version: meshtest-1.0-58 [develop] $";
     public int	src;		/* port # of original sender		*/
     public int	dest;		/* port # of ultimate destination 	*/
     public int	hops;		/* # times this pkt has been forwarded	*/
     public int	ttl;		/* # hops this pkt still has dest take 	*/
 
     public	Packet( int src ) {
-	this.src	= src; Xhist.add( 10708, 36 );
-	this.dest	= 0; Xhist.add( 10708, 37 );
-	this.hops	= 0; Xhist.add( 10708, 38 );
-	this.ttl	= 0; Xhist.add( 10708, 39 );
+	this.src	= src;
+	this.dest	= 0;
+	this.hops	= 0;
+	this.ttl	= 0;
     }
 
     public int	src()	{
@@ -44,7 +43,7 @@ public	class		Packet {
     }
 
     public void	setSrc(int port)	{
-	this.src	= port; Xhist.add( 10708, 47 );
+	this.src	= port;
     }
 
     public int	dest()	{
@@ -52,7 +51,7 @@ public	class		Packet {
     }
 
     public void	setDest(int port)	{
-	this.dest	= port; Xhist.add( 10708, 55 );
+	this.dest	= port;
     }
 
     public int	hops()	{
@@ -60,11 +59,11 @@ public	class		Packet {
     }
 
     public void	setHops(int n)	{
-	this.hops	= n; Xhist.add( 10708, 63 );
+	this.hops	= n;
     }
 
     public void	incrementHops()	{
-	this.hops++; Xhist.add( 10708, 67 );
+	this.hops++;
     }
 
     public int	ttl()	{
@@ -72,40 +71,40 @@ public	class		Packet {
     }
 
     public void	setTtl(int n)	{
-	this.ttl	= n; Xhist.add( 10708, 75 );
+	this.ttl	= n;
     }
 
     public void	decrementTtl()	{
-	this.ttl--; Xhist.add( 10708, 79 );
+	this.ttl--;
     }
 
 
     public void send(MeshNode n) {
 	DatagramPacket dg;
 	ByteBuffer bb	=  ByteBuffer.allocate(64);
-	byte[] payload	= bb.array(); Xhist.add( 10708, 86 );
+	byte[] payload	= bb.array();
 	InetAddress hostAddr = null;
 
-	bb.putInt(this.src);  Xhist.add( 10708, 89 );
-	bb.putInt(this.dest); Xhist.add( 10708, 90 );
-	bb.putInt(this.ttl); Xhist.add( 10708, 91 );
+	bb.putInt(this.src); 
+	bb.putInt(this.dest);
+	bb.putInt(this.ttl);
 	try
 	{
-	    hostAddr = InetAddress.getByName("localhost"); Xhist.add( 10708, 94 );
+	    hostAddr = InetAddress.getByName("localhost");
 	}
 	catch (UnknownHostException e)
 	{
-	    System.out.println( "InetAddress.getByName: " + e.getMessage()); Xhist.add( 10708, 98 );
+	    System.out.println( "InetAddress.getByName: " + e.getMessage());
 	    ; /* ignore the failure.  will be treated as a lost packet. */
 	}
-	dg = new DatagramPacket(payload, payload.length, hostAddr, this.dest); Xhist.add( 10708, 101 );
+	dg = new DatagramPacket(payload, payload.length, hostAddr, this.dest);
 	try
 	{
-	    n.socket.send(dg); Xhist.add( 10708, 104 );
+	    n.socket.send(dg);
 	}
 	catch (IOException e)
 	{
-	    System.out.println( "socket.send: " + e.getMessage()); Xhist.add( 10708, 108 );
+	    System.out.println( "socket.send: " + e.getMessage());
 	    ; /* ignore the failure.  will be treated as a lost packet. */
 	}
     }
@@ -113,21 +112,22 @@ public	class		Packet {
     public void receive(MeshNode n) {
 	DatagramPacket dg;
 	ByteBuffer bb	=  ByteBuffer.allocate(64);
-	byte[] payload	= bb.array(); Xhist.add( 10708, 116 );
+	byte[] payload	= bb.array();
 
-	dg	= new DatagramPacket(payload, payload.length); Xhist.add( 10708, 118 );
+	dg	= new DatagramPacket(payload, payload.length);
 	try
 	{
-	    n.socket.receive(dg); Xhist.add( 10708, 121 );
+	    n.socket.receive(dg);
 	}
 	catch (IOException e)
 	{
-	    System.out.println( "socket receive: " + e.getMessage()); Xhist.add( 10708, 125 );
+	    System.out.println( "socket receive: " + e.getMessage());
 	    ; /* ignore the failure.  will be treated as a lost packet. */
 	}
-	this.src	= bb.getInt(); Xhist.add( 10708, 128 );
-	this.dest	= bb.getInt(); Xhist.add( 10708, 129 );
-	this.ttl	= bb.getInt(); Xhist.add( 10708, 130 );
+	this.src	= bb.getInt();
+	this.dest	= bb.getInt();
+	this.ttl	= bb.getInt();
     }
 
 }
+

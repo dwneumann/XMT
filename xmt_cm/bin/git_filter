@@ -267,12 +267,12 @@ sub standalone_main
 	     $kw{'Branch'}{val} =~ /$opt{'xtest'}/ )
 	{
 	     my $xt = XMT::Xtest::new($pathname, \$inbuf);	
-	     $inbuf = $xt->instrument(); 
+	     $inbuf = $xt->instrument(\$inbuf); 
 	}
 	elsif ( defined $opt{'unxhist'} )
 	{
 	    my $xt = XMT::Xtest::new($pathname, \$inbuf);	
-	    $inbuf = $xt->uninstrument();
+	    $inbuf = $xt->uninstrument(\$inbuf);
 	}
 
 	# XHIST SECOND.
@@ -412,7 +412,7 @@ sub process_main
 	    if ( defined $opt{'unxtest'} )
 	    {
 		my $xt = XMT::Xtest::new($pathname, \$inbuf);	
-		$inbuf = $xt->uninstrument();
+		$inbuf = $xt->uninstrument(\$inbuf);
 	    }
 	    $outbuf = $inbuf;
 	}
@@ -427,7 +427,7 @@ sub process_main
 		$kw{'Branch'}{val} =~ /$opt{'xtest'}/ )
 	    {
 		my $xt = XMT::Xtest::new($pathname, \$inbuf);	
-		$inbuf = $xt->instrument(); 
+		$inbuf = $xt->instrument(\$inbuf); 
 	    }
 
 	    # XHIST SECOND.

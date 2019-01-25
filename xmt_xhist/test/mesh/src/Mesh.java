@@ -17,7 +17,6 @@ import java.lang.Runtime;
 import java.lang.*;
 import java.io.*;
 import java.net.*;
- /*<XHIST>*/ import XMT.Xhist; /*</XHIST>*/
 
 /**
  * The Mesh class implements a toy mesh network to demonstrate execution history tracing
@@ -29,10 +28,10 @@ import java.net.*;
  *  to/from the other nodes.  
  *  Prints statistics on packet loss & latency.
  * <p>
- * @version	$Version: notag-0 [develop] $
+ * @version	$Version: meshtest-1.0-58 [develop] $
  */
 public	class	Mesh {
-    public static final String id = "@(#) mesh.Mesh $Version: notag-0 [develop] $";
+    public static final String id = "@(#) mesh.Mesh $Version: meshtest-1.0-58 [develop] $";
     public static final int MAX_NODES	= 100;		/* max # nodes in mesh		*/
     public static MeshNode	myNode	= new MeshNode();	/* this Node		*/
 
@@ -47,52 +46,52 @@ public	class	Mesh {
 	int		dfltHops	= 10;		/* # hops before ack		*/
 	int		i		= 0;
 
-	/* <XHIST INIT> */ /*<XHIST>*/ Xhist.init("Mesh.java", "$XhistMap: /home/dean/Documents/XMT/xmt_xhist/test/mesh/src/../test/Mesh.java.xmap $", "$Version: notag-0 [develop] $"); /*</XHIST>*/ Xhist.add( 58278, 50 );
+	/* <XHIST INIT> */
 
 	/* usage: mesh <my (0-based) myNode index> <port#> <port#> <port#> ... */
-	numNodes = -1; Xhist.add( 58278, 53 );
+	numNodes = -1;
 	for (String s: args)
 	{
 	    if (numNodes < 0)
 	    {
-		myNodeIndex = Integer.parseInt(s); Xhist.add( 58278, 58 );
-		numNodes++; Xhist.add( 58278, 59 );
+		myNodeIndex = Integer.parseInt(s);
+		numNodes++;
 	    }
 	    else
 	    {
-		nodes[numNodes++] = Integer.parseInt(s); Xhist.add( 58278, 63 );
+		nodes[numNodes++] = Integer.parseInt(s);
 	    }
 	}
 
 	/* create the MeshNode and associated socket */
 	try 
 	{
-	    myNode.bind( nodes[myNodeIndex] ); /* bind to my port # */ Xhist.add( 58278, 70 );
+	    myNode.bind( nodes[myNodeIndex] ); /* bind to my port # */
 	}
 	catch (SocketException e) 
 	{
 	    /* we can't go on.  log the error & exit gracefully. */
-	    System.out.println("fatal error: cannot create MeshNode\n"); Xhist.add( 58278, 75 );
-	    System.exit(1); Xhist.add( 58278, 76 );
+	    System.out.println("fatal error: cannot create MeshNode\n");
+	    System.exit(1);
 	}
 
 	/* configure the test  */
-	myNode.setPktsToSend( dfltPktsToSend );	 Xhist.add( 58278, 80 );
-	myNode.setNumHops( dfltHops ); Xhist.add( 58278, 81 );
+	myNode.setPktsToSend( dfltPktsToSend );	
+	myNode.setNumHops( dfltHops );
 
 
 	/* wait until the node I'm going to send to has started */
-	nextPort = nodes[ (myNodeIndex +1) % numNodes ]; Xhist.add( 58278, 85 );
+	nextPort = nodes[ (myNodeIndex +1) % numNodes ];
 	try 
 	{
-	    waitForNode(nextPort);			 Xhist.add( 58278, 88 );
+	    waitForNode(nextPort);			
 	}
 	catch (IOException e)
 	{
 	    /* wait failed.  try a different approach.  */
 	    try 
 	    { 
-		Thread.sleep(1000);  Xhist.add( 58278, 95 );
+		Thread.sleep(1000); 
 	    } 
 	    catch (InterruptedException e2) 
 	    {
@@ -102,42 +101,42 @@ public	class	Mesh {
 	}
 
 	/* now send and receive packets */
-	pkt = new Packet( myNode.port() ); Xhist.add( 58278, 105 );
-	myNode.setPktsReturned(0); Xhist.add( 58278, 106 );
+	pkt = new Packet( myNode.port() );
+	myNode.setPktsReturned(0);
 	for (i = 0; i < numNodes * myNode.pktsToSend(); ++i)
 	{
 	    /* initiate message to my first-listed neighbour	*/
 	    if ( i < myNode.pktsToSend() )
 	    {
-		pkt.setSrc(myNode.port()); Xhist.add( 58278, 112 );
-		pkt.setDest(nextPort); Xhist.add( 58278, 113 );
-		pkt.setTtl(myNode.numHops()); Xhist.add( 58278, 114 );
-		pkt.send(myNode); Xhist.add( 58278, 115 );
+		pkt.setSrc(myNode.port());
+		pkt.setDest(nextPort);
+		pkt.setTtl(myNode.numHops());
+		pkt.send(myNode);
 	    }
 
 	    /* forward or ack messge received from others */
-	    pkt.receive(myNode); Xhist.add( 58278, 119 );
+	    pkt.receive(myNode);
 
 	    /* the message just received was originated by me, so this is an ACK */
 	    if ( pkt.src() == myNode.port() ) 
 	    {
-		myNode.incrementPktsReturned(); Xhist.add( 58278, 124 );
+		myNode.incrementPktsReturned();
 	    }
 
 	    /* ttl expired; send back to sender as ack */
 	    else if (pkt.ttl() <= 0)	
 	    {
-		pkt.setDest(pkt.src()); Xhist.add( 58278, 130 );
-		pkt.decrementTtl(); Xhist.add( 58278, 131 );
-		pkt.send(myNode); Xhist.add( 58278, 132 );
+		pkt.setDest(pkt.src());
+		pkt.decrementTtl();
+		pkt.send(myNode);
 	    }
 
 	    /* ttl not yet expired; forward message one more hop to someone else */
 	    else	
 	    {
-		pkt.decrementTtl(); Xhist.add( 58278, 138 );
-		pkt.setDest(nextPort); Xhist.add( 58278, 139 );
-		pkt.send(myNode); Xhist.add( 58278, 140 );
+		pkt.decrementTtl();
+		pkt.setDest(nextPort);
+		pkt.send(myNode);
 	    }
 	}
     }
@@ -147,7 +146,7 @@ public	class	Mesh {
 	String cmdLine = String.format("netstat -lnu | grep %d", port);
 	String line;
 
-	processBuilder.command("bash", "-c", cmdLine); Xhist.add( 58278, 150 );
+	processBuilder.command("bash", "-c", cmdLine);
 	while (true) 
 	{
 	    try 
@@ -173,7 +172,7 @@ public	class	Mesh {
 	    }
 
 	    try { 
-		Thread.sleep(1000);  Xhist.add( 58278, 176 );
+		Thread.sleep(1000); 
 	    } 
 	    catch (InterruptedException e) 
 	    {
@@ -182,3 +181,4 @@ public	class	Mesh {
 	}
     }
 }
+

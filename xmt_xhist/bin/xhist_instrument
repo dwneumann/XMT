@@ -61,34 +61,28 @@ __END__
 
 # parse commandline options
 my %opt = ();
-GetOptions( \%opt, "help", "verbose", "unxhist", "map=s", "fname=s") 
-	    or die $help_msg;
-
+GetOptions( \%opt, "help", "verbose", "unxhist", "map=s", "fname=s") or die $help_msg;
 die "$help_msg" if defined $opt{'help'};
     
 my $inbuf;
-my $pathname;
-my $ext = "c";	# default file extension for lexer
 
 # if a filename was given on the commandline, read its contents, 
 # otherwise read from stdin & use the --fname option as the filename.
 if (scalar(@ARGV) >= 1)
 {
-    $pathname = $ARGV[0];
-    ($ext = $pathname) =~ s/.*\.//;		# get file extension
-    $inbuf = path($pathname)->slurp;		# slurp entire file
+    $opt{fname} = $ARGV[0];
+    $opt{srcbuf} = path($opt{fname})->slurp;		# slurp entire file
 }
 else
 {
-    $pathname = $opt{'fname'} if defined $opt{'fname'};
-    $inbuf = do { local $/ = undef; <STDIN> };	# slurp stdin
+    $opt{srcbuf} = do { local $/ = undef; <STDIN> };	# slurp stdin
 }
 
-my $xh = XMT::Xhist::new($pathname, \$inbuf);	
+my $xh = XMT::Xhist::new(\%opt) or die "$help_msg";
 if ( ! defined $opt{'unxhist'} )
 {
 	$inbuf = $xh->instrument(); 
-	XMT::Xhist::printmap($opt{'map'});	
+	XMT::Xhist::printmap();	
 }
 else
 {

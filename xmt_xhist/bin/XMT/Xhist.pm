@@ -143,8 +143,8 @@ sub DESTROY { }
 #************************************************************************
 sub printmap
 {
-    my $f = shift;
-    open(my $FH, ">>", $f) or die "$f: $!\n";
+    my $self = shift;
+    open(my $FH, ">>", $self->{mapfn}) or die "$self->{mapfn}: $!\n";
     foreach (sort keys %filemap) 
     {
 	print $FH "$_\t= $filemap{$_}\n";

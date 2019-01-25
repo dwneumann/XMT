@@ -87,25 +87,10 @@ use Path::Tiny qw(path);
 use POSIX qw(strftime);
 
 (my $pgmname = $0) =~ s{.*/}{};	# rootname of executed script
-my %kw =  ( 
-	Branch		=> { code => '',	val => '' },
-	Tag		=> { code => '',	val => '' },
-	BuildNum	=> { code => '',	val => '' },
-	BuildDate	=> { code => '',	val => '' },
-	Version		=> { code => '',	val => '' },
-	XhistMap	=> { code => '',	val => '' },
-	CommitDate	=> { code => '%ci',	val => '' },
-	CommitSubject	=> { code => '%s',	val => '' },
-	Committer	=> { code => '%cn',	val => '' },
-	CommitId	=> { code => '%H',	val => '' },
-	AbbrevId	=> { code => '%h',	val => '' },
-	Signer		=> { code => '%GS',	val => '' },
-	SigStatus	=> { code => '%G?',	val => '' },
-	);
 my %kw_specified = ();
 
 # construct the help message
-my $help_msg = sprintf( <<__END__, join("\n                ", keys(%kw)) );
+my $help_msg = sprintf( <<__END__, join("\n                ", keys(%XMT::Xkeyword::kw)) );
 $pgmname [<options>] [file]
   --expand=<branchspec> only if in a branch matching regex pattern <branchspec>,
                 expand (i.e. smudge) all keywords of the form \$Keyword:\$ 
@@ -157,62 +142,6 @@ if (defined $opt{'debug'})
     open( LOG, ">$f" ) or  die "$f: $!\n";
 }
 
-# the pgm will accept multiple --list options, each followed by one keyword,
-# or one --list option followed by one comma-separated list of keywords.
-# To handle both cases we merge all elements into one comma-separated list, 
-# then split the comma-separated list, populating a hash with the specified keywords.
-if (defined $opt{'list'})
-{
-    my @kws = split /,/, join(',', @{$opt{'list'}}); 
-    if (scalar(@kws) >= 1) # one or more specified keywords
-    {
-	%kw_specified = map { $_ => 1 } @kws;
-    }
-    else
-    {
-        %kw_specified = map { $_ => 1 } keys %kw;
-    }
-}
-
-## populate the keyword hash with values
-$kw{'Branch'}{val}	= `git symbolic-ref --short -q HEAD`;
-$kw{'Branch'}{val}	= 'detached' if $? != 0;
-chomp $kw{'Branch'}{val};
-
-my ($k, $s);
-$s = `git describe --always --long`;
-die "git describe failed \n" if $? != 0;
-if ($s =~ m/(.*)-(.*?)-(.*?)/) 	
-{
-    $kw{'Tag'}{val}	= $1;
-    $kw{'BuildNum'}{val}= $2;
-}
-else
-{
-    $kw{'Tag'}{val}	= 'notag';
-    $kw{'BuildNum'}{val}= '0';
-}
-
-foreach $k (keys %kw)
-{
-    next if ( $kw{$k}{code} eq ''); 
-    ($kw{$k}{val} = `git log -n 1 --format="$kw{$k}{code}"`) =~ s/\n.*//; 
-}
-
-## construct Version string of the form  "<Tag>-<BuildNum> [<Branch>]"
-$kw{'Version'}{val} = sprintf("%s-%d [%s]",
-			$kw{'Tag'}{val}, $kw{'BuildNum'}{val}, $kw{'Branch'}{val});
-## construct BuildDate string of the form  "yyyy-mm-dd-hh-mm-ss"
-$kw{'BuildDate'}{val} = strftime( "%Y-%m-%d.%H:%M", localtime );
-## construct & store name for xhist_map file
-if ( !defined $opt{'xhist_map'} )
-{
-    $kw{'XhistMap'}{val} = sprintf("/tmp/%s-%s-%s.xmap",
-			    $kw{'Tag'}{val}		=~ s/[ :]/-/gr,
-			    $kw{'BuildNum'}{val}	=~ s/[ :]/-/gr,
-			    $kw{'Branch'}{val}		=~ s/[ :]/-/gr); 
-    $opt{'xhist_map'} = $kw{'XhistMap'}{val};
-}
 
 ## list keyword values if any were requested
 if (defined $opt{'list'})

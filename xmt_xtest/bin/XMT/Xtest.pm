@@ -52,10 +52,9 @@ sub new
     $self->{srcbuf}	= $opts->{srcbuf} or carp "input stream undefined"   & return undef;
     $self->{iut}	= $opts->{iut} 		if defined $opts->{iut};
     $self->{testfile}	= $opts->{test} 	if defined $opts->{test};
-    $self->{verbose}	= 1 if ( defined $opts->{verbose});
+    $self->{verbose}	= (defined $opts->{verbose} ? 1 : 0);
     $self->{testfile}	= undef;
     $self->{iut}	= undef;
-    $self->{verbose}	= 0;
     $self->{exp} 	= undef;
     bless $self;
     return $self;
@@ -183,9 +182,6 @@ sub _parsetestfile
 sub instrument
 {
     my $self = shift;
-    my $bufp = shift;
-
-
 
     # do try/catch block code injection
     my $ptn = '(try\s+\{.*?)(\s*)(\}\s*catch\s+\()(\S*Exception)?(.*?\{)';

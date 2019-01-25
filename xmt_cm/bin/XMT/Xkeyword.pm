@@ -1,0 +1,170 @@
+#!/usr/local/bin/perl -w
+#************************************************************************
+#*   $Version:$
+#*   Package	: xmt_cm
+#*   Purpose	: Xkeyword class (invoked by git_filter)
+#*
+#   Copyright (c) 2018  Visionary Research Inc.
+#                       legal@visionary-research.com
+#*  Licensed under the Apache License, Version 2.0 (the "License");
+#*  you may not use this file except in compliance with the License.
+#*  You may obtain a copy of the License at http://www.apache.org/licenses/LICENSE-2.0
+#*  
+#*  Unless required by applicable law or agreed to in writing, software
+#*  distributed under the License is distributed on an "AS IS" BASIS,
+#*  WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+#*  See the License for the specific language governing permissions and
+#*  limitations under the License. 
+#************************************************************************/
+
+package XMT::Xkeyword;
+use Carp;
+
+sub version 
+{
+    local $^W=0; 
+    my @v = split(/\s+/,'$Version:$'); 
+    my $s=sprintf("%f", $v[1]);
+    $s=~ s/0+$//;
+    return $s;
+}
+$VERSION = &version;
+
+%XMT::Xkeyword::kw =  ( 
+	Branch		=> { code => '',	val => '' },
+	Tag		=> { code => '',	val => '' },
+	BuildNum	=> { code => '',	val => '' },
+	BuildDate	=> { code => '',	val => '' },
+	Version		=> { code => '',	val => '' },
+	XhistMap	=> { code => '',	val => '' },
+	CommitDate	=> { code => '%ci',	val => '' },
+	CommitSubject	=> { code => '%s',	val => '' },
+	Committer	=> { code => '%cn',	val => '' },
+	CommitId	=> { code => '%H',	val => '' },
+	AbbrevId	=> { code => '%h',	val => '' },
+	Signer		=> { code => '%GS',	val => '' },
+	SigStatus	=> { code => '%G?',	val => '' },
+	);
+
+#************************************************************************/
+# class method new(\%opts)
+# instantiates a new Xtest object with options specified.
+# Returns the handle to the object or undef on error.
+#************************************************************************/
+sub new
+{
+    my ($opts) = @_;
+    my $self = {};
+
+    $self->{srcfn}	= $opts->{fname}  or carp "input filename undefined" & return undef;
+    $self->{srcbuf}	= $opts->{srcbuf} or carp "input stream undefined"   & return undef;
+    $self->{binary}	= (defined $opts->{binary} ? 1 : 0);
+    $self->{list}	= $opts->{list} if defined $opts->{list};
+    bless $self;
+    return $self;
+}
+ 
+#************************************************************************
+# stub DESTROY so the autoloader won't search for it.
+#************************************************************************
+sub DESTROY { }
+
+#************************************************************************/
+# instance method expand()
+# smudges the source buffer by replacing canonical keywords with their expanded values.
+# Returns the instrumented source buffer.
+#************************************************************************/
+sub expand
+{
+    my $self = shift;
+
+    return $self->{srcbuf};
+}
+
+#************************************************************************/
+# instance method unexpand()
+# cleans the source buffer by replacing expanded keywords with their canonical values.
+# Returns the uninstrumented source buffer.
+#************************************************************************/
+sub unexpand
+{
+    my $self = shift;
+
+    return $self->{srcbuf};
+}
+
+#************************************************************************/
+# instance method printlist()
+# prints the list of requested keyword values.
+#************************************************************************/
+sub printlist
+{
+    my $self = shift;
+
+}
+
+#************************************************************************/
+# privatye instance method _buildlist()
+# builds the hash of keyword values.
+#************************************************************************/
+sub _buildlist
+{
+    my $self = shift;
+
+    # merge all kw_list elements into one comma-separated list, 
+    # then split the list, populating a hash with the specified keywords.
+    if (defined $self->{kw_list})
+    {
+	my @kws = split /,/, join(',', @{$self->{kw_list}}); 
+	if (scalar(@kws) >= 1) # one or more specified keywords
+	{
+	    %kw_specified = map { $_ => 1 } @kws;
+	}
+	else
+	{
+	    %kw_specified = map { $_ => 1 } keys %kw;
+	}
+    }
+
+    ## populate the keyword hash with values
+    $kw{'Branch'}{val}	= `git symbolic-ref --short -q HEAD`;
+    $kw{'Branch'}{val}	= 'detached' if $? != 0;
+    chomp $kw{'Branch'}{val};
+
+    my ($k, $s);
+    $s = `git describe --always --long`;
+    die "git describe failed \n" if $? != 0;
+    if ($s =~ m/(.*)-(.*?)-(.*?)/) 	
+    {
+	$kw{'Tag'}{val}	= $1;
+	$kw{'BuildNum'}{val}= $2;
+    }
+    else
+    {
+	$kw{'Tag'}{val}	= 'notag';
+	$kw{'BuildNum'}{val}= '0';
+    }
+
+    foreach $k (keys %kw)
+    {
+	next if ( $kw{$k}{code} eq ''); 
+	($kw{$k}{val} = `git log -n 1 --format="$kw{$k}{code}"`) =~ s/\n.*//; 
+    }
+
+    ## construct Version string of the form  "<Tag>-<BuildNum> [<Branch>]"
+    $kw{'Version'}{val} = sprintf("%s-%d [%s]",
+			    $kw{'Tag'}{val}, $kw{'BuildNum'}{val}, $kw{'Branch'}{val});
+    ## construct BuildDate string of the form  "yyyy-mm-dd-hh-mm-ss"
+    $kw{'BuildDate'}{val} = strftime( "%Y-%m-%d.%H:%M", localtime );
+    ## construct & store name for xhist_map file
+    if ( !defined $opt{'xhist_map'} )
+    {
+	$kw{'XhistMap'}{val} = sprintf("/tmp/%s-%s-%s.xmap",
+				$kw{'Tag'}{val}		=~ s/[ :]/-/gr,
+				$kw{'BuildNum'}{val}	=~ s/[ :]/-/gr,
+				$kw{'Branch'}{val}		=~ s/[ :]/-/gr); 
+	$opt{'xhist_map'} = $kw{'XhistMap'}{val};
+    }
+}
+
+1;  # ensure class eval returns true;

@@ -50,13 +50,13 @@
 #	 --xhist=<branchspec> only if in a branch matching regex pattern <branchspec>,
 #	 		instrument files for execution history capture on checkout
 #	 --xhist_map=pathname	write execution history filename map to <pathname>.
-#	 --unxhist	unxhist (i.e. clean) xhist instrumentation found in stdin, 
-#			and write cleaned data stream to stdout.
 #	 --xtest=<branchspec> only if in a branch matching regex pattern <branchspec>,
 #	 		instrument files for whitebox test on checkout
+#	 --unxhist	unxhist (i.e. clean) xhist instrumentation found in stdin, 
+#			and write cleaned data stream to stdout.
 #	 --unxtest	uninstrument (i.e. clean) xtest instrumentation found in stdin, 
 #			and write cleaned data stream to stdout.
-#	 --debug	write packet trace log to /tmp/git_filter.log
+#	 --debug	when used with --process, write packet trace log to /tmp/git_filter.log
 #
 #  Copyright 2018 Visionary Research Inc.   All rights reserved.
 #  			legal@visionary-research.com
@@ -76,9 +76,9 @@ use strict;
 # perl expects to find the required XMT modules installed into
 # the standard place that CPAN modules are installed:  
 # this is found by running perl -V:installsitelib
-# to instead use a develop version of the XMT::Xhist module
-# uncomment the following line.
+# to instead use a develop version of the XMT modules uncomment the following lines.
 BEGIN {unshift(@INC, "$ENV{XMTXHIST}/bin");}
+BEGIN {unshift(@INC, "$ENV{XMTXTEST}/bin");}
 use XMT::Xhist;
 use XMT::Xtest;
 
@@ -111,8 +111,6 @@ $pgmname [<options>] [file]
                 expand (i.e. smudge) all keywords of the form \$Keyword:\$ 
                 found in stdin and write substituted data stream to stdout.
                 (e.g.  git_filter --expand="release|test" )
-  --unexpand    unexpand (i.e. clean) all keyword values found in stdin, 
-                and write cleaned data stream to stdout
   --list        print all recognized keyword values to stdout
   --list [keyword,keyword, ...]  print specified keyword values to stdout
                 Recognized keywords include: 
@@ -124,15 +122,17 @@ $pgmname [<options>] [file]
   --xhist=<branchspec> only if in a branch matching regex pattern <branchspec>,
                 instrument files for execution history capture on checkout
   --xhist_map=pathname   write execution history filename map to <pathname>
-  --unxhist     unxhist (i.e. clean) xhist instrumentation found in stdin, 
-                and write cleaned data stream to stdout.
   --xtest=<branchspec> only if in a branch matching regex pattern <branchspec>,
                 instrument files for whitebox test on checkout
+  --unexpand    unexpand (i.e. clean) all keyword values found in stdin, 
+                and write cleaned data stream to stdout
+  --unxhist     uninstrument (i.e. clean) xhist instrumentation found in stdin, 
+                and write cleaned data stream to stdout.
   --unxtest     uninstrument (i.e. clean) xtest instrumentation found in stdin, 
                 and write cleaned data stream to stdout.
   --fname=<pathspec>    read contents of file from STDIN but use <pathspec>
                 as the file name for instrumentation purposes
-  --debug       write packet trace log to /tmp/git_filter.log
+  --debug       when used with --process, write packet trace log to /tmp/git_filter.log
 __END__
 
 # parse commandline options
@@ -204,9 +204,15 @@ $kw{'Version'}{val} = sprintf("%s-%d [%s]",
 			$kw{'Tag'}{val}, $kw{'BuildNum'}{val}, $kw{'Branch'}{val});
 ## construct BuildDate string of the form  "yyyy-mm-dd-hh-mm-ss"
 $kw{'BuildDate'}{val} = strftime( "%Y-%m-%d.%H:%M", localtime );
-## construct default name for xhist_map file
-($kw{'XhistMap'}{val} = ( defined $opt{'xhist_map'} ?
-    $opt{'xhist_map'} : "/tmp/xhist.$kw{'Tag'}{val}-$kw{'BuildNum'}{val}-$kw{'Branch'}{val}.map" )) =~ s/[ :]/-/g;
+## construct & store name for xhist_map file
+if ( !defined $opt{'xhist_map'} )
+{
+    $kw{'XhistMap'}{val} = sprintf("/tmp/%s-%s-%s.xmap",
+			    $kw{'Tag'}{val}		=~ s/[ :]/-/gr,
+			    $kw{'BuildNum'}{val}	=~ s/[ :]/-/gr,
+			    $kw{'Branch'}{val}		=~ s/[ :]/-/gr); 
+    $opt{'xhist_map'} = $kw{'XhistMap'}{val};
+}
 
 ## list keyword values if any were requested
 if (defined $opt{'list'})
@@ -238,24 +244,20 @@ exit 0;  # we're done.
 #************************************************************************
 sub standalone_main
 {
-    my $inbuf;
-    my $pathname;
+    my ($xh, $xt);
 
     # if a filename was given on the commandline, read its contents, 
     # otherwise read from stdin & use the --fname option as the filename.
-    my $ext = "c";	# default file extension for lexer
     if (scalar(@ARGV) >= 1)
     {
-	$pathname = $ARGV[0];
-	($ext = $pathname) =~ s/.*\.//;			# get file extension
-	$inbuf = path($pathname)->slurp;		# slurp entire file
+	$opt{fname} = $ARGV[0];
+	$opt{srcbuf} = path($opt{fname})->slurp;		# slurp entire file
     }
     else
     {
-	$pathname = $opt{'fname'} if defined $opt{'fname'};
-	$inbuf = do { local $/ = undef; <STDIN> };	# slurp stdin
+	$opt{srcbuf} = do { local $/ = undef; <STDIN> };	# slurp stdin
     }
-    my $is_ascii = ! ($inbuf =~ /[[:^ascii:]]/);	# check for non-ascii chars
+    my $is_ascii = ! ($opt{srcbuf} =~ /[[:^ascii:]]/);	# check for non-ascii chars
 
     ## perform substitutions & write the output.
     if ($is_ascii || defined $opt{'binary'})
@@ -263,49 +265,46 @@ sub standalone_main
 	# XTEST FIRST.
 	# do xtest instrumentation if we are in a 
 	# branch specified for xtest instrumentation.
-	if ( defined $opt{'xtest'} and
-	     $kw{'Branch'}{val} =~ /$opt{'xtest'}/ )
+	if ( defined $opt{'xtest'} and $kw{'Branch'}{val} =~ /$opt{'xtest'}/ )
 	{
-	     my $xt = XMT::Xtest::new($pathname, \$inbuf);	
-	     $inbuf = $xt->instrument(\$inbuf); 
+	    $xt = XMT::Xtest::new(\%opt)	or die "$help_msg";
+	    $opt{srcbuf} = $xt->instrument(); 
 	}
 	elsif ( defined $opt{'unxhist'} )
 	{
-	    my $xt = XMT::Xtest::new($pathname, \$inbuf);	
-	    $inbuf = $xt->uninstrument(\$inbuf);
+	    $xt = XMT::Xtest::new(\%opt)	or die "$help_msg";
+	    $opt{srcbuf} = $xt->uninstrument();
 	}
 
 	# XHIST SECOND.
 	# do xhist instrumentation if we are in a 
 	# branch specified for xhist instrumentation.
-	if ( defined $opt{'xhist'} and
-	     $kw{'Branch'}{val} =~ /$opt{'xhist'}/ )
+	if ( defined $opt{'xhist'} and $kw{'Branch'}{val} =~ /$opt{'xhist'}/ )
 	{
-	     my $xh = XMT::Xhist::new($pathname, \$inbuf);	
-	     $inbuf = $xh->instrument(); 
-	     XMT::Xhist::printmap($kw{'XhistMap'}{val});	
+	    $xh = XMT::Xhist::new(\%opt)	or die "$help_msg";
+	    $opt{srcbuf} = $xh->instrument(); 
+	    $xh->printmap();	
 	}
 	elsif ( defined $opt{'unxhist'} )
 	{
-	    my $xh = XMT::Xhist::new($pathname, \$inbuf);	
-	    $inbuf = $xh->uninstrument();
+	    $xh = XMT::Xhist::new(\%opt)	or die "$help_msg";
+	    $opt{srcbuf} = $xh->uninstrument();
 	}
 
 	# KEYWORD EXPANSION LAST.
 	# do keyword expansion if we are in a 
 	# branch specified for keyword expansion.
-	if ( defined $opt{'expand'}  and
-	     $kw{'Branch'}{val} =~ /$opt{'expand'}/ )
+	if ( defined $opt{'expand'}  and $kw{'Branch'}{val} =~ /$opt{'expand'}/ )
 	{
-	    kw_expand( \$inbuf );
+	    kw_expand( \$opt{srcbuf} );
 	}
 	elsif (defined $opt{'unexpand'})
 	{
-	    kw_unexpand( \$inbuf );
+	    kw_unexpand( \$opt{srcbuf} );
 	}
 	
     }
-    print STDOUT $inbuf;
+    print STDOUT $opt{srcbuf};
 }
 
 #************************************************************************
@@ -347,8 +346,8 @@ sub process_main
 {
     my $MAX_PACKET_CONTENT_SIZE = 65516;
     my ($rc, $str);
-    my ($inbuf, $outbuf, $buffer, $done);
-    my ($command, $pathname, $packet);
+    my ($command, $packet);
+    my ($xh, $xt);
 
     # receive handshake
     ($rc, $str) = packet_read(); chomp($str);
@@ -380,41 +379,39 @@ sub process_main
     while (1) 
     {
 	($rc, $command)  = packet_read(); chomp($command);
-	$command  =~ s/command=(.+)/$1/;
-	($rc, $pathname) = packet_read(); chomp($pathname);
-	$pathname =~ s/pathname=(.+)/$1/;
-	die "bad pathname '$pathname'" if ( $pathname eq "" );
+	$command  =~ s/command=//;
+	($rc, $opt{fname}) = packet_read(); chomp($opt{fname});
+	$opt{fname} =~ s/pathname=//;
+	die "bad pathname $opt{fname}" if ( $opt{fname} eq "" );
 
 	packet_read();	# "flush" packet 0000 follows command
-
-	$inbuf = "";
+	$opt{srcbuf} = "";
+	binmode(STDIN);
+	my $done = 0;
+	my $fragment = '';
+	while ( !$done ) # handle packet fragmentation 
 	{
-	    binmode(STDIN);
-	    $done = 0;
-	    while ( !$done ) 
-	    {
-		($done, $buffer) = packet_read();
-		$inbuf .= $buffer;
-	    }
+	    ($done, $fragment) = packet_read();
+	    $opt{srcbuf} .= $fragment;
 	}
 
+	# entire buffer has been read.  Now do the command.
 	if ( $command =~ /clean/ ) 
 	{
 	    ### Perform clean here ###
-	    kw_unexpand( \$inbuf );
+	    kw_unexpand( \$opt{srcbuf} );
 
 	    if ( defined $opt{'unxhist'} )
 	    {
-		my $xh = XMT::Xhist::new($pathname, \$inbuf);	
-		$inbuf = $xh->uninstrument();
+		$xh = XMT::Xhist::new(\%opt)	or die "$help_msg";
+		$opt{srcbuf} = $xh->uninstrument();
 	    }
 
 	    if ( defined $opt{'unxtest'} )
 	    {
-		my $xt = XMT::Xtest::new($pathname, \$inbuf);	
-		$inbuf = $xt->uninstrument(\$inbuf);
+		$xt = XMT::Xtest::new(\%opt)	or die "$help_msg";
+		$opt{srcbuf} = $xt->uninstrument();
 	    }
-	    $outbuf = $inbuf;
 	}
 	elsif ( $command =~ /smudge/ ) 
 	{
@@ -423,11 +420,10 @@ sub process_main
 	    # XTEST FIRST.
 	    # do xtest instrumentation if we are in a 
 	    # branch specified for xtest instrumentation.
-	    if ( defined $opt{'xtest'} and
-		$kw{'Branch'}{val} =~ /$opt{'xtest'}/ )
+	    if ( defined $opt{'xtest'} and $kw{'Branch'}{val} =~ /$opt{'xtest'}/ )
 	    {
-		my $xt = XMT::Xtest::new($pathname, \$inbuf);	
-		$inbuf = $xt->instrument(\$inbuf); 
+		$xt = XMT::Xtest::new(\%opt)	or die "$help_msg";
+		$opt{srcbuf} = $xt->instrument(); 
 	    }
 
 	    # XHIST SECOND.
@@ -435,18 +431,16 @@ sub process_main
 	    # branch specified for xhist instrumentation.
 	    if (defined $opt{'xhist'} and $kw{'Branch'}{val} =~ /$opt{'xhist'}/ )
 	    {
-		my $xh = XMT::Xhist::new($pathname, \$inbuf);	
-		$inbuf = $xh->instrument();
+		$xh = XMT::Xhist::new(\%opt)	or die "$help_msg";
+		$opt{srcbuf} = $xh->instrument();
 	    }
 
 	    # do keyword expansion if we are in a 
 	    # branch specified for keyword expansion.
-	    if ( defined $opt{'expand'}  and
-		$kw{'Branch'}{val} =~ /$opt{'expand'}/ )
+	    if ( defined $opt{'expand'} and $kw{'Branch'}{val} =~ /$opt{'expand'}/ )
 	    {
-		kw_expand( \$inbuf );
+		kw_expand( \$opt{srcbuf} );
 	    }
-	    $outbuf = $inbuf;
 	}
 	else 
 	{
@@ -455,23 +449,23 @@ sub process_main
 
 	packet_txt_write("status=success");
 	packet_flush();
-	while ( length($outbuf) > 0 ) 
+	while ( length($opt{srcbuf}) > 0 ) 
 	{
-	    $packet = substr( $outbuf, 0, $MAX_PACKET_CONTENT_SIZE );
+	    $packet = substr( $opt{srcbuf}, 0, $MAX_PACKET_CONTENT_SIZE );
 	    packet_bin_write($packet);
-	    if ( length($outbuf) > $MAX_PACKET_CONTENT_SIZE ) 
+	    if ( length($opt{srcbuf}) > $MAX_PACKET_CONTENT_SIZE ) 
 	    {
-		$outbuf = substr( $outbuf, $MAX_PACKET_CONTENT_SIZE );
+		$opt{srcbuf} = substr( $opt{srcbuf}, $MAX_PACKET_CONTENT_SIZE );
 	    }
 	    else 
 	    {
-		$outbuf = "";
+		$opt{srcbuf} = "";
 	    }
 	}
 	packet_flush();    # flush content
 	packet_flush();    # empty list, keep "status=success" unchanged
     }
-    XMT::Xhist::printmap($kw{'XhistMap'}{val});	
+    $xh->printmap();	
 }
 
 sub packet_read 

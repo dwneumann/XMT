@@ -48,8 +48,8 @@ sub new
     my ($opts) = @_;
     my $self = {};
 
-    $self->{srcfn}      = $opts->{fname} 	if defined $opts->{fname};
-    $self->{srcbuf}     = $opts->{srcbuf}	if defined $opts->{srcbuf};
+    $self->{srcfn}	= $opts->{fname}  or carp "input filename undefined" & return undef;
+    $self->{srcbuf}	= $opts->{srcbuf} or carp "input stream undefined"   & return undef;
     $self->{iut}	= $opts->{iut} 		if defined $opts->{iut};
     $self->{testfile}	= $opts->{test} 	if defined $opts->{test};
     $self->{verbose}	= 1 if ( defined $opts->{verbose});

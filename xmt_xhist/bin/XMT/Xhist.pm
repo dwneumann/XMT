@@ -120,8 +120,8 @@ sub new
     my $self = {};
 
     $self->{srcfn}	= $opts->{fname}  or carp "input filename undefined" & return undef;
-    $self->{mapfn}	= $opts->{map}  if defined($opts->{map});
-    $self->{srcbuf}	= $opts->{srcbuf} or carp "input stream undefined" & return undef;
+    $self->{srcbuf}	= $opts->{srcbuf} or carp "input stream undefined"   & return undef;
+    $self->{mapfn}	= $opts->{map} if (defined $opts->{map} || defined $opts->{xhist_map});
     $self->{fext}	= (defined($self->{srcfn}) ?
     			$self->{srcfn} =~ s/.*\.([^\.]*)/$1/r : "c");
     $self->{fnum}	= crc16($self->{srcfn}) or carp "crc16 failed" & return undef;
@@ -144,10 +144,13 @@ sub DESTROY { }
 sub printmap
 {
     my $self = shift;
-    open(my $FH, ">>", $self->{mapfn}) or die "$self->{mapfn}: $!\n";
-    foreach (sort keys %filemap) 
+    if (defined $self->{mapfn})
     {
-	print $FH "$_\t= $filemap{$_}\n";
+	open(my $FH, ">>", $self->{mapfn}) or die "$self->{mapfn}: $!\n";
+	foreach (sort keys %filemap) 
+	{
+	    print $FH "$_\t= $filemap{$_}\n";
+	}
     }
 }
 

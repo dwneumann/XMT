@@ -19,6 +19,7 @@
 
 package XMT::Xkeyword;
 use Carp;
+use POSIX qw(strftime);
 
 sub version 
 {
@@ -58,9 +59,12 @@ sub new
 
     $self->{srcfn}	= $opts->{fname}  or carp "input filename undefined" & return undef;
     $self->{srcbuf}	= $opts->{srcbuf} or carp "input stream undefined"   & return undef;
-    $self->{binary}	= (defined $opts->{binary} ? 1 : 0);
-    $self->{list}	= $opts->{list} if defined $opts->{list};
+    $self->{binary}	= (defined $opts->{binary} ? 1 : 0);		# do binary files?
+    $self->{list}	= $opts->{list} if defined $opts->{list}; 	# list values only?
+    $self->{kw} 	= (); 						# which keywords to list
+
     bless $self;
+    $self->_buildlist();	# populate keyword table with values
     return $self;
 }
  
@@ -77,7 +81,12 @@ sub DESTROY { }
 sub expand
 {
     my $self = shift;
+    my $k;
 
+    foreach $k ( keys %XMT::Xkeyword::kw )
+    {
+	$self->{srcbuf} =~ s/\$$k:\$/\$$k: $XMT::Xkeyword::kw{$k}{val} \$/g;
+    }
     return $self->{srcbuf};
 }
 
@@ -89,7 +98,12 @@ sub expand
 sub unexpand
 {
     my $self = shift;
+    my $k;
 
+    foreach $k ( keys %XMT::Xkeyword::kw )
+    {
+	 $self->{srcbuf} =~ s/\$$k:.*?\$/\$$k:\$/g;
+    }
     return $self->{srcbuf};
 }
 
@@ -101,15 +115,21 @@ sub printlist
 {
     my $self = shift;
 
+    foreach $k (sort keys %{$self->{kw}})
+    {
+	printf STDOUT "%s%s\n", 
+		(defined $self->{'verbose'} ? sprintf("%-18s", "\$$k:\$") : ""), 
+		$XMT::Xkeyword::kw{$k}{val};
+    }
 }
 
 #************************************************************************/
-# privatye instance method _buildlist()
-# builds the hash of keyword values.
+# private instance method _buildlist() builds the hash of keyword values.
 #************************************************************************/
 sub _buildlist
 {
     my $self = shift;
+    my %kw_specified;
 
     # merge all kw_list elements into one comma-separated list, 
     # then split the list, populating a hash with the specified keywords.
@@ -120,51 +140,49 @@ sub _buildlist
 	{
 	    %kw_specified = map { $_ => 1 } @kws;
 	}
-	else
+	else # list everything
 	{
-	    %kw_specified = map { $_ => 1 } keys %kw;
+	    %kw_specified = map { $_ => 1 } keys %XMT::Xkeyword::kw;
 	}
     }
 
     ## populate the keyword hash with values
-    $kw{'Branch'}{val}	= `git symbolic-ref --short -q HEAD`;
-    $kw{'Branch'}{val}	= 'detached' if $? != 0;
-    chomp $kw{'Branch'}{val};
+    $XMT::Xkeyword::kw{'Branch'}{val}	= `git symbolic-ref --short -q HEAD`;
+    $XMT::Xkeyword::kw{'Branch'}{val}	= 'detached' if $? != 0;
+    chomp $XMT::Xkeyword::kw{'Branch'}{val};
 
     my ($k, $s);
     $s = `git describe --always --long`;
     die "git describe failed \n" if $? != 0;
     if ($s =~ m/(.*)-(.*?)-(.*?)/) 	
     {
-	$kw{'Tag'}{val}	= $1;
-	$kw{'BuildNum'}{val}= $2;
+	$XMT::Xkeyword::kw{'Tag'}{val}	= $1;
+	$XMT::Xkeyword::kw{'BuildNum'}{val}= $2;
     }
     else
     {
-	$kw{'Tag'}{val}	= 'notag';
-	$kw{'BuildNum'}{val}= '0';
+	$XMT::Xkeyword::kw{'Tag'}{val}	= 'notag';
+	$XMT::Xkeyword::kw{'BuildNum'}{val}= '0';
     }
 
-    foreach $k (keys %kw)
+    foreach $k (keys %XMT::Xkeyword::kw )
     {
-	next if ( $kw{$k}{code} eq ''); 
-	($kw{$k}{val} = `git log -n 1 --format="$kw{$k}{code}"`) =~ s/\n.*//; 
+	next if ( $XMT::Xkeyword::kw{$k}{code} eq ''); 
+	($XMT::Xkeyword::kw{$k}{val} = 
+	    `git log -n 1 --format="$XMT::Xkeyword::kw{$k}{code}"`) =~ s/\n.*//; 
     }
 
     ## construct Version string of the form  "<Tag>-<BuildNum> [<Branch>]"
-    $kw{'Version'}{val} = sprintf("%s-%d [%s]",
-			    $kw{'Tag'}{val}, $kw{'BuildNum'}{val}, $kw{'Branch'}{val});
+    $XMT::Xkeyword::kw{'Version'}{val} = sprintf("%s-%d [%s]",
+	    $XMT::Xkeyword::kw{'Tag'}{val}, 
+	    $XMT::Xkeyword::kw{'BuildNum'}{val}, $kw{'Branch'}{val});
     ## construct BuildDate string of the form  "yyyy-mm-dd-hh-mm-ss"
-    $kw{'BuildDate'}{val} = strftime( "%Y-%m-%d.%H:%M", localtime );
+    $XMT::Xkeyword::kw{'BuildDate'}{val} = strftime( "%Y-%m-%d.%H:%M", localtime );
     ## construct & store name for xhist_map file
-    if ( !defined $opt{'xhist_map'} )
-    {
-	$kw{'XhistMap'}{val} = sprintf("/tmp/%s-%s-%s.xmap",
-				$kw{'Tag'}{val}		=~ s/[ :]/-/gr,
-				$kw{'BuildNum'}{val}	=~ s/[ :]/-/gr,
-				$kw{'Branch'}{val}		=~ s/[ :]/-/gr); 
-	$opt{'xhist_map'} = $kw{'XhistMap'}{val};
-    }
+    $XMT::Xkeyword::kw{'XhistMap'}{val} = sprintf("/tmp/%s-%s-%s.xmap",
+	    $XMT::Xkeyword::kw{'Tag'}{val}	=~ s/[ :]/-/gr,
+	    $XMT::Xkeyword::kw{'BuildNum'}{val}	=~ s/[ :]/-/gr,
+	    $XMT::Xkeyword::kw{'Branch'}{val}	=~ s/[ :]/-/gr); 
 }
 
 1;  # ensure class eval returns true;

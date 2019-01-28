@@ -81,12 +81,12 @@ else
 my $xh = XMT::Xhist::new(\%opt) or die "$help_msg";
 if ( ! defined $opt{'unxhist'} )
 {
-	$inbuf = $xh->instrument(); 
+	$opt{srcbuf} = $xh->instrument(); 
 	XMT::Xhist::printmap();	
 }
 else
 {
-    $inbuf = $xh->uninstrument();
+    $opt{srcbuf} = $xh->uninstrument();
 }
-print STDOUT $inbuf;
+print STDOUT $opt{srcbuf};
 

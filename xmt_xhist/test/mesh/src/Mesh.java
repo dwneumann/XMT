@@ -28,10 +28,10 @@ import java.net.*;
  *  to/from the other nodes.  
  *  Prints statistics on packet loss & latency.
  * <p>
- * @version	$Version: meshtest-1.0-58 [develop] $
+ * @version	$Version:$
  */
 public	class	Mesh {
-    public static final String id = "@(#) mesh.Mesh $Version: meshtest-1.0-58 [develop] $";
+    public static final String id = "@(#) mesh.Mesh $Version:$";
     public static final int MAX_NODES	= 100;		/* max # nodes in mesh		*/
     public static MeshNode	myNode	= new MeshNode();	/* this Node		*/
 

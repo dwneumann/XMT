@@ -21,10 +21,10 @@ import XMT.Xhist;
  * <p>
  * [full description]
  * <p>
- * @version	$Version: meshtest-1.0-58 [develop] $
+ * @version	$Version:$
  */
 public	class		MeshNode {
-    public static final String id = "@(#) mesh.MeshNode $Version: meshtest-1.0-58 [develop] $";
+    public static final String id = "@(#) mesh.MeshNode $Version:$";
     public int	pktsToSend;	/* # packets to initiate		*/
     public int	pktsReturned;	/* # of ACKs returned to me		*/
     public int	numHops;	/* # hops to fwd each packet		*/

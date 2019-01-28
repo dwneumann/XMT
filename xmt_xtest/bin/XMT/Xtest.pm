@@ -176,7 +176,7 @@ sub _parsetestfile
 
 #************************************************************************/
 # instance method instrument()
-# instruments $$inbuf for xtest whitebox testing.
+# instruments srcbuf for xtest whitebox testing.
 # Returns undef on error.
 #************************************************************************/
 sub instrument

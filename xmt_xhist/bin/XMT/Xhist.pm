@@ -41,7 +41,35 @@ our $tokens = {
 	cmt_end		=> q:\*/:		,
 	indent		=> ""			,	# this changes dynamically
     },
+    h		=> {
+	identifier    	=> q:[a-zA-Z0-9_]+:	,
+	operator	=> q:[-+<>=!\^\(]:	,
+	cmt_start	=> q:/\*:		,
+	cmt_end		=> q:\*/:		,
+	indent		=> ""			,	# this changes dynamically
+    },
     cc	=> {
+	identifier    	=> q:[a-zA-Z0-9_]+:	,
+	operator	=> q:[-+<>=!\^\(]:	,
+	cmt_start	=> q:/\*:		,
+	cmt_end		=> q:\*/:		,
+	indent		=> ""			,	# this changes dynamically
+    },
+    cpp	=> {
+	identifier    	=> q:[a-zA-Z0-9_]+:	,
+	operator	=> q:[-+<>=!\^\(]:	,
+	cmt_start	=> q:/\*:		,
+	cmt_end		=> q:\*/:		,
+	indent		=> ""			,	# this changes dynamically
+    },
+    hh	=> {
+	identifier    	=> q:[a-zA-Z0-9_]+:	,
+	operator	=> q:[-+<>=!\^\(]:	,
+	cmt_start	=> q:/\*:		,
+	cmt_end		=> q:\*/:		,
+	indent		=> ""			,	# this changes dynamically
+    },
+    hpp	=> {
 	identifier    	=> q:[a-zA-Z0-9_]+:	,
 	operator	=> q:[-+<>=!\^\(]:	,
 	cmt_start	=> q:/\*:		,
@@ -75,7 +103,67 @@ our $templates = {
 	xh_endmk	=> q:[% cmt_start %]</XHIST>[% cmt_end %]:,
 	trace_stmt	=> q: _XH_ADD( FNUM, LNUM );:,
     },
+    h	=> {
+	func_begin	=> q:^(\s*)\{\s*$:,
+	func_end	=> q:^[% indent %]\}\s*$:,
+	declaration	=> q:^\s*[% identifier %]\**\s+\(?\**[% identifier %].*[,;]:,
+	for_stmt	=> q:\s+for\s+\(.*;.*:,
+	rtn_stmt	=> q:\s+return\s*\(*.*\)*\s*;:,
+	executable	=> q:[% operator %].*;:,
+	xh_dbg_T	=> q:[% cmt_start %]\s+xhist\s+debug\s+TRUE\s*[% cmt_end %]:,
+	xh_dbg_F	=> q:[% cmt_start %]\s+xhist\s+debug\s+FALSE\s*[% cmt_end %]:,
+	xh_inst_T	=> q:[% cmt_start %]\s+xhist\s+instrument\s+TRUE\s*[% cmt_end %]:,
+	xh_inst_F	=> q:[% cmt_start %]\s+xhist\s+instrument\s+FALSE\s*[% cmt_end %]:,
+	xh_startmk	=> q:[% cmt_start %]<XHIST>[% cmt_end %]:,
+	xh_endmk	=> q:[% cmt_start %]</XHIST>[% cmt_end %]:,
+	trace_stmt	=> q: _XH_ADD( FNUM, LNUM );:,
+    },
     cc	=> {
+	func_begin	=> q:^(\s*)(public|private|protected).*\{\s*:,
+	func_end	=> q:^[% indent %]\}\s*$:,
+	declaration	=> q:^\s*[% identifier %]\**\s+\(?\**[% identifier %].*[,;]:,
+	for_stmt	=> q:\s+for\s+\(.*;.*:,
+	rtn_stmt	=> q:\s+return\s*\(*.*\)*\s*;:,
+	executable	=> q:[% operator %].*;:,
+	xh_dbg_T	=> q:[% cmt_start %]\s+xhist\s+debug\s+TRUE\s*[% cmt_end %]:,
+	xh_dbg_F	=> q:[% cmt_start %]\s+xhist\s+debug\s+FALSE\s*[% cmt_end %]:,
+	xh_inst_T	=> q:[% cmt_start %]\s+xhist\s+instrument\s+TRUE\s*[% cmt_end %]:,
+	xh_inst_F	=> q:[% cmt_start %]\s+xhist\s+instrument\s+FALSE\s*[% cmt_end %]:,
+	xh_startmk	=> q:[% cmt_start %]<XHIST>[% cmt_end %]:,
+	xh_endmk	=> q:[% cmt_start %]</XHIST>[% cmt_end %]:,
+	trace_stmt	=> q: Xhist.add( FNUM, LNUM );:,
+    },
+    cpp	=> {
+	func_begin	=> q:^(\s*)(public|private|protected).*\{\s*:,
+	func_end	=> q:^[% indent %]\}\s*$:,
+	declaration	=> q:^\s*[% identifier %]\**\s+\(?\**[% identifier %].*[,;]:,
+	for_stmt	=> q:\s+for\s+\(.*;.*:,
+	rtn_stmt	=> q:\s+return\s*\(*.*\)*\s*;:,
+	executable	=> q:[% operator %].*;:,
+	xh_dbg_T	=> q:[% cmt_start %]\s+xhist\s+debug\s+TRUE\s*[% cmt_end %]:,
+	xh_dbg_F	=> q:[% cmt_start %]\s+xhist\s+debug\s+FALSE\s*[% cmt_end %]:,
+	xh_inst_T	=> q:[% cmt_start %]\s+xhist\s+instrument\s+TRUE\s*[% cmt_end %]:,
+	xh_inst_F	=> q:[% cmt_start %]\s+xhist\s+instrument\s+FALSE\s*[% cmt_end %]:,
+	xh_startmk	=> q:[% cmt_start %]<XHIST>[% cmt_end %]:,
+	xh_endmk	=> q:[% cmt_start %]</XHIST>[% cmt_end %]:,
+	trace_stmt	=> q: Xhist.add( FNUM, LNUM );:,
+    },
+    hh	=> {
+	func_begin	=> q:^(\s*)(public|private|protected).*\{\s*:,
+	func_end	=> q:^[% indent %]\}\s*$:,
+	declaration	=> q:^\s*[% identifier %]\**\s+\(?\**[% identifier %].*[,;]:,
+	for_stmt	=> q:\s+for\s+\(.*;.*:,
+	rtn_stmt	=> q:\s+return\s*\(*.*\)*\s*;:,
+	executable	=> q:[% operator %].*;:,
+	xh_dbg_T	=> q:[% cmt_start %]\s+xhist\s+debug\s+TRUE\s*[% cmt_end %]:,
+	xh_dbg_F	=> q:[% cmt_start %]\s+xhist\s+debug\s+FALSE\s*[% cmt_end %]:,
+	xh_inst_T	=> q:[% cmt_start %]\s+xhist\s+instrument\s+TRUE\s*[% cmt_end %]:,
+	xh_inst_F	=> q:[% cmt_start %]\s+xhist\s+instrument\s+FALSE\s*[% cmt_end %]:,
+	xh_startmk	=> q:[% cmt_start %]<XHIST>[% cmt_end %]:,
+	xh_endmk	=> q:[% cmt_start %]</XHIST>[% cmt_end %]:,
+	trace_stmt	=> q: Xhist.add( FNUM, LNUM );:,
+    },
+    hpp	=> {
 	func_begin	=> q:^(\s*)(public|private|protected).*\{\s*:,
 	func_end	=> q:^[% indent %]\}\s*$:,
 	declaration	=> q:^\s*[% identifier %]\**\s+\(?\**[% identifier %].*[,;]:,
@@ -123,7 +211,7 @@ sub new
     $self->{srcbuf}	= $opts->{srcbuf} or carp "input stream undefined"   & return undef;
     $self->{mapfn}	= $opts->{map} if (defined $opts->{map} || defined $opts->{xhist_map});
     $self->{fext}	= (defined($self->{srcfn}) ?
-    			$self->{srcfn} =~ s/.*\.([^\.]*)/$1/r : "c");
+    			lc $self->{srcfn} =~ s/.*\.(.*?)$/$1/r : "c");
     $self->{fnum}	= crc16($self->{srcfn}) or carp "crc16 failed" & return undef;
     $self->{fnum}++  while ( grep /$self->{fnum}/, values %filemap ); # handle collisions
     $filemap{$self->{srcfn}} = $self->{fnum};	# add name & hash to filemap
@@ -333,12 +421,12 @@ sub uninstrument
 {
     my $self = shift;
     my $ptn;
-    my $startmk = interpolate( $templates->{$self->{fext}}{xh_startmk}, $self->{fext} );
-    my $endmk	= interpolate( $templates->{$self->{fext}}{xh_endmk}, $self->{fext} );
 
     # if we don't grok this filetype, return unmodified srcbuf.
     return $self->{srcbuf} if (!defined $tokens->{$self->{fext}});
 
+    my $startmk = interpolate( $templates->{$self->{fext}}{xh_startmk}, $self->{fext} );
+    my $endmk	= interpolate( $templates->{$self->{fext}}{xh_endmk}, $self->{fext} );
     $self->{srcbuf} =~ s:$startmk(.*?)$endmk::sg;
     return $self->{srcbuf};
 }

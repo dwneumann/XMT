@@ -132,12 +132,9 @@ GetOptions( \%opt, "help", "verbose", "expand=s", "unexpand", "list:s@", "binary
 	    or die $help_msg;
 
 # at least one action must be specified.
-# "expand", "unexpand" and "list" are mutually exclusive.
 # all other args are optional.
 die "$help_msg" if defined $opt{'help'};
-my @actions = map { /expand|unexpand|list/ ? $_ : () } keys %opt;
-die "$help_msg" if scalar(@actions) > 1;
-@actions = map { /expand|unexpand|list|xhist|unxhist|xtest|unxtest/ ? $_ : () } keys %opt;
+my @actions = map { /expand|unexpand|list|xhist|unxhist|xtest|unxtest/ ? $_ : () } keys %opt;
 die "$help_msg" if scalar(@actions) < 1;
 
 ## list keyword values if any were requested

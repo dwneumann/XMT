@@ -190,7 +190,8 @@ sub standalone_main
     ## perform substitutions & write the output.
     if ($is_ascii || defined $opt{'binary'})
     {
-	# constructor needed here to define $XMT::Xkeyword::kw values
+	# constructor needed here to build $XMT::Xkeyword::kw values
+	# that we test against below
 	$xk = XMT::Xkeyword::new(\%opt)	or die "$help_msg";
 
 	# XTEST FIRST.

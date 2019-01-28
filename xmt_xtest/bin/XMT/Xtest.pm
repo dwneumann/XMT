@@ -183,7 +183,9 @@ sub instrument
 {
     my $self = shift;
 
-    # do try/catch block code injection
+    # do try/catch block code injection.
+    # note we inject indentation and a newline AFTER the end delimiter 
+    # that must be removed during uninstrumentation
     my $ptn = '(try\s+\{.*?)(\s*)(\}\s*catch\s+\()(\S*Exception)?(.*?\{)';
     my $repl = <<'__END__';
 "$1$2/*<XTEST>*/ 
@@ -194,15 +196,16 @@ $2        \{
 $2              throw new $4 (\"forceException\");
 $2        \}
 $2    \}
-$2/*</XTEST>*/
-$2$3$4$5"
+$2/*</XTEST>*/$2$3$4$5"
 __END__
 
     $repl =~ s/\n//g;
     $self->{srcbuf} =~ s:$ptn:$repl:eesg;
 
     # do if-then block code injection
-    $self->{srcbuf} =~ s:if\s+\(:$& /*<XTEST>*/ !XMT.Xhist.forceFail && /*</XTEST>*/ :sg;
+    # note we inject one space AFTER the end delimiter 
+    # that must be removed during uninstrumentation
+    $self->{srcbuf} =~ s:if\s+\(\s*:$&/*<XTEST>*/ !XMT.Xhist.forceFail && /*</XTEST>*/ :sg;
 
     return $self->{srcbuf};
 }
@@ -216,7 +219,9 @@ sub uninstrument
 {
     my $self = shift;
 
-    $self->{srcbuf} =~ s:/\*<XTEST>\*/(.*)?/\*</XTEST>\*/ ::sg;
+    # remove everything from strt delimiter to end delimiter 
+    # PLUS the whitespace characters added after the end delimiter
+    $self->{srcbuf} =~ s:/\*<XTEST>\*/(.*?)/\*</XTEST>\*/\s*::sg;
     return $self->{srcbuf};
 }
 

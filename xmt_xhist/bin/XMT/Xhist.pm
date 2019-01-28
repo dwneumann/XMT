@@ -187,7 +187,7 @@ sub instrument
     }
 
     # add import XMT.Xhist 
-    my $repl = '"$& $startmk import XMT.Xhist; $endmk\n"';
+    my $repl = '"$&$startmk import XMT.Xhist; $endmk"';
     $self->{srcbuf} =~ s:.*^import\s+.*?\n:$repl:eems;
 
     # add Xhist.init() call after  <XHIST INIT> comment
@@ -196,7 +196,7 @@ sub instrument
     my $v	= '$' . 'Version' . ':$';
     my $mf	= '$' . 'XhistMap' . ':$';
     my $tf	= $self->{srcfn};
-    $repl 	= '"$& $startmk Xhist.init(\"$tf\", \"$mf\", \"$v\"); $endmk"';
+    $repl 	= '"$&$startmk Xhist.init(\"$tf\", \"$mf\", \"$v\"); $endmk"';
     $self->{srcbuf} =~ s:$ptn:$repl:ees;
 
     local @indent_fifo	= [""];	# FIFO stack of function indentation levels

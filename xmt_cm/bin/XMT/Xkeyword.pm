@@ -66,7 +66,7 @@ sub new
 	# To handle either multiple --list options each followed by one keyword
 	# or one --list option followed by a comma-separated list of keywords,
 	# we merge all elements into one comma-separated list, then split the list.
-	my @kws = split /,/, join(',', @{$self->{list}}); 
+	my @kws = split /,/, join(',', @{$opts->{list}}); 
 	my %kw_specified;
 	if (scalar(@kws) >= 1) # one or more keywords were explicitly specified
 	{

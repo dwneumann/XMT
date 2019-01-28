@@ -88,4 +88,3 @@ public	class		MeshNode {
 	    this.port, this.pktsToSend, this.pktsReturned );
     }
 }
-

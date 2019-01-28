@@ -263,16 +263,14 @@ sub instrument
     my $xh_debug	= 0;	# TRUE if debugging lexer 
     my $xh_instrument	= 1;	# TRUE if instrumenting should occur
     my $regex;
+
+    # if we don't grok this filetype, return gracefully.
+    return $self->{srcbuf} if (!defined $tokens->{$self->{fext}});
+
     my $startmk = interpolate( $templates->{$self->{fext}}{xh_startmk}, $self->{fext} );
     my $endmk = interpolate( $templates->{$self->{fext}}{xh_endmk}, $self->{fext} );
     $startmk =~ s/\\//g;
     $endmk =~ s/\\//g;
-
-    # if we don't grok this filetype, return gracefully.
-    if (!defined $tokens->{$self->{fext}})
-    {
-	return $self->{srcbuf};
-    }
 
     # add import XMT.Xhist 
     my $repl = '"$&$startmk import XMT.Xhist; $endmk"';

@@ -1,7 +1,0 @@
-*.as	binary
-*.so	binary
-* 	text=auto eol=lf
-# smudge and instrumentat source code when checking out into QA-owned branches.
-#*.c	filter=instrument
-#*.h	filter=instrument
-#*.java	filter=instrument

@@ -214,7 +214,7 @@ sub instrument
 	if ( /$regex/ )
 	{
 	    $xh_debug = 1;
-	    $self->{srcbuf} .= "$_\t/*<DEBUG ON>*/\n";
+	    $self->{srcbuf} .= "$_\t$startmk /*<DEBUG ON>*/ $endmk\n";
 	    next;
 	}
 
@@ -223,7 +223,7 @@ sub instrument
 	if ( /$regex/ )
 	{
 	    $xh_debug = 0;
-	    $self->{srcbuf} .= "$_\t/*<DEBUG OFF>*/\n";
+	    $self->{srcbuf} .= "$_\t$startmk /*<DEBUG OFF>*/ $endmk\n";
 	    next;
 	}
 
@@ -232,7 +232,7 @@ sub instrument
 	if ( /$regex/ )
 	{
 	    $xh_instrument = 1;
-	    $self->{srcbuf} .= $_ . ($xh_debug ? "\t/*<INSTRUMENT ON>*/" : '') . "\n";
+	    $self->{srcbuf} .= $_ . ($xh_debug ? "\t$startmk /*<INSTRUMENT ON>*/ $endmk" : '') . "\n";
 	    next;
 	}
 
@@ -241,7 +241,7 @@ sub instrument
 	if ( /$regex/ )
 	{
 	    $xh_instrument = 0;
-	    $self->{srcbuf} .= $_ . ($xh_debug ? "\t/*<INSTRUMENT OFF>*/" : '') . "\n";
+	    $self->{srcbuf} .= $_ . ($xh_debug ? "\t$startmk /*<INSTRUMENT OFF>*/ $endmk" : '') . "\n";
 	    next;
 	}
 
@@ -251,7 +251,7 @@ sub instrument
 	    unshift @indent_fifo, $1;	# push new indent onto stack
 	    $tokens->{$self->{fext}}{indent} = $indent_fifo[0];	
 	    $in_func++;
-	    $self->{srcbuf} .= $_ . ($xh_debug ? "\t/*<FUNC START>*/" : '') . "\n";
+	    $self->{srcbuf} .= $_ . ($xh_debug ? "\t$startmk /*<FUNC START>*/ $endmk" : '') . "\n";
 	    next;
 	}
 
@@ -261,21 +261,21 @@ sub instrument
 	    shift @indent_fifo;		# pop indent off of stack
 	    $tokens->{$self->{fext}}{indent} = $indent_fifo[0];	
 	    $in_func--; 
-	    $self->{srcbuf} .= $_ . ($xh_debug ? "\t/*<FUNC END>*/" : '') . "\n"; 
+	    $self->{srcbuf} .= $_ . ($xh_debug ? "\t$startmk /*<FUNC END>*/ $endmk" : '') . "\n"; 
 	    next;
 	}
 
 	$regex = interpolate( $templates->{$self->{fext}}{declaration}, $self->{fext} );
 	if ( /$regex/ )
 	{
-	    $self->{srcbuf} .= $_ . ($xh_debug ? "\t/*<DECL>*/" : '') . "\n";
+	    $self->{srcbuf} .= $_ . ($xh_debug ? "\t$startmk /*<DECL>*/ $endmk" : '') . "\n";
 	    next;
 	}
 
 	$regex = interpolate( $templates->{$self->{fext}}{for_stmt}, $self->{fext} );
 	if ( /$regex/ )
 	{
-	    $self->{srcbuf} .= $_ . ($xh_debug ? "\t/*<FOR>*/" : '') . "\n";
+	    $self->{srcbuf} .= $_ . ($xh_debug ? "\t$startmk /*<FOR>*/ $endmk" : '') . "\n";
 	    next;
 	}
 
@@ -284,11 +284,11 @@ sub instrument
 	{
 	    if ( $in_func )
 	    {
-		$self->{srcbuf} .= $_ . ($xh_debug ? "\t/*<RETURN>*/" : '') . "\n";
+		$self->{srcbuf} .= $_ . ($xh_debug ? "\t$startmk /*<RETURN>*/ $endmk" : '') . "\n";
 	    }
 	    else
 	    {
-		$self->{srcbuf} .= $_ . ($xh_debug ? "\t/*<RETURN OUTSIDE FUNC>*/" : '') . "\n";
+		$self->{srcbuf} .= $_ . ($xh_debug ? "\t/$startmk *<RETURN OUTSIDE FUNC>*/ $endmk" : '') . "\n";
 	    }
 	    next;
 	}
@@ -301,18 +301,18 @@ sub instrument
 	{
 	    if ( $in_func )
 	    {
-		$self->{srcbuf} .= $_ . ($xh_debug ? "\t/*<STMT>*/" : '');
+		$self->{srcbuf} .= $_ . ($xh_debug ? "\t$startmk /*<STMT>*/ $endmk" : '');
 		(my $repl = $templates->{$self->{fext}}{trace_stmt}) =~ s/FNUM/$self->{fnum}/g;
 		$repl =~ s/LNUM/$self->{lnum}/g;
 		if ($xh_instrument == 1)
 		{
-		    eval {$self->{srcbuf} .= $repl};
+		    eval {$self->{srcbuf} .= $repl}; //// FIX HERE !!
 		}
 		$self->{srcbuf} .= "\n";
 	    }
 	    else
 	    {
-		$self->{srcbuf} .= $_ . ($xh_debug ? "\t/*<STMT OUTSIDE FUNC>*/" : '') . "\n";
+		$self->{srcbuf} .= $_ . ($xh_debug ? "\t$startmk /*<STMT OUTSIDE FUNC>*/ $endmk" : '') . "\n";
 	    }
 	    next;
 	}
@@ -334,36 +334,12 @@ sub uninstrument
     my $self = shift;
     my $ptn;
     my $startmk = interpolate( $templates->{$self->{fext}}{xh_startmk}, $self->{fext} );
-    my $endmk = interpolate( $templates->{$self->{fext}}{xh_endmk}, $self->{fext} );
-    $startmk =~ s/\\//g;
-    $endmk =~ s/\\//g;
+    my $endmk	= interpolate( $templates->{$self->{fext}}{xh_endmk}, $self->{fext} );
 
-    # if we don't grok this filetype, return gracefully.
-    if (!defined $tokens->{$self->{fext}})
-    {
-	return $self->{srcbuf};
-    }
+    # if we don't grok this filetype, return unmodified srcbuf.
+    return $self->{srcbuf} if (!defined $tokens->{$self->{fext}});
 
-    $self->{srcbuf} =~ s:$startmk(.*)?$endmk ::esg;
-    $self->{srcbuf} =~ s:\t/*<DEBUG ON>*/::g;
-    $self->{srcbuf} =~ s:\t/*<DEBUG OFF>*/::g;
-    $self->{srcbuf} =~ s:\t/*<INSTRUMENT ON>*/::g;
-    $self->{srcbuf} =~ s:\t/*<INSTRUMENT OFF>*/::g;
-    $self->{srcbuf} =~ s:\t/*<FUNC START>*/::g;
-    $self->{srcbuf} =~ s:\t/*<FUNC END>*/::g;
-    $self->{srcbuf} =~ s:\t/*<DECL>*/::g;
-    $self->{srcbuf} =~ s:\t/*<FOR>*/::g;
-    $self->{srcbuf} =~ s:"\t/*<RETURN>*/::g;
-    $self->{srcbuf} =~ s:\t/*<RETURN OUTSIDE FUNC>*/::g;
-    $self->{srcbuf} =~ s:"\t/*<STMT>*/::g;
-    $self->{srcbuf} =~ s:\t/*<STMT OUTSIDE FUNC>*/::g;
-    ($ptn = $templates->{$self->{fext}}{trace_stmt}) =~ s/.NUM/\\d+/g;
-    $self->{srcbuf} =~ s:.*^import\s+.*?\n:$&import XMT.Xhist;\n:ms;
-    $self->{srcbuf} =~ s:.*^import\s+.*?\n:$&import XMT.Xhist;\n:ms;
-
-    $ptn =~ s/\(/\\(/g;
-    $ptn =~ s/\)/\\(/g;
-    $self->{srcbuf} =~ s:$ptn::g;
+    $self->{srcbuf} =~ s:$startmk(.*?)$endmk::sg;
     return $self->{srcbuf};
 }
 

@@ -104,7 +104,7 @@ $pgmname [<options>] [file]
   --expand=<branchspec> only if in a branch matching regex pattern <branchspec>,
                 expand (i.e. smudge) all keywords of the form \$Keyword:\$ 
                 found in stdin and write substituted data stream to stdout.
-                (e.g.  git_filter --expand="release|test" )
+                (e.g.  git_filter --expand="release.*|test.*|qa.*" )
   --unexpand    unexpand (i.e. clean) all keyword values found in stdin, 
                 and write cleaned data stream to stdout
   --binary      force substitutions in binary files; 
@@ -190,6 +190,7 @@ sub standalone_main
     ## perform substitutions & write the output.
     if ($is_ascii || defined $opt{'binary'})
     {
+	# constructor needed here to define $XMT::Xkeyword::kw values
 	$xk = XMT::Xkeyword::new(\%opt)	or die "$help_msg";
 
 	# XTEST FIRST.
@@ -199,7 +200,7 @@ sub standalone_main
 	    $xt = XMT::Xtest::new(\%opt)	or die "$help_msg";
 	    $opt{srcbuf} = $xt->instrument()	or die; 
 	}
-	elsif ( defined $opt{'unxhist'} )
+	elsif ( defined $opt{'unxtest'} )
 	{
 	    $xt = XMT::Xtest::new(\%opt)	or die "$help_msg";
 	    $opt{srcbuf} = $xt->uninstrument()	or die;

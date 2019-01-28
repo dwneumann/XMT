@@ -57,11 +57,27 @@ sub new
     my ($opts) = @_;
     my $self = {};
 
-    $self->{srcfn}	= $opts->{fname}  or carp "input filename undefined" & return undef;
-    $self->{srcbuf}	= $opts->{srcbuf} or carp "input stream undefined"   & return undef;
+    $self->{srcfn}	= $opts->{fname}  if defined $opts->{fname};
+    $self->{srcbuf}	= $opts->{srcbuf} if defined $opts->{srcbuf};
+    $self->{verbose}	= $opts->{verbose} if defined $opts->{verbose};
     $self->{binary}	= (defined $opts->{binary} ? 1 : 0);		# do binary files?
-    $self->{list}	= $opts->{list} if defined $opts->{list}; 	# list values only?
-    $self->{kw} 	= (); 						# which keywords to list
+    if (defined $opts->{list}) 						# list values only?
+    {
+	# To handle either multiple --list options each followed by one keyword
+	# or one --list option followed by a comma-separated list of keywords,
+	# we merge all elements into one comma-separated list, then split the list.
+	my @kws = split /,/, join(',', @{$self->{list}}); 
+	my %kw_specified;
+	if (scalar(@kws) >= 1) # one or more keywords were explicitly specified
+	{
+	    %kw_specified = map { $_ => 1 } @kws;
+	}
+	else
+	{
+	    %kw_specified = map { $_ => 1 } keys %XMT::Xkeyword::kw;
+	}
+	$self->{list} = \%kw_specified;
+    }
 
     bless $self;
     $self->_buildlist();	# populate keyword table with values
@@ -83,6 +99,7 @@ sub expand
     my $self = shift;
     my $k;
 
+    carp "no input stream" & return undef unless defined $self->{srcbuf};
     foreach $k ( keys %XMT::Xkeyword::kw )
     {
 	$self->{srcbuf} =~ s/\$$k:\$/\$$k: $XMT::Xkeyword::kw{$k}{val} \$/g;
@@ -100,6 +117,7 @@ sub unexpand
     my $self = shift;
     my $k;
 
+    carp "no input stream" & return undef unless defined $self->{srcbuf};
     foreach $k ( keys %XMT::Xkeyword::kw )
     {
 	 $self->{srcbuf} =~ s/\$$k:.*?\$/\$$k:\$/g;
@@ -115,7 +133,7 @@ sub printlist
 {
     my $self = shift;
 
-    foreach $k (sort keys %{$self->{kw}})
+    foreach $k (sort keys %{$self->{list}})
     {
 	printf STDOUT "%s%s\n", 
 		(defined $self->{'verbose'} ? sprintf("%-18s", "\$$k:\$") : ""), 

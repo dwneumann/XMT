@@ -43,4 +43,3 @@ extern  void	xhist_write();
 */
 
 #endif /* __xhist_h	*/
-

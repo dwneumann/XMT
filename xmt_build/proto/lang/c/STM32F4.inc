@@ -24,6 +24,7 @@
 #*  limitations under the License. 
 #************************************************************************
 
+
 #**********************************************************************
 # define program paths...
 #**********************************************************************
@@ -43,16 +44,58 @@ EXE_SFX.c.STM32F4	:= .elf
 # This is the place to define default flags and recipes
 # that are specific to THIS target platform for THIS language.
 #**********************************************************************
-CFLAGS.c.STM32F4 += -Wall -mlittle-endian -mthumb -mcpu=cortex-m4 	\
-		    -mthumb-interwork -mfloat-abi=hard -mfpu=fpv4-sp-d16 	
+CFLAGS.c.STM32F4 += -Wall -Wno-unused-const-variable -mlittle-endian -mthumb \
+		 -mcpu=cortex-m4 -mthumb-interwork -mfloat-abi=hard -mfpu=fpv4-sp-d16 	
 
 LDFLAGS.c.STM32F4	+= $(CFLAGS.c.STM32F4) 
 ARFLAGS.c.STM32F4	+= -rscDv
 LINTFLAGS.c.STM32F4	+= $(CFLAGS.c.STM32F4)
 DOCFLAGS.c.STM32F4	+= 
 
+
 bin: exe
 	$(OBJCOPY.c.STM32F4) -O binary $(TGTDIR)/$(EXE_NM) $(TGTDIR)/$(PKG_NM).bin
 
 hex: exe
 	$(OBJCOPY.c.STM32F4) -O ihex $(TGTDIR)/$(EXE_NM) $(TGTDIR)/$(PKG_NM).hex
+
+
+
+$(OBJDIR)/%.o	: %.S
+	@echo $(CFLAGS) $(CFLAGS.c) $(CFLAGS.c.$(ARCH)) > $@.cflags ; 
+	$(COMPILE.c.$(ARCH)) @$@.cflags $< 
+
+$(OBJDIR)/%.o	: %.s
+	@echo $(CFLAGS) $(CFLAGS.c) $(CFLAGS.c.$(ARCH)) > $@.cflags ; 
+	$(COMPILE.c.$(ARCH)) @$@.cflags $< 
+
+$(OBJDIR)/%.o	: %.c
+	@echo $(CFLAGS) $(CFLAGS.c) $(CFLAGS.c.$(ARCH)) > $@.cflags ; 
+	$(COMPILE.c.$(ARCH)) @$@.cflags $< 
+
+$(OBJDIR)/%.i	: /%.c
+	@echo -E $(CFLAGS) $(CFLAGS.c) $(CFLAGS.c.$(ARCH)) > $@.cflags ; 
+	$(COMPILE.c.$(ARCH)) @$@.cflags $< 
+
+$(OBJDIR)/%.ln	: %.c
+	@echo $(LINTFLAGS) $(LINTFLAGS.c) $(LINTFLAGS.c.$(ARCH)) > $@.lintflags ; 
+	$(LINT.c.$(ARCH)) @$@.lintflags $< 
+
+$(DOCDIR)/%.html: $(SRCDIR)/%.c
+	@echo $(DOCFLAGS) $(DOCFLAGS.c) $(DOCFLAGS.c.$(ARCH)) > $@.docflags ; 
+	$(DOC.c.$(ARCH)) @$@.docflags $< 
+
+.lib.$(LANGUAGE):	$(TGTDIR)/$(LIB_NM)
+$(LIB_NM): $(TGTDIR)/$(LIB_NM)
+$(TGTDIR)/$(LIB_NM): $(objs.$(LANGUAGE)) $(EXTRA_OBJS)
+	@echo 	$(ARFLAGS) $(ARFLAGS.$(LANGUAGE)) $(ARFLAGS.$(LANGUAGE).$(ARCH)) > $@.arflags;
+	$(AR.$(LANGUAGE).$(ARCH)) @$@.arflags $@ $^ 	
+
+.exe.$(LANGUAGE):	$(TGTDIR)/$(EXE_NM)
+$(EXE_NM): $(TGTDIR)/$(EXE_NM)
+$(TGTDIR)/$(EXE_NM): $(objs.$(LANGUAGE)) $(EXTRA_OBJS) 
+	@echo $(LDFLAGS) $(LDFLAGS.$(LANGUAGE)) $(LDFLAGS.$(LANGUAGE).$(ARCH)) > $@.ldflags;
+	$(LD.$(LANGUAGE).$(ARCH)) @$@.ldflags $^ \
+	    $(LIBS) $(LIBS.$(LANGUAGE)) $(LIBS.$(LANGUAGE).$(ARCH)) 
+
+

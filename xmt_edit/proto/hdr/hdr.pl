@@ -24,12 +24,12 @@ $copyright =~ s/\n/\n#   /g;
 print 
 qq{#!/bin/perl -w
 #************************************************************************
-#   Package	: $module->{pkg}
 #   $cm->{rev}
-#   $copyright
-#
+#   Package	: $module->{pkg}
 #   Synopsis	:
 #   Purpose	: 
+#
+#   $copyright
 #************************************************************************
 };
 

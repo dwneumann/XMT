@@ -25,34 +25,25 @@
 #*  limitations under the License. 
 #************************************************************************
 
-srcs.java	:= $(wildcard $(SRCDIR)/*.java)
+
+#   := assignements are evaluated during lexical scan;
+#    = assignments are recursively expanded during rule parsing
+srcs.java	:= $(shell find $(SRCDIR)/ -type f -name '*.java')
+objs.java	:= $(patsubst $(SRCDIR)/%.java,%.class,$(srcs.java))
+#objs.java	:= $(patsubst $(SRCDIR)/%.java,$(OBJDIR)/%.class,$(srcs.java))
+docs.java	:= $(patsubst $(SRCDIR)/%.java,$(DOCDIR)/%.html,$(srcs.java))
 hdrs.java	:= 
-objs.java	:= $(patsubst $(SRCDIR)/%.java,$(OBJDIR)/%.class,$(srcs.java))
-docs.java	:= $(patsubst $(SRCDIR)/%.java,$(DOCDIR)/%.java.html,$(srcs.java))
 lnts.java	:= 
 
 #**********************************************************************
 # This is the place to define default flags that are common to ALL 
 # supported architectures for THIS language.
 #**********************************************************************
-CFLAGS.java	= -deprecation -g -d $(TGTDIR) -classpath .:$(TGTDIR):$(CLASSPATH)
+CFLAGS.java	+= -g -d $(OBJDIR) 
 LDFLAGS.java	= 
-ARFLAGS.java	= cf $@
-LINTFLAGS.java	= -o $@
-DOCFLAGS.java	= -author -d $(DOCDIR)
+ARFLAGS.java	= cf 
+LINTFLAGS.java	= 
+DOCFLAGS.java	= 
 
-$(OBJDIR)/%.class: $(SRCDIR)/%.java
-	@echo	$(CFLAGS) $(CFLAGS.java) $(CFLAGS.java.$(ARCH)) > $@.cflags ;
-	$(COMPILE.java.$(ARCH))	@$@.cflags $<
-
-$(OBJDIR)/%.i	: $(SRCDIR)/%.java
-	echo no preprocessor defined for Java
-
-$(OBJDIR)/%.ln	: $(SRCDIR)/%.java
-	@echo $(LINTFLAGS) $(LINTFLAGS.java) $(LINTFLAGS.java.$(ARCH)) > $@.lintflags ;
-	$(LINT.java.$(ARCH)) @$@.lintflags $<
-
-$(DOCDIR)/%.html: $(SRCDIR)/%.java
-	@echo $(DOCFLAGS) $(DOCFLAGS.java) $(DOCFLAGS.java.$(ARCH)) > $@.docflags ;
-	$(DOC.java.$(ARCH)) @$@.docflags $<
-
+## Define recipes in $(XMTBUILD)/proto/lang/$(LANGUAGE)/$(ARCH)
+## after variables are further defined there 

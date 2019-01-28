@@ -1,0 +1,48 @@
+#************************************************************************
+#   Package	: libxhist
+#   $Version:$
+#    Copyright 2018 Visionary Research Inc.   All rights reserved.
+#*   			legal@visionary-research.com
+#*   Licensed under the Apache License, Version 2.0 (the "License");
+#*   you may not use this file except in compliance with the License.
+#*   You may obtain a copy of the License at http://www.apache.org/licenses/LICENSE-2.0
+#*   
+#*   Unless required by applicable law or agreed to in writing, software
+#*   distributed under the License is distributed on an "AS IS" BASIS,
+#*   WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+#*   See the License for the specific language governing permissions and
+#*   limitations under the License. 
+#
+#   Synopsis	: included automatically by $(XMTBUILD)/proto/Makefile.top
+#   Purpose	: Customize make environment for the current package.
+#************************************************************************
+
+PKG_NM		= Xhist
+ARCH		= linux_x86
+BUILD_TGT	= exe
+CFLAGS.c	+= -I$(XMT)/xmt_xhist/libxhist/src -g -DXHIST
+CFLAGS.java	+= -cp .:$(OBJDIR):$(XMTXHIST)/libxhist/tgt/$(ARCH)/Xhist.jar
+LIBS.c		= $(XMT)/xmt_xhist/libxhist/tgt/$(ARCH)/libXhist.a 
+
+java:	
+	$(MAKE) LANGUAGE=java JAVA_PKGROOT=. \
+	EXTRA_OBJS='Hello$$$$1.class' PKG_NM=Hello EXE_NM=Hello  exe
+
+c:	
+	$(MAKE) LANGUAGE=c PKG_NM=Xhist EXE_NM=hello LIBS=$(LIBS.c) exe
+
+
+# instrument sources for xhist:
+#  cd to $(DATADIR) (where the uninstrumented src resides)
+#  write instrumented sources to $(SRCDIR) for compilation
+#  write xhist_map file to $(TESTDIR) directory 
+instrument:
+	(cd $(DATADIR) ;				\
+	for x in c java ; do				\
+	    m=$(CURDIR)/$(TESTDIR)/Hello.$${x}.xmap; 	\
+	    for f in *.$$x ; do				\
+		$(XMTCM)/bin/git_filter --expand=. --xhist=. --xhist_map=$$m $$f  \
+				> $(SRCDIR)/$$f ;	\
+	    done					\
+	done)
+

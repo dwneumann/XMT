@@ -32,9 +32,9 @@ setenv PATH	"$XMTBUILD/bin:${PATH}"
 # eg:	setenv XMTBUILD_SUPP_ARCHS "SunOS-5.6-sparc SunOS-5.6-i386"
 #	setenv XMTBUILD_DFLT_ARCH "SunOS-5.6-sparc"
 #************************************************************************
-setenv	XMTBUILD_SUPP_ARCHS	"STM32F4 STM32L4 AX8052 linux_x86"
+setenv	XMTBUILD_SUPP_ARCHS	"STM32F4 STM32L4 AX8052 linux_x86 cygwin"
 if (! $?XMTBUILD_DFLT_ARCH) then
-    setenv	XMTBUILD_DFLT_ARCH	STM32L4
+    setenv	XMTBUILD_DFLT_ARCH	linux_x86
 endif
 
 #************************************************************************

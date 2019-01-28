@@ -33,11 +33,9 @@ package $pkgname;
 /**
  * The ${classname} class defines [short description].
  * <p>
- * Package:	$pkgname
- * Class:	${classname}
- * \@version	$cm->{rev}
  * [full description]
  * <p>
+ * \@version	$cm->{rev}
  */
 public	class		${classname}
 	//extends	<superclass>

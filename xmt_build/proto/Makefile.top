@@ -33,10 +33,13 @@
 #**********************************************************************
 # lower-case variables are for internal use only;
 # these not intended to be user-changable...
+#   := assignements are evaluated during lexical scan;
+#    = assignemtns are recursively evaluated during rule parsing
 #**********************************************************************
-shell		= /bin/sh
+shell		= /bin/bash
+SHELL		= $(shell)
 pkg_dir		= $(shell cd ..;pwd)
-supp_langs	:= $(notdir $(wildcard $(XMTBUILD)/proto/lang/*))
+supp_langs	= $(notdir $(wildcard $(XMTBUILD)/proto/lang/*))
 allsrcs		= $(sort $(foreach e,$(supp_langs),$(srcs.$(e))))
 
 #**********************************************************************
@@ -46,19 +49,20 @@ allsrcs		= $(sort $(foreach e,$(supp_langs),$(srcs.$(e))))
 #**********************************************************************
 MAKE		= make
 MAKEDEPEND	= makedepend
-SRCDIR		= .
+ARCH		= $(XMTBUILD_DFLT_ARCH)
+SRCDIR		= ../src
 TESTDIR		= ../test
 DOCDIR		= ../doc
-DATADIR		= ../src
-OBJDIR		= ../obj/$(ARCH)
-TGTDIR		= ../tgt/$(ARCH)
+DATADIR		= ../data
 CMSOURCES	= co -u SVN/*
 CMCLEAN		= svn update -P -d *
+JAVA_PKGTREE	= .
 PKG_NM		= $(notdir $(pkg_dir))
 PKG_TGT         = lib
+OBJDIR		= ../obj/$(ARCH)
+TGTDIR		= ../tgt/$(ARCH)
 LIB_NM          = $(LIB_PFX.$(LANGUAGE).$(ARCH))$(PKG_NM)$(LIB_SFX.$(LANGUAGE).$(ARCH))
 EXE_NM          = $(EXE_PFX.$(LANGUAGE).$(ARCH))$(PKG_NM)$(EXE_SFX.$(LANGUAGE).$(ARCH))
-ARCH		= $(XMTBUILD_DFLT_ARCH)
 LANGUAGE	= c
 BUILD_TGT	= all
 .DEFAULT	= build
@@ -75,21 +79,18 @@ DOCFLAGS	=
 
 #**********************************************************************
 # Now include:
-# language & architecture-specific Makefiles,
-# project-level Makefile,
+# language & architecture-specific Makefiles:
+# project-level Makefile, then
 # package-level ./Makefile.pkg
+# recursive variables are evaluated when a matching recipe is found.
 #**********************************************************************
--include ./Makefile.pkg
+
+-include ./Makefile.pkg	
 -include $(PROJECT)/proto/Makefile.top
 -include $(XMTBUILD)/proto/lang/$(LANGUAGE)/generic.inc
 -include $(XMTBUILD)/proto/lang/$(LANGUAGE)/$(ARCH).inc
 
-#**********************************************************************
-# "all" is a convenience target. Change it to make whatever targets
-# you want it to make.
-#**********************************************************************
 all: $(PKG_TGT)
-
 depend: 
 	(cd $(SRCDIR); \
 	$(MAKEDEPEND) -Y -p$(TGTDIR)/ -o.$(LANGUAGE).$(OBJ_SFX.$(LANGUAGE).$(ARCH)) -- \
@@ -98,37 +99,23 @@ depend:
 	>/dev/null 2>&1 )
 
 clean:
-	$(RM) $(OBJDIR)/* $(TGTDIR)/*
+	-/bin/rm $(OBJDIR)/* $(TGTDIR)/*
 
 sources:	
 	(cd $(SRCDIR); $(CMSOURCES))
 
 lint:	$(lnts.$(LANGUAGE))
-
 doc:	$(docs.$(LANGUAGE))
-
 objs: $(objs.$(LANGUAGE)) $(EXTRA_OBJS)
+lib:	.lib.$(LANGUAGE)
+exe:	.exe.$(LANGUAGE)
 
-lib:	$(TGTDIR)/$(LIB_NM)
-$(LIB_NM): $(TGTDIR)/$(LIB_NM)
-$(TGTDIR)/$(LIB_NM): $(objs.$(LANGUAGE)) $(EXTRA_OBJS)
-	@echo 	$(AR.$(LANGUAGE).$(ARCH)) $(ARFLAGS) $(ARFLAGS.$(LANGUAGE))	\
-		$(ARFLAGS.$(LANGUAGE).$(ARCH)) > $@.arflags;
-	$(AR.$(LANGUAGE).$(ARCH)) @$@.arflags $@ $^ 	
-
-pgm:	exe
-exe:	$(TGTDIR)/$(EXE_NM)
-$(EXE_NM): $(TGTDIR)/$(EXE_NM)
-$(TGTDIR)/$(EXE_NM): $(objs.$(LANGUAGE)) $(EXTRA_OBJS) 
-	@echo $(LDFLAGS) $(LDFLAGS.$(LANGUAGE)) $(LDFLAGS.$(LANGUAGE).$(ARCH)) > $@.ldflags;
-	$(LD.$(LANGUAGE).$(ARCH)) @$@.ldflags $^ \
-	    $(LIBS) $(LIBS.$(LANGUAGE)) $(LIBS.$(LANGUAGE).$(ARCH)) 
 
 ifneq "$(tgtdir)" "$(srcdir)"
-$(tgtdir)/%	: $(srcdir)/%	; /bin/mv $< $@
+$(tgtdir)/%	:: $(srcdir)/%	; /bin/mv $< $@
 endif
 ifneq "$(docdir)" "$(srcdir)"
-$(docdir)/%	: $(srcdir)/%	; /bin/mv $< $@
+$(docdir)/%	:: $(srcdir)/%	; /bin/mv $< $@
 endif
 
 #**********************************************************************

@@ -33,11 +33,12 @@ if ( $?prompt ) then
     source $XMT/xmt_edit/proto/cshrc 
     source $XMT/xmt_build/proto/cshrc 
     source $XMT/xmt_cm/proto/cshrc
+    source $XMT/xmt_xhist/proto/cshrc
+    source $XMT/xmt_xtest/proto/cshrc
    # source $XMT/xmt_doc/proto/cshrc
    # source $XMT/xmt_defect/proto/cshrc
    # source $XMT/xmt_metrics/proto/cshrc
    # source $XMT/xmt_timesht/proto/cshrc
-   # source $XMT/xmt_xhist/proto/cshrc
 
     #********************************************************************
     # remove duplicate entries from PATH & MANPATH

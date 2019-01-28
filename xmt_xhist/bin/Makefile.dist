@@ -1,9 +1,0 @@
-
-include Makefile
-
-fulldist: 
-	$(MAKE) distdir;
-	$(mkinstalldirs) $(DISTDIRS);
-	tar chf - $(distdir) | gzip -c >$(distdir).tar.gz
-	$(am__remove_distdir)
-

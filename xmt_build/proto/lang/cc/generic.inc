@@ -24,6 +24,7 @@
 #*  limitations under the License. 
 #************************************************************************
 
+
 srcs.cc	= $(wildcard $(SRCDIR)/*.cc)
 hdrs.cc	= $(wildcard $(SRCDIR)/*.h)
 objs.cc	= $(patsubst $(SRCDIR)/%.cc,$(OBJDIR)/%.o,$(srcs.cc))
@@ -61,27 +62,5 @@ LDFLAGS.cc	+= -o $@
 LINTFLAGS.cc	+= $(CFLAGS.cc)
 DOCFLAGS.cc	+= -o $@
 
-$(OBJDIR)/%.o	: %.S
-	@echo $(CFLAGS) $(CFLAGS.cc) $(CFLAGS.cc.$(ARCH)) > $@/ccflags ;
-	$(COMPILE.cc.$(ARCH)) @$@.ccflags $<
-
-$(OBJDIR)/%.o	: %.s
-	@echo $(CFLAGS) $(CFLAGS.cc) $(CFLAGS.cc.$(ARCH)) > $@/ccflags ;
-	$(COMPILE.cc.$(ARCH)) @$@.ccflags $<
-
-$(OBJDIR)/%.o	: %.cc
-	@echo $(CFLAGS) $(CFLAGS.cc) $(CFLAGS.cc.$(ARCH)) > $@/ccflags ;
-	$(COMPILE.cc.$(ARCH)) @$@.ccflags $<
-
-$(OBJDIR)/%.i	: /%.cc
-	@echo -E $(CFLAGS) $(CFLAGS.cc) $(CFLAGS.cc.$(ARCH)) > $@/ccflags ;
-	$(COMPILE.cc.$(ARCH)) @$@.ccflags $<
-
-$(OBJDIR)/%.ln	: %.cc
-	@echo $(LINTFLAGS) $(LINTFLAGS.cc) $(LINTFLAGS.cc.$(ARCH)) > $@/lintflags ;
-	$(LINT.cc.$(ARCH)) @$@.lintflags $<
-
-$(DOCDIR)/%.html: $(SRCDIR)/%.cc
-	@echo $(DOCFLAGS) $(DOCFLAGS.cc) $(DOCFLAGS.cc.$(ARCH)) > $@/docflags ;
-	$(DOC.cc.$(ARCH)) @$@.docflags $<
-
+## Define recipes in $(XMTBUILD)/proto/lang/$(LANGUAGE)/$(ARCH)
+## after variables are further defined there 

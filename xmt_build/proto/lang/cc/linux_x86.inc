@@ -24,12 +24,13 @@
 #*  limitations under the License. 
 #************************************************************************
 
+
 #**********************************************************************
 # define program paths...
 #**********************************************************************
-COMPILE.cc.linux_x86	:= /bin/g++
+COMPILE.cc.linux_x86	:= g++
 LD.cc.linux_x86		:= $(COMPILE.cc.linux_x86)
-AR.cc.linux_x86		:= /bin/ar
+AR.cc.linux_x86		:= ar
 LINT.cc.linux_x86	:= echo /usr/ucb/lint not installed
 DOC.cc.linux_x86	:= $(XMTBUILD)/bin/srcdoc 
 #**********************************************************************
@@ -45,3 +46,44 @@ LIB_PFX.cc.linux_x86	= lib
 LIB_SFX.cc.linux_x86	= .a
 EXE_PFX.cc.linux_x86	= 
 EXE_SFX.cc.linux_x86	= 
+
+
+
+$(OBJDIR)/%.o	: %.S
+	@echo $(CFLAGS) $(CFLAGS.c) $(CFLAGS.c.$(ARCH)) > $@.cflags ; 
+	$(COMPILE.c.$(ARCH)) @$@.cflags $< 
+
+$(OBJDIR)/%.o	: %.s
+	@echo $(CFLAGS) $(CFLAGS.c) $(CFLAGS.c.$(ARCH)) > $@.cflags ; 
+	$(COMPILE.c.$(ARCH)) @$@.cflags $< 
+
+$(OBJDIR)/%.o	: %.c
+	@echo $(CFLAGS) $(CFLAGS.c) $(CFLAGS.c.$(ARCH)) > $@.cflags ; 
+	$(COMPILE.c.$(ARCH)) @$@.cflags $< 
+
+$(OBJDIR)/%.i	: /%.c
+	@echo -E $(CFLAGS) $(CFLAGS.c) $(CFLAGS.c.$(ARCH)) > $@.cflags ; 
+	$(COMPILE.c.$(ARCH)) @$@.cflags $< 
+
+$(OBJDIR)/%.ln	: %.c
+	@echo $(LINTFLAGS) $(LINTFLAGS.c) $(LINTFLAGS.c.$(ARCH)) > $@.lintflags ; 
+	$(LINT.c.$(ARCH)) @$@.lintflags $< 
+
+$(DOCDIR)/%.html: $(SRCDIR)/%.c
+	@echo $(DOCFLAGS) $(DOCFLAGS.c) $(DOCFLAGS.c.$(ARCH)) > $@.docflags ; 
+	$(DOC.c.$(ARCH)) @$@.docflags $< 
+
+.lib.$(LANGUAGE):	$(TGTDIR)/$(LIB_NM)
+$(LIB_NM): $(TGTDIR)/$(LIB_NM)
+$(TGTDIR)/$(LIB_NM): $(objs.$(LANGUAGE)) $(EXTRA_OBJS)
+	@echo 	$(ARFLAGS) $(ARFLAGS.$(LANGUAGE)) $(ARFLAGS.$(LANGUAGE).$(ARCH)) > $@.arflags;
+	$(AR.$(LANGUAGE).$(ARCH)) @$@.arflags $@ $^ 	
+
+.exe.$(LANGUAGE):	$(TGTDIR)/$(EXE_NM)
+$(EXE_NM): $(TGTDIR)/$(EXE_NM)
+$(TGTDIR)/$(EXE_NM): $(objs.$(LANGUAGE)) $(EXTRA_OBJS) 
+	@echo $(LDFLAGS) $(LDFLAGS.$(LANGUAGE)) $(LDFLAGS.$(LANGUAGE).$(ARCH)) > $@.ldflags;
+	$(LD.$(LANGUAGE).$(ARCH)) @$@.ldflags $^ \
+	    $(LIBS) $(LIBS.$(LANGUAGE)) $(LIBS.$(LANGUAGE).$(ARCH)) 
+
+

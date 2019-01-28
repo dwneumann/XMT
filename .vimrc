@@ -28,7 +28,8 @@ set magic
 " shell escapes should run bash open in the working directory
 " Without --login, Cygwin won't mount some directories such as /usr/bin/
 " # this works for both console vim & gvim, with or without named file
-set shell=C:/cygwin/bin/bash.exe
+"set shell=C:/cygwin32/bin/bash.exe
+set shell=/bin/bash
 set shellcmdflag=-c\ 
 set noshelltemp
 set shellslash
@@ -41,11 +42,11 @@ set guicursor=n-v-c:block-blinkon400-blinkoff400-CursorColor
 set guicursor+=i-r:ver25-blinkon400-blinkoff400-iCursorColor
 if &term =~ "xterm"
   " insert mode ...
-  let &t_SI = "\<Esc>]12;DarkCyan\x7"
-  let &t_SI .= "\<Esc>[5 q"
+"  let &t_SI = "\<Esc>]12;DarkCyan\x7"
+"  let &t_SI .= "\<Esc>[5 q"
   " normal mode ...
-  let &t_EI = "\<Esc>]12;DarkCyan\x7"
-  let &t_EI .= "\<Esc>[1 q"
+"  let &t_EI = "\<Esc>]12;DarkCyan\x7"
+"  let &t_EI .= "\<Esc>[1 q"
   silent !echo -ne "\033]12;DarkCyan\007"
   " reset cursor when vim exits
   autocmd VimLeave * silent !echo -ne "\033]112\007"

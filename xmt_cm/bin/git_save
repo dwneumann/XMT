@@ -1,0 +1,168 @@
+#!/bin/perl -w
+#************************************************************************
+#   $Version:$
+#   Package	: xmt_cm
+#   Purpose	: long-running gt filter saves stdin to file
+#
+#
+#  Copyright 2018 Visionary Research Inc.   All rights reserved.
+#  			legal@visionary-research.com
+#  Licensed under the Apache License, Version 2.0 (the "License");
+#  you may not use this file except in compliance with the License.
+#  You may obtain a copy of the License at http://www.apache.org/licenses/LICENSE-2.0
+#  
+#  Unless required by applicable law or agreed to in writing, software
+#  distributed under the License is distributed on an "AS IS" BASIS,
+#  WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+#  See the License for the specific language governing permissions and
+#  limitations under the License. 
+#************************************************************************
+
+use strict;
+use Path::Tiny qw(path);
+
+open( LOG, ">$ARGV[0]" ) or  die "$ARGV[0]: $!\n";
+binmode LOG;
+process_main();
+close LOG;
+exit 0;  # we're done.
+
+#************************************************************************
+# the following code implementing the git filter protocol v2, is adapted from 
+# https://github.com/git/git/blob/master/contrib/long-running-filter/example.pl
+# See Documentation/gitattributes.txt, section "Filter Protocol"
+# Credit to the authors.
+#************************************************************************
+
+sub process_main
+{
+    my $MAX_PACKET_CONTENT_SIZE = 65516;
+    my ($rc, $str);
+    my ($inbuf, $outbuf, $buffer, $done);
+    my ($command, $pathname, $packet);
+
+    # receive handshake
+    ($rc, $str) = packet_read(); chomp($str);
+    die "error: expected 'git-filter-client', got $str" if ( $rc != 0 || $str ne "git-filter-client" );
+
+    ($rc, $str) = packet_read(); chomp($str);
+    die "error: expected 'version=2', got $str"	if ( $rc != 0 || $str ne "version=2" );         
+
+    while ( (($rc, $str) = packet_read()) && $rc == 0 ) { ; }	# ignore additional versions
+
+    # send response
+    packet_txt_write("git-filter-server");
+    packet_txt_write("version=2");
+    packet_flush();
+
+    #  receive capabilities
+    ($rc, $str) = packet_read(); chomp($str);
+    die "error: expected 'capability=clean', got $str"	if ( $rc != 0 || $str ne "capability=clean" );         
+    ($rc, $str) = packet_read(); chomp($str);
+    die "error: expected 'capability=smudge', got $str"	if ( $rc != 0 || $str ne "capability=smudge" );         
+    while ( (($rc, $str) = packet_read()) && $rc == 0 ) { ; }	# ignore additional capabilities
+
+    # send response
+    packet_txt_write("capability=clean");
+    packet_txt_write("capability=smudge");
+    packet_flush();
+
+    # receive command & data; save data & send response
+    while (1) 
+    {
+	($rc, $command)  = packet_read();
+	$command  =~ /^command=(.+)\n$/;
+	($rc, $pathname) = packet_read();
+	$pathname =~ /^pathname=(.+)\n$/;
+	die "bad pathname '$pathname'" if ( $pathname eq "" );
+
+	packet_read();	# "flush" packet 0000 follows command
+
+	$inbuf = "";
+	{
+	    binmode(STDIN);
+	    my $done = 0;
+	    while ( !$done ) 
+	    {
+		($done, $buffer) = packet_read();
+		$inbuf .= $buffer;
+	    }
+	}
+
+	packet_txt_write("status=success");
+	packet_flush();
+	while ( length($inbuf) > 0 ) 
+	{
+	    $packet = substr( $inbuf, 0, $MAX_PACKET_CONTENT_SIZE );
+	    packet_bin_write($packet);
+	    if ( length($inbuf) > $MAX_PACKET_CONTENT_SIZE ) 
+	    {
+		$inbuf = substr( $inbuf, $MAX_PACKET_CONTENT_SIZE );
+	    }
+	    else 
+	    {
+		$inbuf = "";
+	    }
+	}
+	packet_flush();    # flush content
+	packet_flush();    # empty list, keep "status=success" unchanged
+    }
+}
+
+sub packet_read 
+{
+    my $buffer;
+    my $bytes_read = read STDIN, $buffer, 4;
+    if ( $bytes_read == 0 ) 
+    {
+	# EOF - Git stopped talking to us!
+	exit();
+    }
+    elsif ( $bytes_read != 4 ) 
+    {
+	die "invalid packet: '$buffer'";
+    }
+
+    #my $packed = pack 'a*', $buffer;
+    print LOG $buffer;
+
+    my $pkt_size = hex($buffer);
+    if ( $pkt_size == 0 ) 
+    {
+	return ( 1, "" );
+    }
+    elsif ( $pkt_size > 4 ) 
+    {
+	my $content_size = $pkt_size - 4;
+	$bytes_read = read STDIN, $buffer, $content_size;
+	print LOG $buffer;
+	if ( $bytes_read != $content_size ) 
+	{
+	    die "invalid packet ($content_size bytes expected; $bytes_read bytes read)";
+	}
+	return ( 0, $buffer );
+    }
+    else 
+    {
+	die "invalid packet size: $pkt_size";
+    }
+}
+
+sub packet_bin_write 
+{
+    my $buf = shift;
+    print STDOUT sprintf( "%04x", length($buf) + 4 );
+    print STDOUT $buf;
+    STDOUT->flush();
+}
+
+sub packet_txt_write 
+{
+    packet_bin_write( $_[0] . "\n" );
+}
+
+sub packet_flush 
+{
+    print STDOUT sprintf( "%04x", 0 );
+    STDOUT->flush();
+}

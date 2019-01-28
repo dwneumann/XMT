@@ -1,0 +1,15 @@
+
+# precondition:  iut is stopped in intermediate state
+# set breakpoint, run to there, force try block to throw exception
+# postcondition: iut is stopped in intermediate state
+
+
+{ SEND( "stop at Packet:123\n" );	}	
+{ EXPECT( "Set breakpoint" );		}
+
+{ SEND( "cont\n" );			}	
+{ EXPECT( "Breakpoint hit.* line=123" );}
+
+{ SEND( "set forceException = true\n" );}
+{ EXPECT( "forceException = true" );	}
+

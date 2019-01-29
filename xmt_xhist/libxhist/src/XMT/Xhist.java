@@ -58,12 +58,13 @@
  *    limitations under the License. 
  */
 
+/* xhist instrument FALSE */	/* do not instrument this file.  ever. */
 package XMT;
 import java.io.*;
 import java.lang.Runtime;
 import java.io.DataOutputStream;
 import java.io.FileOutputStream;
-import java.lang.ProcessHandle;
+/* import java.lang.ProcessHandle;  not available in jdk-8 */
 
 public	class		Xhist 
 { 
@@ -98,8 +99,11 @@ public	class		Xhist
     
 	try 
 	{
+	    /* ProcessHandle not available in jdk-8
 	    fd = new DataOutputStream(new FileOutputStream(
 		logNm + '.' + ProcessHandle.current().pid() + ".xhist")); 
+	    */
+	    fd = new DataOutputStream(new FileOutputStream( logNm + ".xhist")); 
 	    Xhist.logdev(fd);
 	    Xhist.mapfile(mapFn);
 	    Xhist.version(version);
@@ -186,4 +190,5 @@ public	class		Xhist
 	}
     }
 }
+
 

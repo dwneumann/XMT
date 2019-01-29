@@ -8,6 +8,7 @@
 *  All Rights reserved.	legal.info@neumann-associates.com
 *************************************************************************/
 
+/* xhist instrument FALSE */	/* do not instrument this file.  ever. */
 #ifndef __xhist_h
 #define __xhist_h
 

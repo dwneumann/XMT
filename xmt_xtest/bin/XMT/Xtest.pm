@@ -49,7 +49,7 @@ sub new
     my $self = {};
 
     $self->{srcfn}	= $opts->{fname}  	if defined $opts->{fname};
-    $self->{srcbuf}	= $opts->{srcbuf} 	if defined $opts->{srcbuf};
+    $self->{srcbuf}	= $opts->{srcbuf} ? $opts->{srcbuf} : "";
     $self->{iut}	= $opts->{iut} 		if defined $opts->{iut};
     $self->{testfile}	= $opts->{test} 	if defined $opts->{test};
     $self->{verbose}	= (defined $opts->{verbose} ? 1 : 0);

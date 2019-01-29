@@ -91,7 +91,7 @@ use XMT::Xtest;
 use Getopt::Long;
 use Path::Tiny qw(path);
 
-(my $pgmname = $0) =~ s{.*/}{};	# rootname of executed script
+(local $pgmname = $0) =~ s{.*/}{};	# rootname of executed script
 
 # construct the help message
 my $help_msg = sprintf( <<__END__, join("\n                ", keys(%XMT::Xkeyword::kw)) );
@@ -184,7 +184,7 @@ sub standalone_main
     }
     my $is_ascii = ! ($opt{srcbuf} =~ /[[:^ascii:]]/);	# check for non-ascii chars
 
-    printf(STDERR "processing %s\n", $opt{fname}) if defined $opt{verbose};
+    printf(STDERR "%s: processing %s\n", $pgmname, $opt{fname}) if defined $opt{verbose};
 
     ## perform substitutions & write the output.
     if ($is_ascii || defined $opt{'binary'})

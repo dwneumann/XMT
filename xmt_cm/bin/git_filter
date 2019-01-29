@@ -91,11 +91,11 @@ use XMT::Xtest;
 use Getopt::Long;
 use Path::Tiny qw(path);
 
-(local $pgmname = $0) =~ s{.*/}{};	# rootname of executed script
+($::pgmname = $0) =~ s{.*/}{};	# rootname of executed script
 
 # construct the help message
 my $help_msg = sprintf( <<__END__, join("\n                ", keys(%XMT::Xkeyword::kw)) );
-$pgmname [<options>] [file]
+$::pgmname [<options>] [file]
   --list        print all recognized keyword values to stdout
   --list [keyword,keyword, ...]  print specified keyword values to stdout
                 Recognized keywords include: 
@@ -147,7 +147,7 @@ if (defined $opt{'list'})
 
 if (defined $opt{'debug'})
 {
-    my $f = "/tmp/$pgmname.log";
+    my $f = "/tmp/$::pgmname.log";
     open( LOG, ">$f" ) or  die "$f: $!\n";
 }
 
@@ -184,7 +184,7 @@ sub standalone_main
     }
     my $is_ascii = ! ($opt{srcbuf} =~ /[[:^ascii:]]/);	# check for non-ascii chars
 
-    printf(STDERR "%s: processing %s\n", $pgmname, $opt{fname}) if defined $opt{verbose};
+    printf(STDERR "%s: processing %s\n", $::pgmname, $opt{fname}) if defined $opt{verbose};
 
     ## perform substitutions & write the output.
     if ($is_ascii || defined $opt{'binary'})

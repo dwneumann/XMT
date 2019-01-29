@@ -45,8 +45,8 @@
 #	 --unexpand	unexpand (i.e. clean) all keyword values found in stdin, 
 #			and write cleaned data stream to stdout.
 #   	 --list		print expanded keyword values to stdout; do no substitution.
-#   	 --verbose	list keyword labels with their expanded values to stdout.
-#	 --binary      force substitutions in binary files; 
+#   	 --verbose	list keyword labels & filenames to stdout.
+#	 --binary       force substitutions in binary files; 
 #			by defualt substitution only occurs in ascii files.
 #	 --process      operate as a git long running process using Git filter protocol v2.
 #	 --fname=<pathspec>	read contents of file from STDIN but use <pathspec>
@@ -91,16 +91,16 @@ use XMT::Xtest;
 use Getopt::Long;
 use Path::Tiny qw(path);
 
-(my $pgmname = $0) =~ s{.*/}{};	# rootname of executed script
+($::pgmname = $0) =~ s{.*/}{};	# rootname of executed script
 
 # construct the help message
 my $help_msg = sprintf( <<__END__, join("\n                ", keys(%XMT::Xkeyword::kw)) );
-$pgmname [<options>] [file]
+$::pgmname [<options>] [file]
   --list        print all recognized keyword values to stdout
   --list [keyword,keyword, ...]  print specified keyword values to stdout
                 Recognized keywords include: 
                 %s
-  --verbose     list keyword labels with their expanded values to stdout
+  --verbose     list keyword labels and filenames processed
   --expand=<branchspec> only if in a branch matching regex pattern <branchspec>,
                 expand (i.e. smudge) all keywords of the form \$Keyword:\$ 
                 found in stdin and write substituted data stream to stdout.
@@ -147,7 +147,7 @@ if (defined $opt{'list'})
 
 if (defined $opt{'debug'})
 {
-    my $f = "/tmp/$pgmname.log";
+    my $f = "/tmp/$::pgmname.log";
     open( LOG, ">$f" ) or  die "$f: $!\n";
 }
 
@@ -183,6 +183,8 @@ sub standalone_main
 	$opt{srcbuf} = do { local $/ = undef; <STDIN> };	# slurp stdin
     }
     my $is_ascii = ! ($opt{srcbuf} =~ /[[:^ascii:]]/);	# check for non-ascii chars
+
+    printf(STDERR "%s: processing %s\n", $::pgmname, $opt{fname}) if defined $opt{verbose};
 
     ## perform substitutions & write the output.
     if ($is_ascii || defined $opt{'binary'})

@@ -58,7 +58,7 @@ sub new
     my $self = {};
 
     $self->{srcfn}	= $opts->{fname}  if defined $opts->{fname};
-    $self->{srcbuf}	= $opts->{srcbuf} if defined $opts->{srcbuf};
+    $self->{srcbuf}	= $opts->{srcbuf} ? $opts->{srcbuf} : "";
     $self->{verbose}	= $opts->{verbose} if defined $opts->{verbose};
     $self->{binary}	= (defined $opts->{binary} ? 1 : 0);		# do binary files?
     if (defined $opts->{list}) 						# list values only?

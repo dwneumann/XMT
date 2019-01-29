@@ -208,7 +208,7 @@ sub new
     my $self = {};
 
     $self->{srcfn}	= $opts->{fname}  or carp "input filename undefined" & return undef;
-    $self->{srcbuf}	= $opts->{srcbuf} or carp "input stream undefined"   & return undef;
+    $self->{srcbuf}	= $opts->{srcbuf} ? $opts->{srcbuf} : "";
     $self->{mapfn}	= $opts->{map} if (defined $opts->{map} || defined $opts->{xhist_map});
     $self->{fext}	= (defined($self->{srcfn}) ?
     			lc $self->{srcfn} =~ s/.*\.(.*?)$/$1/r : "c");
@@ -345,6 +345,7 @@ sub instrument
 	if ( /$regex/ )
 	{
 	    shift @indent_fifo;		# pop indent off of stack
+	    unshift @indent_fifo, "" if ! @indent_fifo; # handle func_end without func_start
 	    $tokens->{$self->{fext}}{indent} = $indent_fifo[0];	
 	    $in_func--; 
 	    $self->{srcbuf} .= $_ . ($xh_debug ? "\t$startmk <FUNC END> $endmk" : '') . "\n"; 

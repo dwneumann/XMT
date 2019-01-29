@@ -1,4 +1,4 @@
-#!/usr/local/bin/perl -w
+#!/usr/bin/env perl
 #************************************************************************
 #*   $Version:$
 #*   Package	: xmt_cm

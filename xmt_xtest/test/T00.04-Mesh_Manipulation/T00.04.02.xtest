@@ -10,13 +10,13 @@
 { EXPECT( "Breakpoint hit:" );		}
 
 {
-    my $line = XMT::Xtest::resolve("Mesh.java", '@TestPoint_116') + 1;
+    my $line = XMT::Xtest::resolve('Mesh.java', '@TestPoint_116') + 1;
     SEND( "stop at Mesh:$line\n" );
 }
 { EXPECT( "Set breakpoint" );		}
 
 { SEND( "cont\n" );			}	
-{ EXPECT( "Breakpoint hit.* line=116" );	}
+{ EXPECT( "Breakpoint hit" );		}
 
 #{ SEND( "set dfltPktsToSend = 2\n" );	}	
 #{ EXPECT( "dfltPktsToSend = 2" );	}	

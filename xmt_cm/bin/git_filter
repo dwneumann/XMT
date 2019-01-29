@@ -45,8 +45,8 @@
 #	 --unexpand	unexpand (i.e. clean) all keyword values found in stdin, 
 #			and write cleaned data stream to stdout.
 #   	 --list		print expanded keyword values to stdout; do no substitution.
-#   	 --verbose	list keyword labels with their expanded values to stdout.
-#	 --binary      force substitutions in binary files; 
+#   	 --verbose	list keyword labels & filenames to stdout.
+#	 --binary       force substitutions in binary files; 
 #			by defualt substitution only occurs in ascii files.
 #	 --process      operate as a git long running process using Git filter protocol v2.
 #	 --fname=<pathspec>	read contents of file from STDIN but use <pathspec>
@@ -100,7 +100,7 @@ $pgmname [<options>] [file]
   --list [keyword,keyword, ...]  print specified keyword values to stdout
                 Recognized keywords include: 
                 %s
-  --verbose     list keyword labels with their expanded values to stdout
+  --verbose     list keyword labels and filenames processed
   --expand=<branchspec> only if in a branch matching regex pattern <branchspec>,
                 expand (i.e. smudge) all keywords of the form \$Keyword:\$ 
                 found in stdin and write substituted data stream to stdout.
@@ -183,6 +183,8 @@ sub standalone_main
 	$opt{srcbuf} = do { local $/ = undef; <STDIN> };	# slurp stdin
     }
     my $is_ascii = ! ($opt{srcbuf} =~ /[[:^ascii:]]/);	# check for non-ascii chars
+
+    printf(STDERR "processing %s\n", $opt{fname}) if defined $opt{verbose};
 
     ## perform substitutions & write the output.
     if ($is_ascii || defined $opt{'binary'})

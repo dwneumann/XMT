@@ -36,4 +36,3 @@ extern  void	xhist_version(char *s);		/* store version tag of instrumented sourc
 extern  void	xhist_write();
 
 #endif /* __xhist_h	*/
-

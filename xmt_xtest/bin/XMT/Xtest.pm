@@ -48,14 +48,19 @@ sub new
     my ($opts) = @_;
     my $self = {};
 
-    $self->{srcfn}	= $opts->{fname}  or carp "input filename undefined" & return undef;
-    $self->{srcbuf}	= $opts->{srcbuf} or carp "input stream undefined"   & return undef;
+    $self->{srcfn}	= $opts->{fname}  	if defined $opts->{fname};
+    $self->{srcbuf}	= $opts->{srcbuf} 	if defined $opts->{srcbuf};
     $self->{iut}	= $opts->{iut} 		if defined $opts->{iut};
     $self->{testfile}	= $opts->{test} 	if defined $opts->{test};
     $self->{verbose}	= (defined $opts->{verbose} ? 1 : 0);
-    $self->{testfile}	= undef;
-    $self->{iut}	= undef;
     $self->{exp} 	= undef;
+
+    # set SOURCEPATH environment variabnle from iut cmd if possible
+    if ( defined $opts->{iut} && $opts->{iut} =~ m:-sourcepath\s+(\S+): )
+    {
+	$ENV{SOURCEPATH} = $1	if !defined $ENV{SOURCEPATH};
+    }
+
     bless $self;
     return $self;
 }
@@ -75,6 +80,7 @@ sub loadtest
     my $self = shift;		
 
     # parse the test file or die trying
+    carp "testfile undefined" && return undef if !defined $self->{testfile};
     push @{$self->{cmds}}, _parsetestfile($self->{testfile}) or return undef;
 
     # instantiate an Expect session and prepare it for run
@@ -97,41 +103,42 @@ sub runtest
     my $self = shift;		# visible inside eval blocks
     local @nested_cmds; 	# visible inside eval blocks
 
+
     # test file has been parsed into a sequence of blocks to be eval'd.
     # now iterate through the sequence & execute them.
     local ($fn, $seqnum, $buf);	#local copies ...
     while ($s = shift @{$self->{cmds}})
     {
-	($fn, $seqnum, $buf)	= ($s->{fn}, $s->{seqnum},  $s->{srcbuf});
+	($fn, $seqnum, $buf)	= ($s->{fn}, $s->{seqnum},  $s->{buf});
 	$fn =~ s:(.*/)([^/]*$):$2:;	# for verbose messages chop long filepaths.
 
 	# strip comments; if there's nothing left, go on to the next block.
-	$s->{srcbuf} =~ s/#.*$//mg;
-	next if ( $s->{srcbuf} =~ m/^[\s\n]*$/ );
+	$s->{buf} =~ s/#.*$//mg;
+	next if ( $s->{buf} =~ m/^[\s\n]*$/ );
 
 	# if buf looks like an include stmt, parse nested file & add to cmd sequence
-	if ( $s->{srcbuf} =~ m:INCLUDE\s*\(: )
+	if ( $s->{buf} =~ m:INCLUDE\s*\(: )
 	{
-	    $s->{srcbuf} =~ s/INCLUDE\s*/push \@nested_cmds, _parsetestfile/g;
-	    eval $s->{srcbuf} or return $Xtest::FAIL;
+	    $s->{buf} =~ s/INCLUDE\s*/push \@nested_cmds, _parsetestfile/g;
+	    eval $s->{buf} or return $Xtest::FAIL;
 	    unshift @{$self->{cmds}}, @nested_cmds;
 	}
 
 	# if buf looks like a SEND block, extract cmd string then eval it.
-	elsif ( $s->{srcbuf} =~ m:SEND\s*\(: )
+	elsif ( $s->{buf} =~ m:SEND\s*\(: )
 	{
 	    printf("%s: %2d: %s\n", $fn, $seqnum, $buf) if (defined $self->{verbose});
-	    $s->{srcbuf} =~ s/SEND\s*/\$self->{exp}->send/g; 
-	    eval $s->{srcbuf}; 
+	    $s->{buf} =~ s/SEND\s*/\$self->{exp}->send/g; 
+	    eval $s->{buf}; 
 	}
 
 	# if buf looks like a EXPECT block, extract pattern then eval it.
-	elsif ( $s->{srcbuf} =~ m:EXPECT\s*\(: )
+	elsif ( $s->{buf} =~ m:EXPECT\s*\(: )
 	{
 	    $self->{exp}->clear_accum();
 	    printf("%s: %2d: %s\n", $fn, $seqnum, $buf) if (defined $self->{verbose});
-	    $s->{srcbuf} =~ s/EXPECT\s*\(\s*/\$self->{exp}->expect(\$Xtest::timeout, -re, /g; 
-	    eval $s->{srcbuf};
+	    $s->{buf} =~ s/EXPECT\s*\(\s*/\$self->{exp}->expect(\$Xtest::timeout, -re, /g; 
+	    eval $s->{buf};
 
 	    #if we did't get what we expected that's a FAIL
 	    if ( ! $self->{exp}->match() )
@@ -150,7 +157,7 @@ sub runtest
 }
 
 #************************************************************************
-# private method _parsetests reads a test file into an array of hashes.
+# private method _parsetestfile reads a test file into an array of hashes.
 # Each hash entry contains the filename, line #, and a block  { ... } which 
 # is to be evaluated as a single expect send/receive pair.
 #************************************************************************
@@ -223,6 +230,25 @@ sub uninstrument
     # PLUS the whitespace characters added after the end delimiter
     $self->{srcbuf} =~ s:/\*<XTEST>\*/(.*?)/\*</XTEST>\*/\s*::sg;
     return $self->{srcbuf};
+}
+
+#************************************************************************/
+# class method resolve()
+# resolve the filename or classname and pattern into a line number in a source file.
+# Returns the line number or undef if not found.
+#************************************************************************/
+sub resolve
+{
+    my ($fn, $ptn) = @_;
+
+    return `awk "/$ptn/ {print NR;}" $fn` if (-f $fn);	# a filename was given
+
+    foreach $rootdir ( split /:/, $ENV{SOURCEPATH} )
+    {
+        my $line = `find $rootdir -name "$fn" | xargs awk "/$ptn/ {print NR;}"`;
+	return $line if (defined $line && $line > 0);
+    }
+    return undef;
 }
 
 1;  # ensure class eval returns true;

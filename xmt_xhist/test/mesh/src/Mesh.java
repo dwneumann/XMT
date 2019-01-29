@@ -75,7 +75,7 @@ public	class	Mesh {
 	    System.exit(1);
 	}
 
-	/* configure the test  */
+	/* @TestPoint_116 : configure the test  */
 	myNode.setPktsToSend( dfltPktsToSend );	
 	myNode.setNumHops( dfltHops );
 

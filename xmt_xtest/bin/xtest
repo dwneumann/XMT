@@ -49,7 +49,7 @@ die "$help_msg" if !defined $opt{iut} or !defined $opt{test};
 
 # instantiate & run the testfile against the iut
 my $xt = XMT::Xtest::new(\%opt)	or die "XMT::Xtest failed\n";	
-$xt->XMT::Xtest::loadtest($opt{iut}, $opt{test}) or die "XMT::Xtest failed\n";	
+$xt->XMT::Xtest::loadtest() or die "XMT::Xtest failed\n";	
 my $result = $xt->runtest()		or die "XMT::Xtest failed\n";
 (my $fn = $opt{test}) =~ s:.*/::;	# strip away path for result printing
 printf("%s\t%s\n", $fn, $result);

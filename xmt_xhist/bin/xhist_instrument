@@ -82,7 +82,7 @@ my $xh = XMT::Xhist::new(\%opt) or die "$help_msg";
 if ( ! defined $opt{'unxhist'} )
 {
 	$opt{srcbuf} = $xh->instrument(); 
-	XMT::Xhist::printmap();	
+	$xh->printmap();	
 }
 else
 {

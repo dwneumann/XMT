@@ -190,5 +190,3 @@ public	class		Xhist
 	}
     }
 }
-
-

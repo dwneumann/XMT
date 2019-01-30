@@ -1,4 +1,4 @@
-#!/bin/perl -w
+#!/usr/bin/env perl
 #************************************************************************
 #*   $Version:$
 #*   Package	: xmt_build
@@ -52,12 +52,17 @@ if ( defined( $XMTBUILD_SUPP_ARCHS ) )
     }
 }
 
-# if $XMTEDIT is defined, create Makefile & Makefile.pkg
+# if $XMTEDIT is defined, create Makefile & Makefile.pkg but don't overwrite
 if ( defined( $XMTEDIT ) )
 {
-    system( "cd $pkg/src; \
-	     $XMTEDIT/bin/hdr Makefile.pkg > Makefile.pkg; \
-	     $XMTEDIT/bin/hdr Makefile     > Makefile;" );
+    if (! -e "$pkg/src/Makefile.pkg" )
+    {
+	system( "cd $pkg/src; $XMTEDIT/bin/hdr Makefile.pkg > Makefile.pkg; ");
+    }
+    if (! -e "$pkg/src/Makefile" )
+    {
+	system( "cd $pkg/src; $XMTEDIT/bin/hdr Makefile > Makefile; ");
+    }
 }
 
 exit 0;

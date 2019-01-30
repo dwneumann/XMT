@@ -25,15 +25,14 @@ alias gci	'git commit --allow-empty'	# commit staged files
 alias gdiff	'git diff'			# show modified files not yet staged
 alias gdiffs	'git diff --staged'		# show files staged for next commit
 alias gclone	'git clone \!*'			# clone named remote repo
-alias gco	'git checkout \!*'		# update working copy of named file from repo
+alias gco	'git checkout HEAD \!*'		# update working copy of named file from repo
 alias glogbr	'git log --decorate --oneline'	# show branch history
 alias glogpatch	'git log --patch'		# show diffs in commit history 
 alias glogfunc	'git log -S \!*'		# show changes to function name
 alias ghi	'git log --pretty=format:"%h - %an, %ad : %s"'	# show concise commit history
 alias grm 	'git rm \!*'			# remove named files from repo & working dir.
 alias gmv	'git mv \!*'			# move named file to new path in repo
-alias greset	'git reset \!*'			# unstage named files
-alias gunstage	 greset				# synonym for greset
+alias gunstage	'git reset \!*'			# unstage named files
 alias gstatus	'git status -s'			# list what's modified & staged
 alias gstash	'git stash'			# shelf everything in the working dir for later 
 alias grls	'git ls-remote origin'		# list differences from origin

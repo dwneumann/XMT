@@ -1,0 +1,15 @@
+#!/usr/bin/env perl
+use strict;
+use Getopt::Long;
+use Env;
+
+(my $pgmname = $0) =~ s{.*/}{};
+my $usage	= "usage: $pgmname [--help] [--skip0] --language=[c|java]\n";
+my %opt = ();
+GetOptions( \%opt, "help", "skip0", "language=s" ) or die "$usage";
+die "$usage" if defined $opt{'help'} or !defined $opt{'language'};
+
+my $pgm = ($opt{'language'} eq "c" ?  "$XMTXHIST/test/hello/$T/hello" : 
+    "java -cp $XMTXHIST/test/hello/$T/Hello.jar:$XMTXHIST/libxhist/$T/Xhist.jar Hello" );
+
+exec($pgm);

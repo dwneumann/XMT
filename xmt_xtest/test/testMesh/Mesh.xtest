@@ -1,0 +1,12 @@
+# TEST 00.03   test whether executing Mesh.jar generates the expected output.
+
+# verify that we are talking to jdb.
+# first expect the jdb "initializing" string then a prompt.
+# If we fail this, jdb is not ready to receive commands.
+{ EXPECT( "Initializing jdb" ); 	} # first output of jdb
+
+# launch the iut within jdb.  remember to send the newline!
+{ SEND( "run\n" );  }	
+
+# if we get this pattern, that's a PASS
+{ EXPECT( "10 pkts sent.*10 pkts returned" ); }

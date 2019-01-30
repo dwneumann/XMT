@@ -56,7 +56,8 @@ menu XMT.Function.ANSI\ Header<TAB><C-X>f		<C-X>f
 
 set cscopetag 
 set nocscopeverbose
-set cscopeprg=C:/cygwin32/bin/cscope.exe
+"set cscopeprg=C:/cygwin32/bin/cscope.exe
+set cscopeprg=/usr/bin/cscope
 set nocscoperelative
 function! AddCscopePath(dir)
     if filereadable( a:dir . "/cscope.out" )

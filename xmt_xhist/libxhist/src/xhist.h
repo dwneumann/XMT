@@ -1,5 +1,5 @@
 /************************************************************************
-*   $Version: 5.2.2-22 [experimental] $
+*   $Version:$
 *   Package	: xhist
 *   Purpose	: 
 *	Public interface to the xhist::xhist module.
@@ -12,7 +12,7 @@
 #define __xhist_h
 
 #ifndef lint
-static const char xhist_h_id[] = "@(#) xhist::xhist.h	$Version: 5.2.2-22 [experimental] $";
+static const char xhist_h_id[] = "@(#) xhist::xhist.h	$Version:$";
 #endif
 
 #define XHIST_TBLSIZE		1000		/* number of stmts to store in tbl */

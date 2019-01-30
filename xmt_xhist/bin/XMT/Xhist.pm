@@ -300,7 +300,7 @@ sub instrument
 	if ( /$regex/ )
 	{
 	    $xh_debug = 1;
-	    $self->{srcbuf} .= "$_\t$startmk <DEBUG ON> $endmk\n";
+	    $self->{srcbuf} .= $_ . "$startmk <DEBUG ON> $endmk\n";
 	    next;
 	}
 
@@ -309,7 +309,7 @@ sub instrument
 	if ( /$regex/ )
 	{
 	    $xh_debug = 0;
-	    $self->{srcbuf} .= "$_\t$startmk <DEBUG OFF> $endmk\n";
+	    $self->{srcbuf} .= $_ . "$startmk <DEBUG OFF> $endmk\n";
 	    next;
 	}
 
@@ -318,7 +318,7 @@ sub instrument
 	if ( /$regex/ )
 	{
 	    $xh_instrument = 1;
-	    $self->{srcbuf} .= $_ . ($xh_debug ? "\t$startmk <INSTRUMENT ON> $endmk" : '') . "\n";
+	    $self->{srcbuf} .= $_ . ($xh_debug ? "$startmk <INSTRUMENT ON> $endmk" : '') . "\n";
 	    next;
 	}
 
@@ -327,7 +327,7 @@ sub instrument
 	if ( /$regex/ )
 	{
 	    $xh_instrument = 0;
-	    $self->{srcbuf} .= $_ . ($xh_debug ? "\t$startmk <INSTRUMENT OFF> $endmk" : '') . "\n";
+	    $self->{srcbuf} .= $_ . ($xh_debug ? "$startmk <INSTRUMENT OFF> $endmk" : '') . "\n";
 	    next;
 	}
 
@@ -337,7 +337,7 @@ sub instrument
 	    unshift @indent_fifo, $1;	# push new indent onto stack
 	    $tokens->{$self->{fext}}{indent} = $indent_fifo[0];	
 	    $in_func++;
-	    $self->{srcbuf} .= $_ . ($xh_debug ? "\t$startmk <FUNC START> $endmk" : '') . "\n";
+	    $self->{srcbuf} .= $_ . ($xh_debug ? "$startmk <FUNC START> $endmk" : '') . "\n";
 	    next;
 	}
 
@@ -348,21 +348,21 @@ sub instrument
 	    unshift @indent_fifo, "" if ! @indent_fifo; # handle func_end without func_start
 	    $tokens->{$self->{fext}}{indent} = $indent_fifo[0];	
 	    $in_func--; 
-	    $self->{srcbuf} .= $_ . ($xh_debug ? "\t$startmk <FUNC END> $endmk" : '') . "\n"; 
+	    $self->{srcbuf} .= $_ . ($xh_debug ? "$startmk <FUNC END> $endmk" : '') . "\n"; 
 	    next;
 	}
 
 	$regex = interpolate( $templates->{$self->{fext}}{declaration}, $self->{fext} );
 	if ( /$regex/ )
 	{
-	    $self->{srcbuf} .= $_ . ($xh_debug ? "\t$startmk <DECL> $endmk" : '') . "\n";
+	    $self->{srcbuf} .= $_ . ($xh_debug ? "$startmk <DECL> $endmk" : '') . "\n";
 	    next;
 	}
 
 	$regex = interpolate( $templates->{$self->{fext}}{for_stmt}, $self->{fext} );
 	if ( /$regex/ )
 	{
-	    $self->{srcbuf} .= $_ . ($xh_debug ? "\t$startmk <FOR> $endmk" : '') . "\n";
+	    $self->{srcbuf} .= $_ . ($xh_debug ? "$startmk <FOR> $endmk" : '') . "\n";
 	    next;
 	}
 
@@ -371,11 +371,11 @@ sub instrument
 	{
 	    if ( $in_func )
 	    {
-		$self->{srcbuf} .= $_ . ($xh_debug ? "\t$startmk <RETURN> $endmk" : '') . "\n";
+		$self->{srcbuf} .= $_ . ($xh_debug ? "$startmk <RETURN> $endmk" : '') . "\n";
 	    }
 	    else
 	    {
-		$self->{srcbuf} .= $_ . ($xh_debug ? "\t/$startmk<RETURN OUTSIDE FUNC> $endmk" : '') . "\n";
+		$self->{srcbuf} .= $_ . ($xh_debug ? "$startmk<RETURN OUTSIDE FUNC> $endmk" : '') . "\n";
 	    }
 	    next;
 	}
@@ -388,7 +388,7 @@ sub instrument
 	{
 	    if ( $in_func )
 	    {
-		$self->{srcbuf} .= $_ . ($xh_debug ? "\t$startmk <STMT> $endmk" : '');
+		$self->{srcbuf} .= $_ . ($xh_debug ? "$startmk <STMT> $endmk" : '');
 		(my $repl = $templates->{$self->{fext}}{trace_stmt}) =~ s/FNUM/$self->{fnum}/g;
 		$repl =~ s/LNUM/$self->{lnum}/g;
 		if ($xh_instrument == 1)
@@ -399,7 +399,7 @@ sub instrument
 	    }
 	    else
 	    {
-		$self->{srcbuf} .= $_ . ($xh_debug ? "\t$startmk <STMT OUTSIDE FUNC> $endmk" : '') . "\n";
+		$self->{srcbuf} .= $_ . ($xh_debug ? "$startmk <STMT OUTSIDE FUNC> $endmk" : '') . "\n";
 	    }
 	    next;
 	}

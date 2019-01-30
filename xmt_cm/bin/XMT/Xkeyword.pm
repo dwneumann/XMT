@@ -1,6 +1,6 @@
 #!/usr/bin/env perl
 #************************************************************************
-#*   $Version:$
+#*   $Version: 5.2.2-22 [experimental] $
 #*   Package	: xmt_cm
 #*   Purpose	: Xkeyword class (invoked by git_filter)
 #*
@@ -24,7 +24,7 @@ use POSIX qw(strftime);
 sub version 
 {
     local $^W=0; 
-    my @v = split(/\s+/,'$Version:$'); 
+    my @v = split(/\s+/,'$Version: 5.2.2-22 [experimental] $'); 
     my $s=sprintf("%f", $v[1]);
     $s=~ s/0+$//;
     return $s;
@@ -58,7 +58,7 @@ sub new
     my $self = {};
 
     $self->{srcfn}	= $opts->{fname}  if defined $opts->{fname};
-    $self->{srcbuf}	= $opts->{srcbuf} ? $opts->{srcbuf} : "";
+    $self->{srcbuf}	= length($opts->{srcbuf}) > 0 ? $opts->{srcbuf} : "";
     $self->{verbose}	= $opts->{verbose} if defined $opts->{verbose};
     $self->{binary}	= (defined $opts->{binary} ? 1 : 0);		# do binary files?
     if (defined $opts->{list}) 						# list values only?

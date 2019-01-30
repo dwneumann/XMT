@@ -272,6 +272,10 @@ sub instrument
     $startmk =~ s/\\//g;
     $endmk =~ s/\\//g;
 
+    # refuse to instrument source that's already instrumented.
+    # Probably not what the user wanted, and will certainly screw up unxhist.
+    return $self->{srcbuf} if ($self->{srcbuf} =~ /$startmk.*$endmk/);
+
     # add import XMT.Xhist 
     my $repl = '"$&$startmk import XMT.Xhist; $endmk"';
     $self->{srcbuf} =~ s:.*^import\s+.*?\n:$repl:eems;

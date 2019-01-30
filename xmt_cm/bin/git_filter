@@ -237,14 +237,14 @@ sub standalone_main
 	{
 	    printf(STDERR "%s: xtest %s\n", $::pgmname, $opt{fname}) if defined $opt{verbose};
 	    $xt = XMT::Xtest::new(\%opt)	or die "$help_msg";
-	    $opt{srcbuf} = $xt->instrument()	or die; 
+	    $opt{srcbuf} = $xt->instrument();
 	}
 	elsif ( defined $opt{'unxtest'} 
 	    and $XMT::Xkeyword::kw{'Branch'}{val} =~ /$opt{'unxtest'}/ )
 	{
 	    printf(STDERR "%s: unxtest %s\n", $::pgmname, $opt{fname}) if defined $opt{verbose};
 	    $xt = XMT::Xtest::new(\%opt)	or die "$help_msg";
-	    $opt{srcbuf} = $xt->uninstrument()	or die;
+	    $opt{srcbuf} = $xt->uninstrument();
 	}
 
 	# XHIST SECOND.
@@ -254,7 +254,7 @@ sub standalone_main
 	{
 	    printf(STDERR "%s: xhist %s\n", $::pgmname, $opt{fname}) if defined $opt{verbose};
 	    $xh = XMT::Xhist::new(\%opt)	or die "$help_msg";
-	    $opt{srcbuf} = $xh->instrument()	or die; 
+	    $opt{srcbuf} = $xh->instrument();
 	    $xh->printmap();	
 	}
 	elsif ( defined $opt{'unxhist'} 
@@ -262,7 +262,7 @@ sub standalone_main
 	{
 	    printf(STDERR "%s: unxhist %s\n", $::pgmname, $opt{fname}) if defined $opt{verbose};
 	    $xh = XMT::Xhist::new(\%opt)	or die "$help_msg";
-	    $opt{srcbuf} = $xh->uninstrument()	or die;
+	    $opt{srcbuf} = $xh->uninstrument();
 	}
 
 	# KEYWORD EXPANSION LAST so that instrumentation code can include keywords.
@@ -272,14 +272,14 @@ sub standalone_main
 	{
 	    printf(STDERR "%s: expand %s\n", $::pgmname, $opt{fname}) if defined $opt{verbose};
 	    $xk = XMT::Xkeyword::new(\%opt)	or die "$help_msg";
-	    $opt{srcbuf} = $xk->expand()	or die; 
+	    $opt{srcbuf} = $xk->expand();
 	}
 	elsif (defined $opt{'unexpand'}
 	    and $XMT::Xkeyword::kw{'Branch'}{val} =~ /$opt{'unexpand'}/ )
 	{
 	    printf(STDERR "%s: unexpand %s\n", $::pgmname, $opt{fname}) if defined $opt{verbose};
 	    $xk = XMT::Xkeyword::new(\%opt)	or die "$help_msg";
-	    $opt{srcbuf} = $xk->unexpand()	or die; 
+	    $opt{srcbuf} = $xk->unexpand();
 	}
     }
     print STDOUT $opt{srcbuf};

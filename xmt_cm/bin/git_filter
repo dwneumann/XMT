@@ -222,11 +222,11 @@ sub standalone_main
     }
     my $is_ascii = ! ($opt{srcbuf} =~ /[[:^ascii:]]/);	# check for non-ascii chars
 
-    printf(STDERR "%s: processing %s\n", $::pgmname, $opt{fname}) if defined $opt{verbose};
 
     ## perform substitutions & write the output.
     if ($is_ascii || defined $opt{'binary'})
     {
+	printf(STDERR "\n%s: processing %s:", $::pgmname, $opt{fname}) if defined $opt{verbose};
 	# constructor needed here to build $XMT::Xkeyword::kw values
 	# that we test against below
 	$xk = XMT::Xkeyword::new(\%opt)	or die "$help_msg";
@@ -236,12 +236,14 @@ sub standalone_main
 	if ( defined $opt{'xtest'} 
 	    and $XMT::Xkeyword::kw{'Branch'}{val} =~ /$opt{'xtest'}/ )
 	{
+	    printf(STDERR " xtest... ") if defined $opt{verbose};
 	    $xt = XMT::Xtest::new(\%opt)	or die "$help_msg";
 	    $opt{srcbuf} = $xt->instrument()	or die; 
 	}
 	elsif ( defined $opt{'unxtest'} 
 	    and $XMT::Xkeyword::kw{'Branch'}{val} =~ /$opt{'unxtest'}/ )
 	{
+	    printf(STDERR " unxtest... ") if defined $opt{verbose};
 	    $xt = XMT::Xtest::new(\%opt)	or die "$help_msg";
 	    $opt{srcbuf} = $xt->uninstrument()	or die;
 	}
@@ -251,6 +253,7 @@ sub standalone_main
 	if ( defined $opt{'xhist'} 
 	    and $XMT::Xkeyword::kw{'Branch'}{val} =~ /$opt{'xhist'}/ )
 	{
+	    printf(STDERR " xhist... ") if defined $opt{verbose};
 	    $xh = XMT::Xhist::new(\%opt)	or die "$help_msg";
 	    $opt{srcbuf} = $xh->instrument()	or die; 
 	    $xh->printmap();	
@@ -258,6 +261,7 @@ sub standalone_main
 	elsif ( defined $opt{'unxhist'} 
 	    and $XMT::Xkeyword::kw{'Branch'}{val} =~ /$opt{'unxhist'}/ )
 	{
+	    printf(STDERR " unxhist... ") if defined $opt{verbose};
 	    $xh = XMT::Xhist::new(\%opt)	or die "$help_msg";
 	    $opt{srcbuf} = $xh->uninstrument()	or die;
 	}
@@ -267,12 +271,14 @@ sub standalone_main
 	if ( defined $opt{'expand'}  
 	    and $XMT::Xkeyword::kw{'Branch'}{val} =~ /$opt{'expand'}/ )
 	{
+	    printf(STDERR " expand... ") if defined $opt{verbose};
 	    $xk = XMT::Xkeyword::new(\%opt)	or die "$help_msg";
 	    $opt{srcbuf} = $xk->expand()	or die; 
 	}
 	elsif (defined $opt{'unexpand'}
 	    and $XMT::Xkeyword::kw{'Branch'}{val} =~ /$opt{'unexpand'}/ )
 	{
+	    printf(STDERR " unexpand... ") if defined $opt{verbose};
 	    $xk = XMT::Xkeyword::new(\%opt)	or die "$help_msg";
 	    $opt{srcbuf} = $xk->unexpand()	or die; 
 	}

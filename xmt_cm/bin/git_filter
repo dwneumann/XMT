@@ -174,7 +174,7 @@ if (defined $opt{'list'})
 # massage other options
 foreach my $o ('expand', 'unexpand', 'xhist', 'unxhist','xtest', 'unxtest')
 {
-    if (defined $opt{$o} && $opt{$o} =~ '') # option specified with no branchspec 
+    if (defined $opt{$o} && length($opt{$o})==0 ) # option specified with no branchspec 
     {
         $opt{$o} = '.';			    # option applies to all branches
     }

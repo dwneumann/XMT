@@ -1,6 +1,6 @@
 #!/usr/bin/env perl
 #************************************************************************
-#*   $Version:$
+#*   $Version: rc5.1.1-15 [experimental] $
 #*   Package	: xmt_xtest
 #*   Purpose	: Xtest class (invoked by xtest)
 #*
@@ -26,7 +26,7 @@ use Digest::CRC qw(crc16);
 sub version 
 {
     local $^W=0; 
-    my @v = split(/\s+/,'$Version:$'); 
+    my @v = split(/\s+/,'$Version: rc5.1.1-15 [experimental] $'); 
     my $s=sprintf("%f", $v[1]);
     $s=~ s/0+$//;
     return $s;
@@ -189,6 +189,10 @@ sub _parsetestfile
 sub instrument
 {
     my $self = shift;
+
+    # refuse to instrument source that's already instrumented.
+    # Probably not what the user wanted, and will certainly screw up unxhist.
+    return $self->{srcbuf} if ($self->{srcbuf} =~ /<XTEST>.*<\/XTEST>/);
 
     # do try/catch block code injection.
     # note we inject indentation and a newline AFTER the end delimiter 

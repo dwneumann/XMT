@@ -1,6 +1,6 @@
 /************************************************************************ 
 *   Package	: libxhist 
-*   $Version: rc5.1.1-18 [experimental] $ 
+*   $Version:$ 
 *    Copyright 2018 Visionary Research Inc.   All rights reserved. 
 *    			legal@visionary-research.com 
 *    Licensed under the Apache License, Version 2.0 (the "License");
@@ -23,7 +23,7 @@
 #define __hello_c 
  
 #ifdef EMBED_REVISION_STRINGS 
-static const char hello_c_id[] = "@(#) libxhist::hello.c	$Version: rc5.1.1-18 [experimental] $";
+static const char hello_c_id[] = "@(#) libxhist::hello.c	$Version:$";
 #endif 
  
 #ifdef XHIST 
@@ -51,8 +51,8 @@ int main(int argc, char *argv[])
 	exit(1);
     } 
     xhist_logdev(fd);
-    xhist_mapfile("$XhistMap: /tmp/rc5.1.1-18-experimental.xmap $");
-    xhist_version("$Version: rc5.1.1-18 [experimental] $");
+    xhist_mapfile("$XhistMap:$");
+    xhist_version("$Version:$");
     signal(SIGUSR1, xhist_write);
 /* xhist instrument TRUE */
 #endif 

@@ -1,6 +1,6 @@
 #!/usr/bin/env perl
 #************************************************************************
-#*   $Version: rc5.1.1-15 [experimental] $
+#*   $Version:$
 #*   Package	: xmt_xtest
 #*   Purpose	: Xtest class (invoked by xtest)
 #*
@@ -26,7 +26,7 @@ use Digest::CRC qw(crc16);
 sub version 
 {
     local $^W=0; 
-    my @v = split(/\s+/,'$Version: rc5.1.1-15 [experimental] $'); 
+    my @v = split(/\s+/,'$Version:$'); 
     my $s=sprintf("%f", $v[1]);
     $s=~ s/0+$//;
     return $s;

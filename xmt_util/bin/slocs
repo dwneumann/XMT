@@ -1,6 +1,6 @@
 #!/usr/bin/env perl
 #************************************************************************
-#*   $Version: rc5.1.1-18 [experimental] $
+#*   $Version:$
 #*   Package	: xmt_util
 #*   Synopsis	: slocs [-v] [-csv] [-f <filespec>] <dir> ...
 #*		 e.g.  slocs -f '*.java' src/

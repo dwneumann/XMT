@@ -1,5 +1,5 @@
 /************************************************************************
-*   $Version:$
+*   $Version: 5.2.2-22 [experimental] $
 *   Package	: xhist
 *   Purpose : This file contains the function xhist_write(), 
 *         which can be used to write the in-memory table to an
@@ -25,7 +25,7 @@
 ************************************************************************/
 #define __xhist_c
 #ifndef lint
-static const char xhist_c_id[] = "@(#) xhist::xhist.c	$Version:$";
+static const char xhist_c_id[] = "@(#) xhist::xhist.c	$Version: 5.2.2-22 [experimental] $";
 #endif
 
 
@@ -108,9 +108,9 @@ _XH_ADD(filenum, linenum);
 ***********************************************************************/
 void	xhist_mapfile(char *s)
 {
-    memset( (void *) xhist_mapfn, (int) 0, (size_t) XHIST_MAPFNLENGTH );
-    (void) strncpy( xhist_mapfn, s, (size_t) XHIST_MAPFNLENGTH );
-    xhist_mapfn[XHIST_MAPFNLENGTH - 1] = '\0';
+    memset( (void *) xhist_mapfn, (int) 0, (size_t) XHIST_MAPFNLENGTH );/*<XHIST>*/ _XH_ADD( 44706, 111 );/*</XHIST>*/
+    (void) strncpy( xhist_mapfn, s, (size_t) XHIST_MAPFNLENGTH );/*<XHIST>*/ _XH_ADD( 44706, 112 );/*</XHIST>*/
+    xhist_mapfn[XHIST_MAPFNLENGTH - 1] = '\0';/*<XHIST>*/ _XH_ADD( 44706, 113 );/*</XHIST>*/
 }
 
 /************************************************************************
@@ -130,9 +130,9 @@ void	xhist_mapfile(char *s)
 ***********************************************************************/
 void	xhist_version(char *s)
 {
-    memset( (void *) xhist_buildtag, (int) 0, (size_t) XHIST_MAPFNLENGTH );
-    strncpy( xhist_buildtag, s, (size_t) XHIST_VERSIONLENGTH );
-    xhist_buildtag[XHIST_VERSIONLENGTH - 1] = '\0';
+    memset( (void *) xhist_buildtag, (int) 0, (size_t) XHIST_MAPFNLENGTH );/*<XHIST>*/ _XH_ADD( 44706, 133 );/*</XHIST>*/
+    strncpy( xhist_buildtag, s, (size_t) XHIST_VERSIONLENGTH );/*<XHIST>*/ _XH_ADD( 44706, 134 );/*</XHIST>*/
+    xhist_buildtag[XHIST_VERSIONLENGTH - 1] = '\0';/*<XHIST>*/ _XH_ADD( 44706, 135 );/*</XHIST>*/
 }
 
 
@@ -153,7 +153,7 @@ void	xhist_version(char *s)
 ***********************************************************************/
 void	xhist_logdev(int fd)
 {
-    xhist_logfd = fd;
+    xhist_logfd = fd;/*<XHIST>*/ _XH_ADD( 44706, 156 );/*</XHIST>*/
 }
 
 /************************************************************************
@@ -176,7 +176,7 @@ void	xhist_write()
     long		l;
     short		s;
 
-    BACKOUT_IF( xhist_logfd < 0, "invalid log device" );
+    BACKOUT_IF( xhist_logfd < 0, "invalid log device" );/*<XHIST>*/ _XH_ADD( 44706, 179 );/*</XHIST>*/
 
     /*
      *  write 4 bytes containing the number 4.  
@@ -184,33 +184,33 @@ void	xhist_write()
      *  Then write the size of the table and the index of the tail pointer.
      */
 
-    l = (long) 4;
-    BACKOUT_IF(write(xhist_logfd, (char *) &l, sizeof(l)) < (ssize_t) sizeof(l), strerror(errno));
-    l = (long) (sizeof(xhist_tbl) / sizeof(xhist_tbl[0]));
-    BACKOUT_IF(write(xhist_logfd, (char *) &l, sizeof(l)) < (ssize_t) sizeof(l), strerror(errno));
+    l = (long) 4;/*<XHIST>*/ _XH_ADD( 44706, 187 );/*</XHIST>*/
+    BACKOUT_IF(write(xhist_logfd, (char *) &l, sizeof(l)) < (ssize_t) sizeof(l), strerror(errno));/*<XHIST>*/ _XH_ADD( 44706, 188 );/*</XHIST>*/
+    l = (long) (sizeof(xhist_tbl) / sizeof(xhist_tbl[0]));/*<XHIST>*/ _XH_ADD( 44706, 189 );/*</XHIST>*/
+    BACKOUT_IF(write(xhist_logfd, (char *) &l, sizeof(l)) < (ssize_t) sizeof(l), strerror(errno));/*<XHIST>*/ _XH_ADD( 44706, 190 );/*</XHIST>*/
     BACKOUT_IF(write(xhist_logfd, (char *) &xhist_tail, sizeof(xhist_tail)) 
-    	< (ssize_t) sizeof(xhist_tail), strerror(errno));
+    	< (ssize_t) sizeof(xhist_tail), strerror(errno));/*<XHIST>*/ _XH_ADD( 44706, 192 );/*</XHIST>*/
 
     /*
      *  now write the length & name of the map file created during instrumentation
      *  and the length & version tag of the instrumented source
      */
-    s = (short) strlen(xhist_mapfn);
-    BACKOUT_IF(write(xhist_logfd, (char *) &s, sizeof(s)) < (ssize_t) sizeof(s), strerror(errno));
-    BACKOUT_IF(write(xhist_logfd, (char *) &xhist_mapfn, s) < (ssize_t) s, strerror(errno));
+    s = (short) strlen(xhist_mapfn);/*<XHIST>*/ _XH_ADD( 44706, 198 );/*</XHIST>*/
+    BACKOUT_IF(write(xhist_logfd, (char *) &s, sizeof(s)) < (ssize_t) sizeof(s), strerror(errno));/*<XHIST>*/ _XH_ADD( 44706, 199 );/*</XHIST>*/
+    BACKOUT_IF(write(xhist_logfd, (char *) &xhist_mapfn, s) < (ssize_t) s, strerror(errno));/*<XHIST>*/ _XH_ADD( 44706, 200 );/*</XHIST>*/
 
-    s = (short) strlen(xhist_buildtag);
-    BACKOUT_IF(write(xhist_logfd, (char *) &s, sizeof(s)) < (ssize_t) sizeof(s), strerror(errno));
-    BACKOUT_IF(write(xhist_logfd, (char *) &xhist_buildtag, s) < (ssize_t) s, strerror(errno));
+    s = (short) strlen(xhist_buildtag);/*<XHIST>*/ _XH_ADD( 44706, 202 );/*</XHIST>*/
+    BACKOUT_IF(write(xhist_logfd, (char *) &s, sizeof(s)) < (ssize_t) sizeof(s), strerror(errno));/*<XHIST>*/ _XH_ADD( 44706, 203 );/*</XHIST>*/
+    BACKOUT_IF(write(xhist_logfd, (char *) &xhist_buildtag, s) < (ssize_t) s, strerror(errno));/*<XHIST>*/ _XH_ADD( 44706, 204 );/*</XHIST>*/
     
     /*
      *  now write the entire table to the log device
      */
     
     BACKOUT_IF(write(xhist_logfd, (char *) &xhist_tbl, sizeof(xhist_tbl)) 
-	< (ssize_t) sizeof(xhist_tbl), strerror(errno));
+	< (ssize_t) sizeof(xhist_tbl), strerror(errno));/*<XHIST>*/ _XH_ADD( 44706, 211 );/*</XHIST>*/
 
 backout:
-    close(xhist_logfd);
-    fflush(stderr);
+    close(xhist_logfd);/*<XHIST>*/ _XH_ADD( 44706, 214 );/*</XHIST>*/
+    fflush(stderr);/*<XHIST>*/ _XH_ADD( 44706, 215 );/*</XHIST>*/
 }

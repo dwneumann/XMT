@@ -43,7 +43,7 @@
  * the environment in which the xhist_report program executes.  Use of the
  * xhist_report program is optional.  
  *
- * @version	$Version:$
+ * @version	$Version: 5.2.2-22 [experimental] $
  *
  *  Copyright 2018 Visionary Research Inc.   All rights reserved.
  *    			legal@visionary-research.com
@@ -64,10 +64,10 @@ import java.lang.Runtime;
 import java.io.DataOutputStream;
 import java.io.FileOutputStream;
 import java.lang.ProcessHandle;
-
+/*<XHIST>*/ import XMT.Xhist; /*</XHIST>*/
 public	class		Xhist 
 { 
-    public static final String id = "@(#) XMT.Xhist $Version:$";
+    public static final String id = "@(#) XMT.Xhist $Version: 5.2.2-22 [experimental] $";
     private static final int	XhistTableSize		= 1000;
     public static String buildTag;	// buildTag of instrumented source
     public static String mapFn;		// mapping file used during instrumentation
@@ -83,8 +83,8 @@ public	class		Xhist
     * @param	lnum		line number just executed
     */
     public	static void add( int fnum,  int lnum ) { 
-	tbl[tail] = (((short) fnum << 16) | (short) lnum);
-	tail = (short) ((tail+1) % XhistTableSize);
+	tbl[tail] = (((short) fnum << 16) | (short) lnum);/*<XHIST>*/ Xhist.add( 45323, 86 );/*</XHIST>*/
+	tail = (short) ((tail+1) % XhistTableSize);/*<XHIST>*/ Xhist.add( 45323, 87 );/*</XHIST>*/
     }
 
     /**
@@ -99,10 +99,10 @@ public	class		Xhist
 	try 
 	{
 	    fd = new DataOutputStream(new FileOutputStream(
-		logNm + '.' + ProcessHandle.current().pid() + ".xhist")); 
-	    Xhist.logdev(fd);
-	    Xhist.mapfile(mapFn);
-	    Xhist.version(version);
+		logNm + '.' + ProcessHandle.current().pid() + ".xhist")); /*<XHIST>*/ Xhist.add( 45323, 102 );/*</XHIST>*/
+	    Xhist.logdev(fd);/*<XHIST>*/ Xhist.add( 45323, 103 );/*</XHIST>*/
+	    Xhist.mapfile(mapFn);/*<XHIST>*/ Xhist.add( 45323, 104 );/*</XHIST>*/
+	    Xhist.version(version);/*<XHIST>*/ Xhist.add( 45323, 105 );/*</XHIST>*/
 
 	    Runtime.getRuntime().addShutdownHook( new Thread() 
 	    {
@@ -111,7 +111,7 @@ public	class		Xhist
 		{
 		    try 
 		    {
-			Xhist.write();
+			Xhist.write();/*<XHIST>*/ Xhist.add( 45323, 114 );/*</XHIST>*/
 		    }
 		    catch (IOException e) 
 		    {
@@ -131,7 +131,7 @@ public	class		Xhist
     * @param	s	build tag of the instrumented source
     */
     public	static void version( String s ) { 
-	buildTag = s;
+	buildTag = s;/*<XHIST>*/ Xhist.add( 45323, 134 );/*</XHIST>*/
     }
 
     /**
@@ -140,7 +140,7 @@ public	class		Xhist
     * @param	s	filename of mapfile used during instruentation
     */
     public	static void mapfile( String s ) { 
-	mapFn = s;
+	mapFn = s;/*<XHIST>*/ Xhist.add( 45323, 143 );/*</XHIST>*/
     }
 
     /**
@@ -148,7 +148,7 @@ public	class		Xhist
     * @param	fd	DatOutputStream to write output to
     */
     public	static void logdev( DataOutputStream fd ) { 
-	logStream = fd;
+	logStream = fd;/*<XHIST>*/ Xhist.add( 45323, 151 );/*</XHIST>*/
     }
 
     /**
@@ -165,16 +165,16 @@ public	class		Xhist
 	 *  Then write the size of the table and the index of the tail pointer.
 	 */
 
-	logStream.writeInt(4);
-	logStream.writeInt(tbl.length);
-	logStream.writeInt(tail);
+	logStream.writeInt(4);/*<XHIST>*/ Xhist.add( 45323, 168 );/*</XHIST>*/
+	logStream.writeInt(tbl.length);/*<XHIST>*/ Xhist.add( 45323, 169 );/*</XHIST>*/
+	logStream.writeInt(tail);/*<XHIST>*/ Xhist.add( 45323, 170 );/*</XHIST>*/
 
 	/*
 	 *  now write the length & name of the map file created during instrumentation
 	 *  and the length & build tag of the instrumented source
 	 */
-	logStream.writeUTF(mapFn);
-	logStream.writeUTF(buildTag);
+	logStream.writeUTF(mapFn);/*<XHIST>*/ Xhist.add( 45323, 176 );/*</XHIST>*/
+	logStream.writeUTF(buildTag);/*<XHIST>*/ Xhist.add( 45323, 177 );/*</XHIST>*/
 	
 	/*
 	 *  now write the entire table to the log device
@@ -182,7 +182,7 @@ public	class		Xhist
 	
 	for (i = 0; i < tbl.length; i++)
 	{
-	    logStream.writeInt(tbl[i]);
+	    logStream.writeInt(tbl[i]);/*<XHIST>*/ Xhist.add( 45323, 185 );/*</XHIST>*/
 	}
     }
 }

@@ -235,14 +235,14 @@ sub standalone_main
 	if ( defined $opt{'xtest'} 
 	    and $XMT::Xkeyword::kw{'Branch'}{val} =~ /$opt{'xtest'}/ )
 	{
-	    printf(STDERR "%s: xtest %s\n:", $::pgmname, $opt{fname}) if defined $opt{verbose};
+	    printf(STDERR "%s: xtest %s\n", $::pgmname, $opt{fname}) if defined $opt{verbose};
 	    $xt = XMT::Xtest::new(\%opt)	or die "$help_msg";
 	    $opt{srcbuf} = $xt->instrument()	or die; 
 	}
 	elsif ( defined $opt{'unxtest'} 
 	    and $XMT::Xkeyword::kw{'Branch'}{val} =~ /$opt{'unxtest'}/ )
 	{
-	    printf(STDERR "%s: unxtest %s\n:", $::pgmname, $opt{fname}) if defined $opt{verbose};
+	    printf(STDERR "%s: unxtest %s\n", $::pgmname, $opt{fname}) if defined $opt{verbose};
 	    $xt = XMT::Xtest::new(\%opt)	or die "$help_msg";
 	    $opt{srcbuf} = $xt->uninstrument()	or die;
 	}
@@ -252,7 +252,7 @@ sub standalone_main
 	if ( defined $opt{'xhist'} 
 	    and $XMT::Xkeyword::kw{'Branch'}{val} =~ /$opt{'xhist'}/ )
 	{
-	    printf(STDERR "%s: xhist %s\n:", $::pgmname, $opt{fname}) if defined $opt{verbose};
+	    printf(STDERR "%s: xhist %s\n", $::pgmname, $opt{fname}) if defined $opt{verbose};
 	    $xh = XMT::Xhist::new(\%opt)	or die "$help_msg";
 	    $opt{srcbuf} = $xh->instrument()	or die; 
 	    $xh->printmap();	
@@ -260,7 +260,7 @@ sub standalone_main
 	elsif ( defined $opt{'unxhist'} 
 	    and $XMT::Xkeyword::kw{'Branch'}{val} =~ /$opt{'unxhist'}/ )
 	{
-	    printf(STDERR "%s: unxhist %s\n:", $::pgmname, $opt{fname}) if defined $opt{verbose};
+	    printf(STDERR "%s: unxhist %s\n", $::pgmname, $opt{fname}) if defined $opt{verbose};
 	    $xh = XMT::Xhist::new(\%opt)	or die "$help_msg";
 	    $opt{srcbuf} = $xh->uninstrument()	or die;
 	}
@@ -270,14 +270,14 @@ sub standalone_main
 	if ( defined $opt{'expand'}  
 	    and $XMT::Xkeyword::kw{'Branch'}{val} =~ /$opt{'expand'}/ )
 	{
-	    printf(STDERR "%s: expand %s\n:", $::pgmname, $opt{fname}) if defined $opt{verbose};
+	    printf(STDERR "%s: expand %s\n", $::pgmname, $opt{fname}) if defined $opt{verbose};
 	    $xk = XMT::Xkeyword::new(\%opt)	or die "$help_msg";
 	    $opt{srcbuf} = $xk->expand()	or die; 
 	}
 	elsif (defined $opt{'unexpand'}
 	    and $XMT::Xkeyword::kw{'Branch'}{val} =~ /$opt{'unexpand'}/ )
 	{
-	    printf(STDERR "%s: unexpand %s\n:", $::pgmname, $opt{fname}) if defined $opt{verbose};
+	    printf(STDERR "%s: unexpand %s\n", $::pgmname, $opt{fname}) if defined $opt{verbose};
 	    $xk = XMT::Xkeyword::new(\%opt)	or die "$help_msg";
 	    $opt{srcbuf} = $xk->unexpand()	or die; 
 	}

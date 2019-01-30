@@ -1,6 +1,6 @@
 #!/usr/bin/env perl
 #************************************************************************
-#*   $Version:$
+#*   $Version: rc5.1.1-18 [experimental] $
 #*   Package	: xmt_xhist
 #*   Purpose	: Xhist class (invoked by git_filter)
 #*
@@ -24,7 +24,7 @@ use Digest::CRC qw(crc16);
 sub version 
 {
     local $^W=0; 
-    my @v = split(/\s+/,'$Version:$'); 
+    my @v = split(/\s+/,'$Version: rc5.1.1-18 [experimental] $'); 
     my $s=sprintf("%f", $v[1]);
     $s=~ s/0+$//;
     return $s;

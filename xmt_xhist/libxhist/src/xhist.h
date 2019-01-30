@@ -8,6 +8,7 @@
 *  All Rights reserved.	legal.info@neumann-associates.com
 *************************************************************************/
 
+/* xhist instrument FALSE */	/* do not instrument this file.  ever. */
 #ifndef __xhist_h
 #define __xhist_h
 
@@ -15,32 +16,24 @@
 static const char xhist_h_id[] = "@(#) xhist::xhist.h	$Version:$";
 #endif
 
-#define XHIST_SIZE		500	/* number of stmts to store in tbl */
-#define XHIST_PATHLEN		32	/* fixed field length to write to log*/
-#define XHIST_LOGFILE		"xhist.dat" /* default log file name */
-#define _XH					\
-{						\
-    xhist_tbl[xhist_tail].xh_file = __FILE__;	\
-    xhist_tbl[xhist_tail].xh_line = __LINE__;	\
-    xhist_tail = ++xhist_tail % XHIST_SIZE;			\
+#define XHIST_TBLSIZE		1000		/* number of stmts to store in tbl */
+#define XHIST_MAPFNLENGTH	64		/* length of string storing map filename */
+#define XHIST_VERSIONLENGTH	64		/* length of string storing build version */
+#define XHIST_LOGFILE		"xhist.dat" 	/* default log file name */
+#define _XH_ADD(filenum, linenum)		/* inline version of xhist_add() */	\
+{											\
+    xhist_tbl[xhist_tail] = (((unsigned short) filenum << 16) | (unsigned short) linenum);\
+    xhist_tail = (unsigned short) ((xhist_tail+1) % XHIST_TBLSIZE);			\
 }
 
-typedef struct xhist
-{
-    char*	xh_file;	/* ptr to static string containing filename */
-    short	xh_line;	/* max 65000 lines per file :-)	*/
-} XH_REC;
+extern unsigned long	xhist_tbl[ XHIST_TBLSIZE ];
+extern unsigned long	xhist_tail;
+extern char		xhist_mapfn[ XHIST_MAPFNLENGTH ];	/* filemap filename */
+extern char		xhist_buildtag[ XHIST_VERSIONLENGTH ];	/* callers version string */
 
-extern XH_REC	xhist_tbl[ XHIST_SIZE ];
-extern int	xhist_tail;
-
-/* the functions of libxhist are not declared here,
- * because we do not want to force the IUT to link with libxhist.
- * Linking the IUT with libxhist is optional, and is used only if exporting
- * the circular buffer to a file descriptor during program exeecution.
 extern  void	xhist_logdev(int fd);
+extern  void	xhist_mapfile(char *s);		/* store filename of mapfile to decode tbl */
+extern  void	xhist_version(char *s);		/* store version tag of instrumented source */
 extern  void	xhist_write();
-*/
 
 #endif /* __xhist_h	*/
-

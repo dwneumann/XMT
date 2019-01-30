@@ -88,15 +88,31 @@ LDFLAGS.c.AX8052 += -mmcs51 --verbose --model-small -muwx -M 			\
 		    -l libaxdvk2						\
 		    -l libax5043				
 
+
 $(OBJDIR)/%.rel	: $(SRCDIR)/%.s
 	$(COMPILE.c.AX8052) $(CFLAGS) $(CFLAGS.c) $(CFLAGS.c.AX8052) -c $< -o $@
 
 $(OBJDIR)/%.rel	: $(SRCDIR)/%.c
 	$(COMPILE.c.AX8052) $(CFLAGS) $(CFLAGS.c) $(CFLAGS.c.AX8052) -c $< -o $@
 
-
 bin: exe
 hex: exe
 
 flash:  $(TGTDIR)/$(EXE_NM)
 	axsdb --flashprog $(TGTDIR)/$(EXE_NM)
+
+
+.lib.$(LANGUAGE):	$(TGTDIR)/$(LIB_NM)
+$(LIB_NM): $(TGTDIR)/$(LIB_NM)
+$(TGTDIR)/$(LIB_NM): $(objs.$(LANGUAGE)) $(EXTRA_OBJS)
+	@echo 	$(ARFLAGS) $(ARFLAGS.$(LANGUAGE)) $(ARFLAGS.$(LANGUAGE).$(ARCH)) > $@.arflags;
+	$(AR.$(LANGUAGE).$(ARCH)) @$@.arflags $@ $^ 	
+
+.exe.$(LANGUAGE):	$(TGTDIR)/$(EXE_NM)
+$(EXE_NM): $(TGTDIR)/$(EXE_NM)
+$(TGTDIR)/$(EXE_NM): $(objs.$(LANGUAGE)) $(EXTRA_OBJS) 
+	@echo $(LDFLAGS) $(LDFLAGS.$(LANGUAGE)) $(LDFLAGS.$(LANGUAGE).$(ARCH)) > $@.ldflags;
+	$(LD.$(LANGUAGE).$(ARCH)) @$@.ldflags $^ \
+	    $(LIBS) $(LIBS.$(LANGUAGE)) $(LIBS.$(LANGUAGE).$(ARCH)) 
+
+

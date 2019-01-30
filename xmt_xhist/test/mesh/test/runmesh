@@ -1,0 +1,36 @@
+#!/usr/bin/env perl
+use strict;
+use Getopt::Long;
+use Env;
+
+(my $pgmname = $0) =~ s{.*/}{};
+my $usage	= "usage: $pgmname [--help] [--skip0] --language=[c|java]\n";
+my %opt = ();
+GetOptions( \%opt, "help", "skip0", "language=s" ) or die "$usage";
+die "$usage" if defined $opt{'help'} or !defined $opt{'language'};
+
+my $pgm = ($opt{'language'} eq "c" ?  "$XMTXHIST/test/mesh/$T/mesh" : 
+	    "java -cp $XMTXHIST/test/mesh/$T/Mesh.jar:$XMTXHIST/libxhist/$T/Xhist.jar Mesh" );
+my @ports = (10000, 10001, 10002, 10003, 10004, 10005);
+my @children;
+
+foreach my $i (0 .. 5)	
+{
+    next if ($i == 0 && defined $opt{skip0});	# do not spawn iut; only all others.
+
+    my $pid = fork();
+    if ($pid == 0)	# child
+    {
+	my $cmd = "$pgm $i " . join( ' ', @ports) . " > " . $ports[$i] . ".out";
+	exec($cmd);
+    }
+    else		# parent
+    {
+        push @children, $pid;
+    }
+}
+
+# prompt user, wait for input then reap children
+printf("press enter to terminate processes...");
+my $s = <STDIN>;
+kill 'INT', @children;

@@ -14,18 +14,21 @@
 *         available on the target environment.
 *
 *   Functions	:
+*	void	xhist_add(short filenum, short linenum)
+*	void	xhist_mapfile(char *s)
+*	void	xhist_version(char *s)
 *	void	xhist_logdev(int fd)
 *	void	xhist_write()
 *
 *   Copyright (c) 1998	Neumann & Associates Information Systems Inc.
 *   All Rights reserved.	legal.info@neumann-associates.com
 ************************************************************************/
-
+/* xhist instrument FALSE */	/* do not instrument this file.  ever. */
+#define __xhist_c
 #ifndef lint
 static const char xhist_c_id[] = "@(#) xhist::xhist.c	$Version:$";
 #endif
 
-#define __xhist_c
 
 /* pick up system configuration, whether using autoconf or XMT build */
 #if !defined(USING_XMTBUILD)
@@ -64,11 +67,74 @@ static const char xhist_c_id[] = "@(#) xhist::xhist.c	$Version:$";
 #define BACKOUT_IF(ex, msg)	\
 	if (ex) { fprintf(stderr, "%s\n", msg); goto backout; }
 
-XH_REC	xhist_tbl[ XHIST_SIZE ]	= {{ NULL, 0 }};
-int		xhist_tail		= 0;
-int		xhist_logfd		= -1;
+char xhist_buildtag[XHIST_VERSIONLENGTH]	= {0};
+char xhist_mapfn[ XHIST_MAPFNLENGTH ]		= {0};
+unsigned long	xhist_tbl[ XHIST_TBLSIZE ]	= {0};
+unsigned long	xhist_tail			= 0;
+int	xhist_logfd				= -1;
 
-extern void	xhist_write();
+/************************************************************************
+*   Synopsis:
+*	void	xhist_add(unsigned short filenum, unsigned short linenum)
+*
+*   Purpose:
+*	Appends (filenum, linenum) to execution history log.
+*	This is a function call equivalent to the _XHIST macro.
+* 
+*   Parameters: 
+*	short	filenum	: index of filename in filemap
+*	short	linenum	: line number in source file
+* 
+*   Values Returned: 
+*	none	 
+* 
+***********************************************************************/
+void	xhist_add( unsigned short filenum, unsigned short linenum)
+_XH_ADD(filenum, linenum);
+
+/************************************************************************
+*   Synopsis:
+*	void	xhist_mapfile(char *s)
+*
+*   Purpose:
+*	Stores the name of the mapfile needed to decode the file numbers 
+*	recorded in the table.
+* 
+*   Parameters: 
+*	char	*s : map filename string to store
+* 
+*   Values Returned: 
+*	none	 
+* 
+***********************************************************************/
+void	xhist_mapfile(char *s)
+{
+    memset( (void *) xhist_mapfn, (int) 0, (size_t) XHIST_MAPFNLENGTH );
+    (void) strncpy( xhist_mapfn, s, (size_t) XHIST_MAPFNLENGTH );
+    xhist_mapfn[XHIST_MAPFNLENGTH - 1] = '\0';
+}
+
+/************************************************************************
+*   Synopsis:
+*	void	xhist_version(char *s)
+*
+*   Purpose:
+*	Stores the version tag of the instrumented source
+*	recorded in the table.
+* 
+*   Parameters: 
+*	char	*s : version string to store
+* 
+*   Values Returned: 
+*	none	 
+* 
+***********************************************************************/
+void	xhist_version(char *s)
+{
+    memset( (void *) xhist_buildtag, (int) 0, (size_t) XHIST_MAPFNLENGTH );
+    strncpy( xhist_buildtag, s, (size_t) XHIST_VERSIONLENGTH );
+    xhist_buildtag[XHIST_VERSIONLENGTH - 1] = '\0';
+}
 
 
 /************************************************************************
@@ -108,60 +174,42 @@ void	xhist_logdev(int fd)
 ***********************************************************************/
 void	xhist_write()
 {
-    char	tmpbuf[XHIST_PATHLEN];
-    int		i;
-
+    long		l;
+    short		s;
 
     BACKOUT_IF( xhist_logfd < 0, "invalid log device" );
 
-
     /*
-     *  write the size of our integer datatype.
+     *  write 4 bytes containing the number 4.  
+     *  This establishes our byte order for the reader.
+     *  Then write the size of the table and the index of the tail pointer.
      */
 
-    i = sizeof(int);
-    BACKOUT_IF( write( xhist_logfd, (char *) &i, sizeof( int ) ) 
-    		< sizeof( int ), strerror(errno) );
-
+    l = (long) 4;
+    BACKOUT_IF(write(xhist_logfd, (char *) &l, sizeof(l)) < (ssize_t) sizeof(l), strerror(errno));
+    l = (long) (sizeof(xhist_tbl) / sizeof(xhist_tbl[0]));
+    BACKOUT_IF(write(xhist_logfd, (char *) &l, sizeof(l)) < (ssize_t) sizeof(l), strerror(errno));
+    BACKOUT_IF(write(xhist_logfd, (char *) &xhist_tail, sizeof(xhist_tail)) 
+    	< (ssize_t) sizeof(xhist_tail), strerror(errno));
 
     /*
-     *  write the index of the tail pointer
+     *  now write the length & name of the map file created during instrumentation
+     *  and the length & version tag of the instrumented source
      */
+    s = (short) strlen(xhist_mapfn);
+    BACKOUT_IF(write(xhist_logfd, (char *) &s, sizeof(s)) < (ssize_t) sizeof(s), strerror(errno));
+    BACKOUT_IF(write(xhist_logfd, (char *) &xhist_mapfn, s) < (ssize_t) s, strerror(errno));
 
-    BACKOUT_IF( write( xhist_logfd, (char *) &xhist_tail, sizeof( xhist_tail ) ) 
-    	< sizeof( xhist_tail ), strerror(errno) );
-
-
+    s = (short) strlen(xhist_buildtag);
+    BACKOUT_IF(write(xhist_logfd, (char *) &s, sizeof(s)) < (ssize_t) sizeof(s), strerror(errno));
+    BACKOUT_IF(write(xhist_logfd, (char *) &xhist_buildtag, s) < (ssize_t) s, strerror(errno));
+    
     /*
-     *  now write XHIST_SIZE entries from the table to the log device
+     *  now write the entire table to the log device
      */
     
-   for ( i = 0; i < XHIST_SIZE; ++i )
-   {
-      if (xhist_tbl[i].xh_file != NULL)
-      {
-         strncpy(tmpbuf, xhist_tbl[i].xh_file, sizeof(tmpbuf)-1 );
-         BACKOUT_IF( write( xhist_logfd, tmpbuf, sizeof( tmpbuf ) ) 
-                     < sizeof( tmpbuf ),
-                     strerror(errno) );
-         BACKOUT_IF( write( xhist_logfd, (char *) &xhist_tbl[i].xh_line, 
-                     sizeof( xhist_tbl[i].xh_line ) ) < 
-                     sizeof( xhist_tbl[i].xh_line ),
-                     strerror(errno) );
-      }
-      else
-      {
-         strcpy(tmpbuf, " " );
-         xhist_tbl[i].xh_line = 0;
-         BACKOUT_IF( write( xhist_logfd, tmpbuf, sizeof( tmpbuf ) ) 
-                     < sizeof( tmpbuf ),
-                     strerror(errno) );
-         BACKOUT_IF( write( xhist_logfd, (char *) &xhist_tbl[i].xh_line, 
-                     sizeof( xhist_tbl[i].xh_line ) ) < 
-                     sizeof( xhist_tbl[i].xh_line ),
-                     strerror(errno) );
-      }
-   }
+    BACKOUT_IF(write(xhist_logfd, (char *) &xhist_tbl, sizeof(xhist_tbl)) 
+	< (ssize_t) sizeof(xhist_tbl), strerror(errno));
 
 backout:
     close(xhist_logfd);

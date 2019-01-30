@@ -24,24 +24,27 @@
 #*  limitations under the License. 
 #************************************************************************
 
-srcs.c	= $(wildcard $(SRCDIR)/*.c)
-hdrs.c	= $(wildcard $(SRCDIR)/*.h)
-objs.c	= $(patsubst $(SRCDIR)/%.c,$(OBJDIR)/%.o,$(srcs.c))
-docs.c	= $(patsubst $(SRCDIR)/%.c,$(DOCDIR)/%.html,$(srcs.c))
-lnts.c	= $(patsubst $(SRCDIR)/%.c,$(OBJDIR)/%.ln,$(srcs.c))
+
+#   := assignements are evaluated during lexical scan;
+#    = assignemtns are recursively evaluated during rule parsing
+srcs.c	:= $(wildcard $(SRCDIR)/*.c)
+hdrs.c	:= $(wildcard $(SRCDIR)/*.h)
+objs.c	:= $(patsubst $(SRCDIR)/%.c,$(OBJDIR)/%.o,$(srcs.c))
+docs.c	:= $(patsubst $(SRCDIR)/%.c,$(DOCDIR)/%.html,$(srcs.c))
+lnts.c	:= $(patsubst $(SRCDIR)/%.c,$(OBJDIR)/%.ln,$(srcs.c))
 
 #**********************************************************************
 # pull in sources from vendor tree rooted at VENDOR_ROOT
 #**********************************************************************
 VENDOR_ROOT	= $(SRCDIR)/vendor
-vendor_srcdirs	= $(sort $(dir $(shell find $(VENDOR_ROOT) -name "*.$(LANGUAGE)")))
-vendor_srcfiles	= $(sort $(notdir $(shell find $(VENDOR_ROOT) -name "*.$(LANGUAGE)")))
-vendor_sdirs	= $(sort $(dir $(shell find $(VENDOR_ROOT) -name "*.[sS]")))
-vendor_sfiles	= $(sort $(notdir $(shell find $(VENDOR_ROOT) -name "*.[sS]")))
-vendor_objfiles	= $(patsubst %,$(OBJDIR)/%,$(vendor_srcfiles:.$(LANGUAGE)=.o) $(vendor_sfiles:.s=.o))
-vendor_hdirs	= $(sort $(dir $(shell find $(VENDOR_ROOT) -name "*.h")))
-vendor_hfiles	= $(sort $(notdir $(shell find $(VENDOR_ROOT) -name "*.h")))
-vendor_incs	= $(patsubst %,-I%,$(vendor_hdirs))
+vendor_srcdirs	:= $(sort $(dir $(shell find $(VENDOR_ROOT) -name "*.$(LANGUAGE)")))
+vendor_srcfiles	:= $(sort $(notdir $(shell find $(VENDOR_ROOT) -name "*.$(LANGUAGE)")))
+vendor_sdirs	:= $(sort $(dir $(shell find $(VENDOR_ROOT) -name "*.[sS]")))
+vendor_sfiles	:= $(sort $(notdir $(shell find $(VENDOR_ROOT) -name "*.[sS]")))
+vendor_objfiles	:= $(patsubst %,$(OBJDIR)/%,$(vendor_srcfiles:.$(LANGUAGE)=.o) $(vendor_sfiles:.s=.o))
+vendor_hdirs	:= $(sort $(dir $(shell find $(VENDOR_ROOT) -name "*.h")))
+vendor_hfiles	:= $(sort $(notdir $(shell find $(VENDOR_ROOT) -name "*.h")))
+vendor_incs	:= $(patsubst %,-I%,$(vendor_hdirs))
 
 vpath %.c $(SRCDIR) $(vendor_srcdirs)
 vpath %.i $(SRCDIR) $(vendor_srcdirs)
@@ -61,27 +64,5 @@ LDFLAGS.c	+= -o $@
 LINTFLAGS.c	+= $(CFLAGS.c)
 DOCFLAGS.c	+= -o $@
 
-$(OBJDIR)/%.o	: %.S
-	@echo $(CFLAGS) $(CFLAGS.c) $(CFLAGS.c.$(ARCH)) > $@.cflags ; 
-	$(COMPILE.c.$(ARCH)) @$@.cflags $< 
-
-$(OBJDIR)/%.o	: %.s
-	@echo $(CFLAGS) $(CFLAGS.c) $(CFLAGS.c.$(ARCH)) > $@.cflags ; 
-	$(COMPILE.c.$(ARCH)) @$@.cflags $< 
-
-$(OBJDIR)/%.o	: %.c
-	@echo $(CFLAGS) $(CFLAGS.c) $(CFLAGS.c.$(ARCH)) > $@.cflags ; 
-	$(COMPILE.c.$(ARCH)) @$@.cflags $< 
-
-$(OBJDIR)/%.i	: /%.c
-	@echo -E $(CFLAGS) $(CFLAGS.c) $(CFLAGS.c.$(ARCH)) > $@.cflags ; 
-	$(COMPILE.c.$(ARCH)) @$@.cflags $< 
-
-$(OBJDIR)/%.ln	: %.c
-	@echo $(LINTFLAGS) $(LINTFLAGS.c) $(LINTFLAGS.c.$(ARCH)) > $@.lintflags ; 
-	$(LINT.c.$(ARCH)) @$@.lintflags $< 
-
-$(DOCDIR)/%.html: $(SRCDIR)/%.c
-	@echo $(DOCFLAGS) $(DOCFLAGS.c) $(DOCFLAGS.c.$(ARCH)) > $@.docflags ; 
-	$(DOC.c.$(ARCH)) @$@.docflags $< 
-
+## Define recipes in $(XMTBUILD)/proto/lang/$(LANGUAGE)/$(ARCH)
+## after variables are further defined there 

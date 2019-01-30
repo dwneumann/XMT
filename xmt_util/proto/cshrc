@@ -38,6 +38,6 @@ if ( $?prompt ) then
     set history = 100
     unset savehist
     set filec
-    set owd = `cygpath -au $cwd | sed 's://:/:g'`
+    set owd = `echo $cwd | sed 's://:/:g'`
     cd "$owd"
 endif

@@ -37,9 +37,9 @@ map <C-T>	:ta
 map <C-X><C-B>	:<C-U>'s,'e
 map <C-X><C-P>	:put z<CR>
 map <C-X><C-P>	:put z<CR>
-map <C-X><C-X>	:<C-U>'s,'ed z<CR>
-map <C-X><C-Y>	:<C-U>'s,'ey z<CR>
-map <C-X>=	:<C-U>'s,'e !$XMTEDIT/bin/hdr -d -m comment<CR>
+map <C-X><C-X>	:'s,'ed z<CR>
+map <C-X><C-Y>	:'s,'ey z<CR>
+map <C-X>=	:'s,'e !$XMTEDIT/bin/hdr -d -m comment<CR>
 map <C-X>f	:doautocmd BufRead %.
 map <C-X>i	:'s,'e !indent - \|unexpand --all<CR>
 map <C-X>S	Go<ESC>!!spell -b %<CR>
@@ -47,8 +47,9 @@ map <C-X>+	c0:e! <ESC>f:s +<ESC>;C 0WdW$p<C-X>x
 map <C-X>E	0f:s :e! +<ESC>f:C <ESC>0dW$p<C-X>x
 map <C-X>x	:.y x<CR>@x
 map <C-X><	mh%<%dd'hdd
-map <C-X><	>%<<%<<
-map <> 		<%>>%>>
+map <C-X><	>%<<%<<%
+map <> 		<%>>%>>%
+map >< 		>%<<%<<%
 map F		!} fmt -80 -c<CR>
 map g		:%
 map , 		:'s,'e

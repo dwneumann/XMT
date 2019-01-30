@@ -24,12 +24,13 @@
 #*  limitations under the License. 
 #************************************************************************
 
+
 #**********************************************************************
 # define program paths...
 #**********************************************************************
-COMPILE.c.linux_x86	:= /bin/g++
-LD.c.linux_x86		:= /bin/g++
-AR.c.linux_x86		:= /bin/ar
+COMPILE.c.linux_x86	:= gcc
+LD.c.linux_x86		:= gcc
+AR.c.linux_x86		:= ar
 DOC.c.linux_x86		:= $(XMTBUILD)/bin/srcdoc 
 LINT.c.linux_x86	:= echo lint not installed
 LIB_PFX.c.linux_x86	:= lib
@@ -41,9 +42,50 @@ EXE_SFX.c.linux_x86	:=
 # This is the place to define default flags that are specific to THIS 
 # platform and THIS language.
 #**********************************************************************
-CFLAGS.c.linux_x86 += -Wall -m32 
-LDFLAGS.c.linux_x86	+= $(CFLAGS.c.STM32F4) 
+CFLAGS.c.linux_x86 += -Wall -Wno-unused-const-variable -m32 
+LDFLAGS.c.linux_x86	+= $(CFLAGS.c.linux_x86) 
 ARFLAGS.c.linux_x86	+= -r
-LINTFLAGS.c.linux_x86	+= $(CFLAGS.c.STM32F4)
+LINTFLAGS.c.linux_x86	+= $(CFLAGS.c.linux_x86)
 DOCFLAGS.c.linux_x86	+= 
+
+
+
+$(OBJDIR)/%.o	: %.S
+	@echo $(CFLAGS) $(CFLAGS.c) $(CFLAGS.c.$(ARCH)) > $@.cflags ; 
+	$(COMPILE.c.$(ARCH)) @$@.cflags $< 
+
+$(OBJDIR)/%.o	: %.s
+	@echo $(CFLAGS) $(CFLAGS.c) $(CFLAGS.c.$(ARCH)) > $@.cflags ; 
+	$(COMPILE.c.$(ARCH)) @$@.cflags $< 
+
+$(OBJDIR)/%.o	: %.c
+	@echo $(CFLAGS) $(CFLAGS.c) $(CFLAGS.c.$(ARCH)) > $@.cflags ; 
+	$(COMPILE.c.$(ARCH)) @$@.cflags $< 
+
+$(OBJDIR)/%.i	: /%.c
+	@echo -E $(CFLAGS) $(CFLAGS.c) $(CFLAGS.c.$(ARCH)) > $@.cflags ; 
+	$(COMPILE.c.$(ARCH)) @$@.cflags $< 
+
+$(OBJDIR)/%.ln	: %.c
+	@echo $(LINTFLAGS) $(LINTFLAGS.c) $(LINTFLAGS.c.$(ARCH)) > $@.lintflags ; 
+	$(LINT.c.$(ARCH)) @$@.lintflags $< 
+
+$(DOCDIR)/%.html: $(SRCDIR)/%.c
+	@echo $(DOCFLAGS) $(DOCFLAGS.c) $(DOCFLAGS.c.$(ARCH)) > $@.docflags ; 
+	$(DOC.c.$(ARCH)) @$@.docflags $< 
+
+.lib.$(LANGUAGE):	$(TGTDIR)/$(LIB_NM)
+$(LIB_NM): $(TGTDIR)/$(LIB_NM)
+$(TGTDIR)/$(LIB_NM): $(objs.$(LANGUAGE)) $(EXTRA_OBJS)
+	@echo 	$(ARFLAGS) $(ARFLAGS.$(LANGUAGE)) $(ARFLAGS.$(LANGUAGE).$(ARCH)) > $@.arflags;
+	$(AR.$(LANGUAGE).$(ARCH)) @$@.arflags $@ $^ 	
+
+.exe.$(LANGUAGE):	$(TGTDIR)/$(EXE_NM)
+$(EXE_NM): $(TGTDIR)/$(EXE_NM)
+$(TGTDIR)/$(EXE_NM): $(objs.$(LANGUAGE)) $(EXTRA_OBJS) 
+	@echo $(LDFLAGS) $(LDFLAGS.$(LANGUAGE)) $(LDFLAGS.$(LANGUAGE).$(ARCH)) > $@.ldflags;
+	$(LD.$(LANGUAGE).$(ARCH)) @$@.ldflags $^ \
+	    $(LIBS) $(LIBS.$(LANGUAGE)) $(LIBS.$(LANGUAGE).$(ARCH)) 
+
+
 

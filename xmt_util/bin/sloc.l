@@ -32,8 +32,8 @@ int	in_cmt		= 0;
 \/\*		{ in_cmt = TRUE; ++num_cmts; }
 \*\/		{ in_cmt = FALSE; } 
 \/\/.*		{ ++num_cmts; }
-"ML_LOG_MSG"|"ML_LOG_ERROR_MSG"		{ if ( !in_cmt ) ++num_diags; }
-"ML_ASSERT_MSG"|"ML_ASSERT_MSG_FMT"	{ if ( !in_cmt ) ++num_asserts; }
+"Logger"	{ if ( !in_cmt ) ++num_diags; }
+"assert"	{ if ( !in_cmt ) ++num_asserts; }
 ";"		{ if ( !in_cmt ) ++num_slocs; }
 \n		{ ++total_lines; }
 .		;

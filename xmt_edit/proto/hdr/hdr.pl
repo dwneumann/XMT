@@ -22,14 +22,14 @@
 $copyright =~ s/\n*$//;
 $copyright =~ s/\n/\n#   /g; 
 print 
-qq{#!/bin/perl -w
+qq{#!/usr/bin/env perl
 #************************************************************************
-#   Package	: $module->{pkg}
 #   $cm->{rev}
-#   $copyright
-#
+#   Package	: $module->{pkg}
 #   Synopsis	:
 #   Purpose	: 
+#
+#   $copyright
 #************************************************************************
 };
 

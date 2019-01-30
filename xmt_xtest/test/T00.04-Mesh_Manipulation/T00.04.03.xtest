@@ -1,0 +1,18 @@
+
+# precondition:  iut is stopped in intermediate state
+# set breakpoint, run to there, force try block to throw exception
+# postcondition: iut is stopped in intermediate state
+
+
+{   
+    my $line = XMT::Xtest::resolve("Packet.java", "@TestPoint_116") + 1;
+    SEND( "stop at Packet:$line\n" );	
+}
+{ EXPECT( "Set breakpoint" );		}
+
+{ SEND( "cont\n" );			}	
+{ EXPECT( "Breakpoint hit" );}
+
+{ SEND( "set forceException = true\n" );}
+{ EXPECT( "forceException = true" );	}
+

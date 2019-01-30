@@ -1,4 +1,4 @@
-#!/bin/perl
+#!/usr/bin/env perl
 
 $oid1 = `timesht_cmd insertTimesht -v			\\
 			-start_date 2001/01/01		\\

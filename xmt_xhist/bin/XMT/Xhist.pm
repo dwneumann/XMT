@@ -1,6 +1,6 @@
 #!/usr/bin/env perl
 #************************************************************************
-#*   $Version:$
+#*   $Version: 5.2.2-22 [experimental] $
 #*   Package	: xmt_xhist
 #*   Purpose	: Xhist class (invoked by git_filter)
 #*
@@ -24,7 +24,7 @@ use Digest::CRC qw(crc16);
 sub version 
 {
     local $^W=0; 
-    my @v = split(/\s+/,'$Version:$'); 
+    my @v = split(/\s+/,'$Version: 5.2.2-22 [experimental] $'); 
     my $s=sprintf("%f", $v[1]);
     $s=~ s/0+$//;
     return $s;
@@ -208,7 +208,7 @@ sub new
     my $self = {};
 
     $self->{srcfn}	= $opts->{fname}  or carp "input filename undefined" & return undef;
-    $self->{srcbuf}	= $opts->{srcbuf} ? $opts->{srcbuf} : "";
+    $self->{srcbuf}	= length($opts->{srcbuf}) > 0 ? $opts->{srcbuf} : "";
     $self->{mapfn}	= $opts->{map} if (defined $opts->{map} || defined $opts->{xhist_map});
     $self->{fext}	= (defined($self->{srcfn}) ?
     			lc $self->{srcfn} =~ s/.*\.(.*?)$/$1/r : "c");

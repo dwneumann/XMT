@@ -30,7 +30,7 @@ public	class		Hello
 	DataOutputStream	fd;
     
 	try {
-	    fd = new DataOutputStream(new FileOutputStream("./Hello.trace")); 
+	    fd = new DataOutputStream(new FileOutputStream("./Hello.xhist")); 
 	    Xhist.logdev(fd);
 	    Xhist.mapfile("$XhistMap:$");
 	    Xhist.version("$Version:$");

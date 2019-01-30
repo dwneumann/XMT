@@ -233,12 +233,14 @@ sub standalone_main
 
 	# XTEST FIRST.
 	# do xtest instrumentation if we are in a branch specified for instrumentation.
-	if ( defined $opt{'xtest'} and $XMT::Xkeyword::kw{'Branch'}{val} =~ /$opt{'xtest'}/ )
+	if ( defined $opt{'xtest'} 
+	    and $XMT::Xkeyword::kw{'Branch'}{val} =~ /$opt{'xtest'}/ )
 	{
 	    $xt = XMT::Xtest::new(\%opt)	or die "$help_msg";
 	    $opt{srcbuf} = $xt->instrument()	or die; 
 	}
-	elsif ( defined $opt{'unxtest'} )
+	elsif ( defined $opt{'unxtest'} 
+	    and $XMT::Xkeyword::kw{'Branch'}{val} =~ /$opt{'unxtest'}/ )
 	{
 	    $xt = XMT::Xtest::new(\%opt)	or die "$help_msg";
 	    $opt{srcbuf} = $xt->uninstrument()	or die;
@@ -246,13 +248,15 @@ sub standalone_main
 
 	# XHIST SECOND.
 	# do xhist instrumentation if we are in a branch specified for instrumentation.
-	if ( defined $opt{'xhist'} and $XMT::Xkeyword::kw{'Branch'}{val} =~ /$opt{'xhist'}/ )
+	if ( defined $opt{'xhist'} 
+	    and $XMT::Xkeyword::kw{'Branch'}{val} =~ /$opt{'xhist'}/ )
 	{
 	    $xh = XMT::Xhist::new(\%opt)	or die "$help_msg";
 	    $opt{srcbuf} = $xh->instrument()	or die; 
 	    $xh->printmap();	
 	}
-	elsif ( defined $opt{'unxhist'} )
+	elsif ( defined $opt{'unxhist'} 
+	    and $XMT::Xkeyword::kw{'Branch'}{val} =~ /$opt{'unxhist'}/ )
 	{
 	    $xh = XMT::Xhist::new(\%opt)	or die "$help_msg";
 	    $opt{srcbuf} = $xh->uninstrument()	or die;
@@ -260,12 +264,14 @@ sub standalone_main
 
 	# KEYWORD EXPANSION LAST so that instrumentation code can include keywords.
 	# do keyword expansion if we are in a branch specified for keyword expansion.
-	if ( defined $opt{'expand'}  and $XMT::Xkeyword::kw{'Branch'}{val} =~ /$opt{'expand'}/ )
+	if ( defined $opt{'expand'}  
+	    and $XMT::Xkeyword::kw{'Branch'}{val} =~ /$opt{'expand'}/ )
 	{
 	    $xk = XMT::Xkeyword::new(\%opt)	or die "$help_msg";
 	    $opt{srcbuf} = $xk->expand()	or die; 
 	}
-	elsif (defined $opt{'unexpand'})
+	elsif (defined $opt{'unexpand'}
+	    and $XMT::Xkeyword::kw{'Branch'}{val} =~ /$opt{'unexpand'}/ )
 	{
 	    $xk = XMT::Xkeyword::new(\%opt)	or die "$help_msg";
 	    $opt{srcbuf} = $xk->unexpand()	or die; 
@@ -369,21 +375,24 @@ sub protocol_main
 	elsif ( $command =~ /clean/ ) 
 	{
 	    # XTEST FIRST.
-	    if ( defined $opt{'unxtest'} )
+	    if ( defined $opt{'unxtest'} 
+		and $XMT::Xkeyword::kw{'Branch'}{val} =~ /$opt{'unxtest'}/ )
 	    {
 		$xt = XMT::Xtest::new(\%opt)		or die "$help_msg";
 		$opt{srcbuf} = $xt->uninstrument()	or die;
 	    }
 
 	    # XHIST SECOND.
-	    if ( defined $opt{'unxhist'} )
+	    if ( defined $opt{'unxhist'} 
+		and $XMT::Xkeyword::kw{'Branch'}{val} =~ /$opt{'unxhist'}/ )
 	    {
 		$xh = XMT::Xhist::new(\%opt)		or die "$help_msg";
 		$opt{srcbuf} = $xh->uninstrument()	or die;
 	    }
 
 	    # KEYWORD EXPANSION LAST.
-	    if ( defined $opt{'unexpand'} )
+	    if ( defined $opt{'unexpand'} 
+		and $XMT::Xkeyword::kw{'Branch'}{val} =~ /$opt{'unexpand'}/ )
 	    {
 		$xk = XMT::Xkeyword::new(\%opt)		or die "$help_msg";
 		$opt{srcbuf} = $xk->unexpand()		or die; 

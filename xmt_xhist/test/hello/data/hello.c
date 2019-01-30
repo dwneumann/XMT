@@ -1,6 +1,3 @@
-#ifdef XHIST 
-#include "xhist.h" 
-#endif  
 /************************************************************************ 
 *   Package	: libxhist 
 *   $Version:$ 
@@ -19,6 +16,10 @@
 *   Purpose	: demonstrate xhist usage 
 ************************************************************************/ 
  
+#ifdef XHIST 
+#include "xhist.h" 
+#endif  
+
 #define __hello_c 
  
 #ifdef EMBED_REVISION_STRINGS 

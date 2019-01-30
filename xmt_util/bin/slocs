@@ -2,11 +2,11 @@
 #************************************************************************
 #*   $Version:$
 #*   Package	: xmt_util
-#*   Synopsis	: slocs [-v] [-csv] [-f <filespec>] <dir> ...
+#*   Synopsis	: slocs [-v] [-csv] [-f <filespec>] <file> ...
 #*		 e.g.  slocs -f '*.java' src/
 #*   Purpose	: 
 #*	Perform source code metrics counts on all files matching the 
-#*	pattern <filespec> in each directory <dir> and all subdirectories 
+#*	pattern <filespec> in each filelist or directory <dir> and all subdirectories 
 #*	recursively.  If omitted, <filespec> defaults to "*"
 #*	If [-v] is specified each file and its metrics is echoed to stdout.
 #*	If [-csv] is specified metrics are output in csv format.
@@ -28,10 +28,10 @@ use Getopt::Long;
 use Cwd;
 
 ($pgmname = $0) =~ s{.*/}{};
-$usage		= "usage: $pgmname [-v] [-csv] [-f 'file pattern'] <dir>\n";
-undef $opt_u; # unnecessary but shuts up -w
-undef $opt_v; # unnecessary but shuts up -w
-undef $opt_csv; # unnecessary but shuts up -w
+$usage		= "usage: $pgmname [-v] [-csv] [-f 'file pattern'] <file or dir> ...\n";
+undef $opt_u;	# unnecessary but shuts up -w
+undef $opt_v;	# unnecessary but shuts up -w
+undef $opt_csv;	# unnecessary but shuts up -w
 $opt_f	= '*.[ch]';
 
 GetOptions( "u", "v", "csv", "f=s" ) || die $usage;
@@ -45,17 +45,24 @@ my $csv_headings = 'File,' . `sloc < /dev/null`;
 $csv_headings =~ s/:[^\n]*\n/,/sg;
 $csv_headings =~ s/,\n//;
 
-@dirs = @ARGV;		# initial directory list
-while ( $#dirs >= 0 )
+@arglist = @ARGV;	# traverse args, expanding directories into files
+while ( $#arglist >= 0 )
 {
-    my $d = $dirs[0];
-    @dirents = glob( "$d/*" );
-    foreach $f ( @dirents )
+    my $f = $arglist[0];
+    if (-d $f)
     {
-	push( @dirs, $f ) if ( -d $f && $f !~ /^\.+$/ );# append subdirs
+	@dirents = glob( "$f/*" );
+	foreach $f ( @dirents )
+	{
+	    push( @arglist, $f ) if ( -d $f && $f !~ /^\.+$/ );# append subdirs
+	}
+	push( @srcs, glob("$f/$opt_f") );# append matching filenames to @srcs
     }
-    push( @srcs, glob("$d/$opt_f") );# append matching filenames to @srcs
-    shift @dirs;
+    else # plain file
+    {
+	push( @srcs, $f);# append plain file to @srcs
+    }
+    shift @arglist;
 }
 
 exit 0 if ($#srcs < 0);

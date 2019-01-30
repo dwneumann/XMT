@@ -11,7 +11,12 @@
  *    See the License for the specific language governing permissions and
  *    limitations under the License. 
  */
+<<<<<<< HEAD:xmt_xhist/test/hello/data/Hello.java
 /* xhist debug FALSE */	
+=======
+
+/* xhist debug FALSE */		
+>>>>>>> develop:xmt_xhist/test/hello/data/Hello.java.orig
 
 import java.lang.Runtime;
 import java.io.DataOutputStream;
@@ -29,7 +34,7 @@ public	class		Hello
 	DataOutputStream	fd;
     
 	try {
-	    fd = new DataOutputStream(new FileOutputStream("./Hello.trace")); 
+	    fd = new DataOutputStream(new FileOutputStream("./Hello.xhist")); 
 	    Xhist.logdev(fd);
 	    Xhist.mapfile("$XhistMap:$");
 	    Xhist.version("$Version:$");

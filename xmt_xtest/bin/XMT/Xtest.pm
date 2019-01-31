@@ -49,7 +49,7 @@ sub new
     my $self = {};
 
     $self->{srcfn}	= $opts->{fname}  	if defined $opts->{fname};
-    $self->{srcbuf}	= $opts->{srcbuf} ? $opts->{srcbuf} : "";
+    $self->{srcbuf}	= length($opts->{srcbuf}) > 0 ? $opts->{srcbuf} : "";
     $self->{iut}	= $opts->{iut} 		if defined $opts->{iut};
     $self->{testfile}	= $opts->{test} 	if defined $opts->{test};
     $self->{verbose}	= (defined $opts->{verbose} ? 1 : 0);
@@ -189,6 +189,10 @@ sub _parsetestfile
 sub instrument
 {
     my $self = shift;
+
+    # refuse to instrument source that's already instrumented.
+    # Probably not what the user wanted, and will certainly screw up unxhist.
+    return $self->{srcbuf} if ($self->{srcbuf} =~ /<XTEST>.*<\/XTEST>/);
 
     # do try/catch block code injection.
     # note we inject indentation and a newline AFTER the end delimiter 

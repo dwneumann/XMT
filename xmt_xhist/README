@@ -8,6 +8,7 @@ code of the software under test, and produces modified source code that is
 then compiled and linked using the same compiler, linker, and flags as the
 uninstrumented source. "xhist_instrument" applies C syntax, C++ syntax or
 Java syntax according to the file extension of the source file specified.
+(xmt_cm/bin/git_filter can also do this on complete branches as a smudge/clean filter).
 
 The instrumented software, when compiled and executed, records into a
 circular buffer the filename and line number of each source statement as

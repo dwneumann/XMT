@@ -4,17 +4,17 @@ XMT_XTEST
 Usage
 -----
 xmt_xtest is an XMT package for whitebox testing of software.
-It contains the Perl script *xmt_xtest/bin/xtest* which
-is an implementation of an Expect-based test harness in Perl.  See *DejaGnu*
+It contains the Perl script xmt_xtest/bin/xtest which
+is an implementation of an Expect-based test harness in Perl.  See DejaGnu
 [link](https://en.wikipedia.org/wiki/DejaGnu) for a description of Expect-based
 test harnesses in general.
 
-*xtest* spawns any program which accepts commands on its stdin and
+xtest spawns any program which accepts commands on its stdin and
 produces output on its stdout.  For the purposes of software development, 
 this is typically a debugger like gdb or jdb, under the control of which
 one runs the program being tested (the Implementation Under Test, or "iut").
 
-*xtest* executes a *test* of the iut by SENDing commands and EXPECTing
+xtest executes a test of the iut by SENDing commands and EXPECTing
 responses to/from the debugger, through which one can manipulate and monitor
 the internal state of the iut, by forcing error conditions that would otherwise
 be difficult to test (set a return value to simulate a write failure, set
@@ -36,7 +36,7 @@ Test files may threfore contain arbitrary Perl code as well as nested test files
      INCLUDE( "$testdir/T00.04.04.xtest" );  # continue pgm execution & check results
  } 
 
-If *xtest* reaches the end of the sequence of test blocks and has received everything 
+If xtest reaches the end of the sequence of test blocks and has received everything 
 it EXPECTed, it reports PASS on its stdout and exits with an exit code of 0.  
 If at any point it fails to receive an expected response from the iut it
 reports a FAIL on its stdout and exits with an exit code of 1.
@@ -44,16 +44,20 @@ reports a FAIL on its stdout and exits with an exit code of 1.
 xtest_instrument
 ----------------
 The xmt_xtest package also includes a Perl script
-*xmt_xtest/bin/xtest_instrument*, which can instrument java source code for easier
-whitebox testing.   In particular it injects an additional expression into
+xmt_xtest/bin/xtest_instrument, which can instrument java source code for easier
+whitebox testing.   
+(xmt_cm/bin/git_filter can also do this on complete branches as a smudge/clean filter).
+
+In particular xhist_instrument injects an additional expression into
 if statments which allows a global variable to be set which forces
 the if to evaluate to false, e.g.  
+
  if ( (ch = inputStream.read() != -1) {
 
 becomes:
  if ( (ch = inputStream.read() != -1) ) {
  
-*xtest_instrument* also injects an additional statement into try blocks which allows
+xtest_instrument also injects an additional statement into try blocks which allows
 a variable to be set which forces the try block to throw an exception,
 resulting in the catch block being entered, e.g.
  try {
@@ -68,7 +72,7 @@ becomes:
  catch (IOException e) {
 
 To make test scripts which set breakpoints at specific lines of code more
-robust to source coede changes,a *xtest* provides a function 
+robust to source coede changes,a xtest provides a function 
 > XMT::Xtest::resolve( <filename or classname>, <pattern> )
 which will search a particular file, or will search the CLASSPATH for the
 file implementing the named class, and will resolve the <patten> into a line
@@ -79,4 +83,16 @@ number in the file, e.g.
 
 INSTALLATION
 ============
+
+Xmt_xxtest consists of:
+- bin/xtest_instrument	a perl script to instrument C, C++ or Java source files 
+- bin/xtest		a perl implementation of an Expect-based test harness
+- bin/XMT/Xtest.pm	perl module implementing instrumentation & uninstrumentation
+
+Installing the Perl scripts
+===========================
+  -  sudo cp $XMT/xmt_xtest/bin/xtest* /usr/local/bin;  rehash;
+  -  Install the perl module into your perl site-install location
+	this is found by running perl -V:installsitelib
+  -  e.g.  sudo cp -r $XMT/xmt_xtest/bin/XMT /usr/local/share/perl/<version>
 

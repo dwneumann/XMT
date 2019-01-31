@@ -1,5 +1,5 @@
 #***********************************************************************
-#   $Version: rc5.1.1-8 [experimental] $
+#   $Version:$
 #   Package	: xmt_cm
 #   Synopsis	:
 #   Purpose	: git convenience aliases.

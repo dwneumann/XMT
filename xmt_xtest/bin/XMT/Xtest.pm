@@ -199,7 +199,7 @@ sub instrument
     # that must be removed during uninstrumentation
     my $ptn = '(try\s+\{.*?)(\s*)(\}\s*catch\s+\()(\S*Exception)?(.*?\{)';
     my $repl = <<'__END__';
-"$1$2/*<XTEST>*/ 
+"$1$2/\*<XTEST>\*/ 
 $2    \{
 $2        boolean forceException = false; 
 $2        if(forceException) 
@@ -207,7 +207,7 @@ $2        \{
 $2              throw new $4 (\"forceException\");
 $2        \}
 $2    \}
-$2/*</XTEST>*/$2$3$4$5"
+$2\/\*<\/XTEST>\*\/$2$3$4$5"
 __END__
 
     $repl =~ s/\n//g;
@@ -216,7 +216,7 @@ __END__
     # do if-then block code injection
     # note we inject one space AFTER the end delimiter 
     # that must be removed during uninstrumentation
-    $self->{srcbuf} =~ s:if\s+\(\s*:$&/*<XTEST>*/ !XMT.Xhist.forceFail && /*</XTEST>*/ :sg;
+    $self->{srcbuf} =~ s:if\s*?\(\s*:$&/\*<XTEST>\*/ !XMT.Xhist.forceFail && /\*<\/XTEST>\*/ :sg;
 
     return $self->{srcbuf};
 }

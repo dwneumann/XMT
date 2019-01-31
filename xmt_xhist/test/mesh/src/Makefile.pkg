@@ -48,7 +48,7 @@ instrument:
 	    m=$(CURDIR)/$(TESTDIR)/Mesh.$${x}.xmap; 	\
 	    for f in *.$$x ; do				\
 		/usr/local/bin/git_filter --expand=. --xhist=. --xhist_map=$$m $$f  \
-		> $(SRCDIR)/$$f ;			\
+		--xtest=. > $(SRCDIR)/$$f ;			\
 	    done					\
 	done)
 

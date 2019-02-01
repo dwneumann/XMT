@@ -194,6 +194,12 @@ sub instrument
     # Probably not what the user wanted, and will certainly screw up unxhist.
     return $self->{srcbuf} if ($self->{srcbuf} =~ /<XTEST>.*<\/XTEST>/);
 
+    # do if-then block code injection
+    # note we inject one space AFTER the end delimiter 
+    # that must be removed during uninstrumentation
+    $self->{srcbuf} =~ 
+    	s:if\s*?\(\s*:$&/\*<XTEST>\*/ !XMT.Xhist.forceFail && /\*<\/XTEST>\*/ :sg;
+
     # do try/catch block code injection.
     # note we inject indentation and a newline AFTER the end delimiter 
     # that must be removed during uninstrumentation
@@ -212,11 +218,6 @@ __END__
 
     $repl =~ s/\n//g;
     $self->{srcbuf} =~ s:$ptn:$repl:eesg;
-
-    # do if-then block code injection
-    # note we inject one space AFTER the end delimiter 
-    # that must be removed during uninstrumentation
-    $self->{srcbuf} =~ s:if\s*?\(\s*:$&/\*<XTEST>\*/ !XMT.Xhist.forceFail && /\*<\/XTEST>\*/ :sg;
 
     return $self->{srcbuf};
 }

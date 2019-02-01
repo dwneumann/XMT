@@ -9,6 +9,10 @@ is an implementation of an Expect-based test harness in Perl.  See DejaGnu
 [link](https://en.wikipedia.org/wiki/DejaGnu) for a description of Expect-based
 test harnesses in general.
 
+There are two executables of note:
+ - xtest
+ - xtest_instrument
+
 xtest spawns any program which accepts commands on its stdin and
 produces output on its stdout.  For the purposes of software development, 
 this is typically a debugger like gdb or jdb, under the control of which
@@ -52,34 +56,49 @@ In particular xhist_instrument injects an additional expression into
 if statments which allows a global variable to be set which forces
 the if to evaluate to false, e.g.  
 
- if ( (ch = inputStream.read() != -1) {
+    if( !undeliveredPeerUpdateMessages.isEmpty() ) {
 
 becomes:
- if ( (ch = inputStream.read() != -1) ) {
+    if( /*<XTEST>*/ !XMT.Xhist.forceFail && /*</XTEST>*/ 
+	!undeliveredPeerUpdateMessages.isEmpty() ) {
  
 xtest_instrument also injects an additional statement into try blocks which allows
 a variable to be set which forces the try block to throw an exception,
 resulting in the catch block being entered, e.g.
- try {
-     n.socket.send(dg);
- }
- catch (IOException e) {
+    try {
+	n.socket.send(dg);
+    }
+    catch (IOException e) {
 
 becomes:
- try {
-     n.socket.send(dg);
- }
- catch (IOException e) {
+    try {
+	n.socket.send(dg);
+    /*<XTEST>*/
+    {
+	boolean forceException = false;
+	if(forceException)
+	{
+		throw new RightMeshException ("forceException");
+	}
+    }
+    /*</XTEST>*/
+    }
+    catch (IOException e) {
 
-To make test scripts which set breakpoints at specific lines of code more
-robust to source coede changes,a xtest provides a function 
-> XMT::Xtest::resolve( <filename or classname>, <pattern> )
+To make test scripts more robust to source coede changes,a xtest provides
+a function
+    XMT::Xtest::resolve( <filename or classname>, <pattern> )
 which will search a particular file, or will search the CLASSPATH for the
 file implementing the named class, and will resolve the <patten> into a line
 number in the file, e.g.
- { my $line = XMT::Xtest::resolve("Packet.java", "// @TestPoint_116" ) + 1;
+ { 
+   my $line = XMT::Xtest::resolve("Packet.java", "// @TestPoint_116" ) + 1;
    SEND( "stop at $line\n" ); 	
  } 
+
+After instrumenting, build your program, then run your program under control
+of a debugger, scripting the interaction with xtest:
+    xtest --iut "jdb Foo" --test test1.xtest  --verbose
 
 INSTALLATION
 ============

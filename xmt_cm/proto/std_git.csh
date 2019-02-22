@@ -1,5 +1,5 @@
 #***********************************************************************
-#   $Version: rc5.1.1-8 [experimental] $
+#   $Version:$
 #   Package	: xmt_cm
 #   Synopsis	:
 #   Purpose	: git wrappers & convenience aliases for shells with csh syntax.

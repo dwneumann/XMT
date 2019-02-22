@@ -22,11 +22,11 @@ import java.net.*;
  * The Mesh class implements a toy mesh network to demonstrate execution history tracing
  * and whitebox testing.
  * <p>
- *  main() implements one myNode (myNode i) of an N myNode mesh.  
+ *  main() implements one node (node i) of an N node mesh.  
  *  Multiple instances should be run to create the N nodes.
- *  Each myNode then initiates, forwards, & receives packets
+ *  Each node then initiates, forwards and receives packets
  *  to/from the other nodes.  
- *  Prints statistics on packet loss & latency.
+ *  Prints statistics on packet loss and latency.
  * <p>
  * @version	$Version:$
  */
@@ -67,6 +67,12 @@ public	class	Mesh {
 	try 
 	{
 	    myNode.bind( nodes[myNodeIndex] ); /* bind to my port # */
+	forceException) 
+	        {
+	              throw new SocketException ("forceException");
+	        }
+	    }
+	/*</XTEST>*/
 	}
 	catch (SocketException e) 
 	{
@@ -85,6 +91,12 @@ public	class	Mesh {
 	try 
 	{
 	    waitForNode(nextPort);			
+	forceException) 			
+	        {			
+	              throw new IOException ("forceException");			
+	        }			
+	    }			
+	/*</XTEST>*/			
 	}
 	catch (IOException e)
 	{
@@ -92,6 +104,12 @@ public	class	Mesh {
 	    try 
 	    { 
 		Thread.sleep(1000); 
+	    forceException)  
+	            { 
+	                  throw new InterruptedException ("forceException"); 
+	            } 
+	        } 
+	    /*</XTEST>*/ 
 	    } 
 	    catch (InterruptedException e2) 
 	    {
@@ -165,6 +183,12 @@ public	class	Mesh {
 			throw new IOException("isTrue"); 
 		    } 
 		}
+	    forceException) 
+	            {
+	                  throw new IOException ("forceException");
+	            }
+	        }
+	    /*</XTEST>*/
 	    }
 	    catch (IOException e) 
 	    {
@@ -173,6 +197,12 @@ public	class	Mesh {
 
 	    try { 
 		Thread.sleep(1000); 
+	    forceException)  
+	            { 
+	                  throw new InterruptedException ("forceException"); 
+	            } 
+	        } 
+	    /*</XTEST>*/ 
 	    } 
 	    catch (InterruptedException e) 
 	    {

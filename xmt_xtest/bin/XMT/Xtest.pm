@@ -53,6 +53,7 @@ sub new
     $self->{iut}	= $opts->{iut} 		if defined $opts->{iut};
     $self->{testfile}	= $opts->{test} 	if defined $opts->{test};
     $self->{verbose}	= (defined $opts->{verbose} ? 1 : 0);
+    $self->{debug}	= (defined $opts->{debug} ? 1 : 0);
     $self->{exp} 	= undef;
 
     # set SOURCEPATH environment variabnle from iut cmd if possible
@@ -89,8 +90,8 @@ sub loadtest
     $self->{exp}->log_stdout(0);
     $self->{exp}->raw_pty(1);
     $self->{exp}->restart_timeout_upon_receive(1);
-    $self->{exp}->exp_internal(1)		if defined $opts->{debug};
-    $self->{exp}->debug(2)			if defined $opts->{debug};
+    $self->{exp}->exp_internal(1)		if defined $self->{debug};
+    $self->{exp}->debug(2)			if defined $self->{debug};
     $self->{exp}->spawn($self->{iut});
 }
  

@@ -22,11 +22,11 @@ import java.net.*;
  * The Mesh class implements a toy mesh network to demonstrate execution history tracing
  * and whitebox testing.
  * <p>
- *  main() implements one myNode (myNode i) of an N myNode mesh.  
+ *  main() implements one node (node i) of an N node mesh.  
  *  Multiple instances should be run to create the N nodes.
- *  Each myNode then initiates, forwards, & receives packets
+ *  Each node then initiates, forwards and receives packets
  *  to/from the other nodes.  
- *  Prints statistics on packet loss & latency.
+ *  Prints statistics on packet loss and latency.
  * <p>
  * @version	$Version:$
  */

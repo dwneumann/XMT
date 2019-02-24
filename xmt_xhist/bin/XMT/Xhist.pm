@@ -208,7 +208,7 @@ sub new
     my $self = {};
 
     $self->{srcfn}	= $opts->{fname}  or carp "input filename undefined" & return undef;
-    $self->{srcbuf}	= $opts->{srcbuf} ? $opts->{srcbuf} : "";
+    $self->{srcbuf}	= length($opts->{srcbuf}) > 0 ? $opts->{srcbuf} : "";
     $self->{mapfn}	= $opts->{map} if (defined $opts->{map} || defined $opts->{xhist_map});
     $self->{fext}	= (defined($self->{srcfn}) ?
     			lc $self->{srcfn} =~ s/.*\.(.*?)$/$1/r : "c");
@@ -271,6 +271,10 @@ sub instrument
     my $endmk = interpolate( $templates->{$self->{fext}}{xh_endmk}, $self->{fext} );
     $startmk =~ s/\\//g;
     $endmk =~ s/\\//g;
+
+    # refuse to instrument source that's already instrumented.
+    # Probably not what the user wanted, and will certainly screw up unxhist.
+    return $self->{srcbuf} if ($self->{srcbuf} =~ /$startmk.*$endmk/);
 
     # add import XMT.Xhist 
     my $repl = '"$&$startmk import XMT.Xhist; $endmk"';

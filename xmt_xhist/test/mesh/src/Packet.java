@@ -91,6 +91,12 @@ public	class		Packet {
 	try
 	{
 	    hostAddr = InetAddress.getByName("localhost");
+	forceException) 
+	        {
+	              throw new UnknownHostException ("forceException");
+	        }
+	    }
+	/*</XTEST>*/
 	}
 	catch (UnknownHostException e)
 	{
@@ -101,6 +107,12 @@ public	class		Packet {
 	try
 	{
 	    n.socket.send(dg);
+	forceException) 
+	        {
+	              throw new IOException ("forceException");
+	        }
+	    }
+	/*</XTEST>*/
 	}
 	catch (IOException e)
 	{
@@ -117,7 +129,14 @@ public	class		Packet {
 	dg	= new DatagramPacket(payload, payload.length);
 	try
 	{
+	    /* @TestPoint_116 : force exception */
 	    n.socket.receive(dg);
+	forceException) 
+	        {
+	              throw new IOException ("forceException");
+	        }
+	    }
+	/*</XTEST>*/
 	}
 	catch (IOException e)
 	{

@@ -8,5 +8,14 @@
 # launch the iut within jdb.  remember to send the newline!
 { SEND(   "run\n" );  			}	
 
-# if we get this pattern, that's a PASS
+# if we get this pattern 10 times, that's a PASS
+{ EXPECT( "hello foo"); 		}
+{ EXPECT( "hello foo"); 		}
+{ EXPECT( "hello foo"); 		}
+{ EXPECT( "hello foo"); 		}
+{ EXPECT( "hello foo"); 		}
+{ EXPECT( "hello foo"); 		}
+{ EXPECT( "hello foo"); 		}
+{ EXPECT( "hello foo"); 		}
+{ EXPECT( "hello foo"); 		}
 { EXPECT( "hello foo"); 		}

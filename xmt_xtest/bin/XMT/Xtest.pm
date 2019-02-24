@@ -49,10 +49,11 @@ sub new
     my $self = {};
 
     $self->{srcfn}	= $opts->{fname}  	if defined $opts->{fname};
-    $self->{srcbuf}	= $opts->{srcbuf} ? $opts->{srcbuf} : "";
+    $self->{srcbuf}	= length($opts->{srcbuf}) > 0 ? $opts->{srcbuf} : "";
     $self->{iut}	= $opts->{iut} 		if defined $opts->{iut};
     $self->{testfile}	= $opts->{test} 	if defined $opts->{test};
-    $self->{verbose}	= (defined $opts->{verbose} ? 1 : 0);
+    $self->{verbose}	= $opts->{verbose} if defined $opts->{verbose};
+    $self->{debug}	= $opts->{debug} if defined $opts->{debug};
     $self->{exp} 	= undef;
 
     # set SOURCEPATH environment variabnle from iut cmd if possible
@@ -89,8 +90,8 @@ sub loadtest
     $self->{exp}->log_stdout(0);
     $self->{exp}->raw_pty(1);
     $self->{exp}->restart_timeout_upon_receive(1);
-    $self->{exp}->exp_internal(1)		if defined $opts->{debug};
-    $self->{exp}->debug(2)			if defined $opts->{debug};
+    $self->{exp}->exp_internal(1)		if defined $self->{debug};
+    $self->{exp}->debug(2)			if defined $self->{debug};
     $self->{exp}->spawn($self->{iut});
 }
  
@@ -124,7 +125,7 @@ sub runtest
 	    unshift @{$self->{cmds}}, @nested_cmds;
 	}
 
-	# if buf looks like a SEND block, extract cmd string then eval it.
+	# if buf contains SEND blocks, extract & eval them.
 	elsif ( $s->{buf} =~ m:SEND\s*\(: )
 	{
 	    printf("%s: %2d: %s\n", $fn, $seqnum, $buf) if (defined $self->{verbose});
@@ -132,28 +133,37 @@ sub runtest
 	    eval $s->{buf}; 
 	}
 
-	# if buf looks like a EXPECT block, extract pattern then eval it.
+	# if buf contains EXPECT blocks, extract & eval them.
 	elsif ( $s->{buf} =~ m:EXPECT\s*\(: )
 	{
-	    $self->{exp}->clear_accum();
-	    printf("%s: %2d: %s\n", $fn, $seqnum, $buf) if (defined $self->{verbose});
-	    $s->{buf} =~ s/EXPECT\s*\(\s*/\$self->{exp}->expect(\$Xtest::timeout, -re, /g; 
-	    eval $s->{buf};
-
-	    #if we did't get what we expected that's a FAIL
-	    if ( ! $self->{exp}->match() )
-	    {
-		my $rc = $self->{exp}->error();		# useful for debugging
-		my $before = $self->{exp}->before();	# useful for debugging
-		printf("%s: %2d: %s\n", $fn, $seqnum, $Xtest::FAIL) if (defined $self->{verbose});
-		$self->{exp}->hard_close();
-		return $Xtest::FAIL;
-	    }
+	    $s->{buf} =~ s/EXPECT\s*\(\s*(.*)?\s*\).*?/\_expect(\$self, $1) or return 0;/g; 
+	    eval $s->{buf} or return $Xtest::FAIL;
 	}
     }
     # terminate the test gracefully
     $self->{exp}->hard_close();
     return $Xtest::PASS;
+}
+
+#************************************************************************
+# private method _expect($self, $str)
+# expects the string $str and returns true or false depending on whether 
+# it received a match.
+#************************************************************************
+sub _expect
+{
+    my $self = shift;		# visible inside eval blocks
+    my $str  = shift;		# the regex to be expected
+    $self->{exp}->clear_accum();
+    printf("%s: %2d: %s\n", $fn, $seqnum, $buf) if (defined $self->{verbose});
+    $self->{exp}->expect(\$Xtest::timeout, -re, $str); 
+    if ( ! $self->{exp}->match() )
+    {
+	printf("%s: %2d: %s\n", $fn, $seqnum, $Xtest::FAIL) if (defined $self->{verbose});
+	$self->{exp}->hard_close();
+	return 0; 	# return false to indicate failed match
+    }
+    return 1;		# return true to indicate successful match
 }
 
 #************************************************************************
@@ -190,12 +200,22 @@ sub instrument
 {
     my $self = shift;
 
+    # refuse to instrument source that's already instrumented.
+    # Probably not what the user wanted, and will certainly screw up unxhist.
+    return $self->{srcbuf} if ($self->{srcbuf} =~ /<XTEST>.*<\/XTEST>/);
+
+    # do if-then block code injection
+    # note we inject one space AFTER the end delimiter 
+    # that must be removed during uninstrumentation
+    $self->{srcbuf} =~ 
+    	s:if\s*?\(\s*:$&/\*<XTEST>\*/ !XMT.Xhist.forceFail && /\*<\/XTEST>\*/ :sg;
+
     # do try/catch block code injection.
     # note we inject indentation and a newline AFTER the end delimiter 
     # that must be removed during uninstrumentation
     my $ptn = '(try\s+\{.*?)(\s*)(\}\s*catch\s+\()(\S*Exception)?(.*?\{)';
     my $repl = <<'__END__';
-"$1$2/*<XTEST>*/ 
+"$1$2/\*<XTEST>\*/ 
 $2    \{
 $2        boolean forceException = false; 
 $2        if(forceException) 
@@ -203,16 +223,11 @@ $2        \{
 $2              throw new $4 (\"forceException\");
 $2        \}
 $2    \}
-$2/*</XTEST>*/$2$3$4$5"
+$2\/\*<\/XTEST>\*\/$2$3$4$5"
 __END__
 
     $repl =~ s/\n//g;
     $self->{srcbuf} =~ s:$ptn:$repl:eesg;
-
-    # do if-then block code injection
-    # note we inject one space AFTER the end delimiter 
-    # that must be removed during uninstrumentation
-    $self->{srcbuf} =~ s:if\s+\(\s*:$&/*<XTEST>*/ !XMT.Xhist.forceFail && /*</XTEST>*/ :sg;
 
     return $self->{srcbuf};
 }

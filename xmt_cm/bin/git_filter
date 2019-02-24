@@ -1,6 +1,6 @@
 #!/usr/bin/env perl
 #************************************************************************
-#   $Version: 5.2.2-22 [experimental] $
+#   $Version:$
 #   Package	: xmt_cm
 #   Purpose	: filter git blobs on checkout & commit, including:
 #		  1. expand (smudge) or unexpand (clean) keywords,

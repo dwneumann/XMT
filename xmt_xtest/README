@@ -59,8 +59,7 @@ the if to evaluate to false, e.g.
     if( !undeliveredPeerUpdateMessages.isEmpty() ) {
 
 becomes:
-    if( /*<XTEST>*/ !XMT.Xhist.forceFail && /*</XTEST>*/ 
-	!undeliveredPeerUpdateMessages.isEmpty() ) {
+    if( !undeliveredPeerUpdateMessages.isEmpty() ) {
  
 xtest_instrument also injects an additional statement into try blocks which allows
 a variable to be set which forces the try block to throw an exception,
@@ -73,15 +72,6 @@ resulting in the catch block being entered, e.g.
 becomes:
     try {
 	n.socket.send(dg);
-    /*<XTEST>*/
-    {
-	boolean forceException = false;
-	if(forceException)
-	{
-		throw new RightMeshException ("forceException");
-	}
-    }
-    /*</XTEST>*/
     }
     catch (IOException e) {
 

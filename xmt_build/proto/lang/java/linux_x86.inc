@@ -70,5 +70,3 @@ $(TGTDIR)/$(LIB_NM): $(objs.java)
 	$(AR.$(LANGUAGE).$(ARCH)) @$(LIB_NM).arflags $(LIB_NM) `find . -name '*.class'`;)
 	-/bin/mv $(OBJDIR)/$(LIB_NM) $(TGTDIR)/$(LIB_NM)
 
-#	$(AR.$(LANGUAGE).$(ARCH)) @$(LIB_NM).arflags $(LIB_NM) $(objs.java:$(OBJDIR)/%=%) $(EXTRA_OBJS);)
-

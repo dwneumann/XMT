@@ -34,12 +34,13 @@ public	class		Hello
 	    Xhist.logdev(fd);
 	    Xhist.mapfile("$XhistMap:$");
 	    Xhist.version("$Version:$");
+	/* xhist instrument TRUE */
 
 	    Runtime.getRuntime().addShutdownHook( new Thread() {
 		@Override
 		public void run() {
 		    try {
-			Xhist.write();
+			/* <XHIST WRITE> */
 		    }
 		    catch (java.io.IOException e) {
 			/* do nothing */
@@ -51,7 +52,6 @@ public	class		Hello
 	    System.out.println("cannot open DataOutputStream");
 	    /* continue */
 	}
-	/* xhist instrument TRUE */
 
 	for (i = 0; i < 10; i++)
 	{ 

@@ -289,6 +289,12 @@ sub instrument
     $repl 	= '"$&$startmk Xhist.init(\"$tf\", \"$mf\", \"$v\"); $endmk"';
     $self->{srcbuf} =~ s:$ptn:$repl:ees;
 
+    # add Xhist.write() call after  <XHIST WRITE> comment
+    # put the function call between <XHIST> markers to allow for uninstrumentation
+    my $ptn = '/\*\s*<XHIST WRITE>\s*\*/';
+    $repl 	= '"$&$startmk Xhist.write(); $endmk"';
+    $self->{srcbuf} =~ s:$ptn:$repl:ees;
+
     local @indent_fifo	= [""];	# FIFO stack of function indentation levels
     my @lines	 = split /\n/, $self->{srcbuf};
     $self->{lnum} = 0;

@@ -63,7 +63,6 @@ import java.io.*;
 import java.lang.Runtime;
 import java.io.DataOutputStream;
 import java.io.FileOutputStream;
-import java.lang.ProcessHandle;
 
 public	class		Xhist 
 { 
@@ -99,7 +98,7 @@ public	class		Xhist
 	try 
 	{
 	    fd = new DataOutputStream(new FileOutputStream(
-		logNm + '.' + ProcessHandle.current().pid() + ".xhist")); 
+		logNm + '.' + ".xhist")); 
 	    Xhist.logdev(fd);
 	    Xhist.mapfile(mapFn);
 	    Xhist.version(version);

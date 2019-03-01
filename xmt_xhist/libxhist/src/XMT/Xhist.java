@@ -63,7 +63,6 @@ import java.io.*;
 import java.lang.Runtime;
 import java.io.DataOutputStream;
 import java.io.FileOutputStream;
-import java.lang.ProcessHandle;
 
 public	class		Xhist 
 { 
@@ -71,9 +70,10 @@ public	class		Xhist
     private static final int	XhistTableSize		= 1000;
     public static String buildTag;	// buildTag of instrumented source
     public static String mapFn;		// mapping file used during instrumentation
-    public static int[] tbl		= new  int[XhistTableSize];
-    public static int tail		= 0;
-    public static DataOutputStream logStream	= null;
+    public static volatile int[] tbl		= new  int[XhistTableSize];
+    public static volatile int[] threadId	= new  int[XhistTableSize];
+    public static volatile int tail		= 0;
+    public static volatile DataOutputStream logStream	= null;
     public static boolean forceFail	= false;
 
 
@@ -81,9 +81,11 @@ public	class		Xhist
     * Appends (filenum, linenum) to execution history log.	
     * @param	fnum		filename hash (mapping stored in mapfile())
     * @param	lnum		line number just executed
+    * @param	tnum		threadID of writer 
     */
-    public	static void add( int fnum,  int lnum ) { 
+    public	static void add( int fnum,  int lnum, int tnum ) { 
 	tbl[tail] = (((short) fnum << 16) | (short) lnum);
+	threadId[tail] = tnum;
 	tail = (short) ((tail+1) % XhistTableSize);
     }
 
@@ -144,7 +146,7 @@ public	class		Xhist
     }
 
     /**
-    * Sets the strea to export the execution history to. 
+    * Sets the stream to export the execution history to. 
     * @param	fd	DatOutputStream to write output to
     */
     public	static void logdev( DataOutputStream fd ) { 
@@ -183,6 +185,10 @@ public	class		Xhist
 	for (i = 0; i < tbl.length; i++)
 	{
 	    logStream.writeInt(tbl[i]);
+	}
+	for (i = 0; i < tbl.length; i++)
+	{
+	    logStream.writeInt(threadId[i]);
 	}
     }
 }

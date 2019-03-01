@@ -191,7 +191,7 @@ our $templates = {
 	xh_inst_F	=> q:[% cmt_start %]\s+xhist\s+instrument\s+FALSE\s*[% cmt_end %]:,
 	xh_startmk	=> q:[% cmt_start %]<XHIST>[% cmt_end %]:,
 	xh_endmk	=> q:[% cmt_start %]</XHIST>[% cmt_end %]:,
-	trace_stmt	=> q: Xhist.add( FNUM, LNUM, (int) Thread.currentThread().getId() );:,
+	trace_stmt	=> q: Xhist.add( FNUM, LNUM );:,
     },
 };
 

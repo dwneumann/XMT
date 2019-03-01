@@ -81,11 +81,10 @@ public	class		Xhist
     * Appends (filenum, linenum) to execution history log.	
     * @param	fnum		filename hash (mapping stored in mapfile())
     * @param	lnum		line number just executed
-    * @param	tnum		threadID of writer 
     */
-    public	static void add( int fnum,  int lnum, int tnum ) { 
+    public	static void add( int fnum,  int lnum ) { 
 	tbl[tail] = (((short) fnum << 16) | (short) lnum);
-	threadId[tail] = tnum;
+	threadId[tail] = (int) Thread.currentThread().getId();
 	tail = (short) ((tail+1) % XhistTableSize);
     }
 

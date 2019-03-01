@@ -90,8 +90,11 @@ printf("execution history of source build %s\n", $srcversion );
 printf("encoded with mapfile %s\n", $mapfile );
 
 # now read the entire execution history log
+# the log is 4 bytes * table length followed by 4-byte threadId * tbl length.
 die "$opt{'trace'}: read error"	unless read( $fh, $bytes, $numstmts*4) == $numstmts*4;
 push @xhist_tbl, unpack "($intfmt)*", $bytes;
+die "$opt{'trace'}: read error"	unless read( $fh, $bytes, $numstmts*4) == $numstmts*4;
+push @xhist_threadIds, unpack "($intfmt)*", $bytes;
 
 # The last statement executed is at index $tailindex.
 # We want to list the instructions in the order executed,
@@ -100,10 +103,12 @@ for (my $i = $tailindex+1; $i != $tailindex; $i++)
 {
     $filenum = $xhist_tbl[$i] >> 16;
     $linenum = $xhist_tbl[$i] & 0x00FF;
+    $threadnum = $threadIds[$i];
     if ($linenum > 0)
     {
-	printf("%s: %d\n", 
-	    (defined $filemap{$filenum} ? $filemap{$filenum} : "unknown"), $linenum);
+	printf("%s: thread %d\t line  %d\n", 
+	    (defined $filemap{$filenum} ? $filemap{$filenum} : "unknown"), 
+		$threadnum, $linenum);
     }
     $i = -1 if ($i >= $numstmts - 1); # wrap-around so next index is 0
 }

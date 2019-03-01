@@ -209,7 +209,7 @@ sub new
 
     $self->{srcfn}	= $opts->{fname}  or carp "input filename undefined" & return undef;
     $self->{srcbuf}	= length($opts->{srcbuf}) > 0 ? $opts->{srcbuf} : "";
-    $self->{mapfn}	= $opts->{map} if (defined $opts->{map} || defined $opts->{xhist_map});
+    $self->{mapfn}	= $opts->{xhist_map} if defined $opts->{xhist_map};
     $self->{fext}	= (defined($self->{srcfn}) ?
     			lc $self->{srcfn} =~ s/.*\.(.*?)$/$1/r : "c");
     $self->{fnum}	= crc16($self->{srcfn}) or carp "crc16 failed" & return undef;

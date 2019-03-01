@@ -207,8 +207,8 @@ sub instrument
     # do if-then block code injection
     # note we inject one space AFTER the end delimiter 
     # that must be removed during uninstrumentation
-    $self->{srcbuf} =~ 
-    	s:if\s*?\(\s*:$&/\*<XTEST>\*/ !XMT.Xhist.forceFail && /\*<\/XTEST>\*/ :sg;
+    #$self->{srcbuf} =~ 
+    #	s:if\s*?\(\s*:$&/\*<XTEST>\*/ !XMT.Xhist.forceFail && /\*<\/XTEST>\*/ :sg;
 
     # do try/catch block code injection.
     # note we inject indentation and a newline AFTER the end delimiter 

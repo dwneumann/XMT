@@ -22,7 +22,7 @@ set nohlsearch
 auto BufEnter * let &titlestring = expand("%")
 let $FQN = expand("%")
 let &titleold=getcwd()
-let $TMP="c:/Temp"
+let $TMP="/tmp"
 set magic
 
 " shell escapes should run bash open in the working directory

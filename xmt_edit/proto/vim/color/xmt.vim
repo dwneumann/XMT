@@ -41,7 +41,7 @@ hi PmenuSel term=NONE cterm=NONE ctermfg=Black ctermbg=13 gui=NONE guifg=Black g
 hi Question term=NONE cterm=NONE ctermfg=69 ctermbg=NONE gui=NONE guifg=#5F87FF guibg=NONE
 hi Search term=NONE cterm=NONE ctermfg=Black ctermbg=6 gui=NONE guifg=Black guibg=#00CDCD
 hi StatusLine term=NONE cterm=NONE ctermfg=Black ctermbg=fg gui=NONE guifg=Black guibg=fg
-hi Todo term=NONE cterm=NONE ctermfg=Cyan ctermbg=NONE gui=NONE guifg=Cyan guibg=Black
+hi Todo term=NONE cterm=NONE ctermfg=Yellow ctermbg=NONE gui=NONE guifg=Yellow guibg=Black
 hi UserCode term=NONE cterm=NONE ctermfg=Cyan ctermbg=NONE gui=NONE guifg=Cyan guibg=Black
 hi WarningMsg term=NONE cterm=NONE ctermfg=fg ctermbg=52 gui=NONE guifg=fg guibg=#5F0000
 hi WildMenu term=NONE cterm=NONE ctermfg=fg ctermbg=Black gui=NONE guifg=fg guibg=Black
@@ -150,4 +150,5 @@ command! XMTDimCode :call XMTDimCode()
 
 " Setup normal settings
 call XMTDimComments()
+syn match	Todo		".*TO *DO.*\|.*FIX *ME\|.*GOT TO HERE.*"
 

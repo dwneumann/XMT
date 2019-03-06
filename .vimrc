@@ -38,16 +38,16 @@ set shellslash
 set guifont=consolas:h9
 
 " make cursor blinking cyan block (vertical bar in insert mode) in gui and xterm
-set guicursor=n-v-c:block-blinkon400-blinkoff400-CursorColor
-set guicursor+=i-r:ver25-blinkon400-blinkoff400-iCursorColor
+set guicursor=n-v-c:block-blinkon400-blinkoff200-CursorColor
+set guicursor+=i-r:ver25-blinkon400-blinkoff200-iCursorColor
 if &term =~ "xterm"
-  " insert mode ...
-"  let &t_SI = "\<Esc>]12;DarkCyan\x7"
-"  let &t_SI .= "\<Esc>[5 q"
-  " normal mode ...
-"  let &t_EI = "\<Esc>]12;DarkCyan\x7"
-"  let &t_EI .= "\<Esc>[1 q"
+ " insert mode ...
+  let &t_SI = "\<Esc>]12;DarkCyan\x7"
+  let &t_SI .= "\<Esc>[5 q"
+ " normal mode ...
+  let &t_EI = "\<Esc>]12;DarkCyan\x7"
+  let &t_EI .= "\<Esc>[1 q"
   silent !echo -ne "\033]12;DarkCyan\007"
-  " reset cursor when vim exits
+ " reset cursor when vim exits
   autocmd VimLeave * silent !echo -ne "\033]112\007"
 endif

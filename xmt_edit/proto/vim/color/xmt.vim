@@ -25,11 +25,8 @@ hi StatusLineNC term=NONE cterm=NONE ctermfg=fg ctermbg=LightGrey gui=NONE guifg
 hi VertSplit term=NONE cterm=NONE ctermfg=Black ctermbg=LightGrey gui=NONE guifg=Black guibg=LightGrey
 
 " Highlighted
-hi CursorColumn term=NONE cterm=NONE ctermfg=NONE ctermbg=236 gui=NONE guifg=NONE guibg=#303030
-hi CursorIM term=NONE cterm=NONE ctermfg=Black ctermbg=4 gui=NONE guifg=Black guibg=#00FFFF
-hi CursorLineNr term=NONE cterm=NONE ctermfg=NONE ctermbg=Black gui=NONE guifg=NONE guibg=Black
-hi CursorLine term=NONE cterm=NONE ctermfg=NONE ctermbg=236 gui=NONE guifg=NONE guibg=#303030
-hi Cursor term=NONE cterm=NONE ctermfg=Black ctermbg=4 gui=NONE guifg=Black guibg=#00FFFF
+hi CursorColor term=NONE cterm=NONE ctermfg=NONE ctermbg=236 gui=NONE guifg=white guibg=DarkCyan
+hi iCursorColor term=NONE cterm=NONE ctermfg=NONE ctermbg=236 gui=NONE guifg=white guibg=Cyan
 hi Directory term=NONE cterm=NONE ctermfg=69 ctermbg=NONE gui=NONE guifg=#5F87FF guibg=NONE
 hi ErrorMsg term=NONE cterm=NONE ctermfg=fg ctermbg=52 gui=NONE guifg=fg guibg=#5F0000
 hi Error term=NONE cterm=NONE ctermfg=fg ctermbg=52 gui=NONE guifg=fg guibg=#5F0000

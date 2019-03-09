@@ -350,6 +350,9 @@ sub protocol_main
 	# entire buffer has been read.  Now do the command.
 	if ( $command =~ /smudge/ ) 
 	{
+	    # need this here to populate XMT::Xkeyword::kw
+	    $xk = XMT::Xkeyword::new(\%opt)		or die "$help_msg";
+
 	    # XTEST FIRST.
 	    # do xtest instrumentation if we are in a branch specified for instrumentation.
 	    if ( defined $opt{'xtest'} 
@@ -373,12 +376,15 @@ sub protocol_main
 	    if ( defined $opt{'expand'}  
 	    	 and $XMT::Xkeyword::kw{'Branch'}{val} =~ /$opt{'expand'}/ )
 	    {
-		$xk = XMT::Xkeyword::new(\%opt)		or die "$help_msg";
+		#constructor already called
 		$opt{srcbuf} = $xk->expand();
 	    }
 	}
 	elsif ( $command =~ /clean/ ) 
 	{
+	    # need this here to populate XMT::Xkeyword::kw
+	    $xk = XMT::Xkeyword::new(\%opt)		or die "$help_msg";
+
 	    # XTEST FIRST.
 	    if ( defined $opt{'unxtest'} 
 		and $XMT::Xkeyword::kw{'Branch'}{val} =~ /$opt{'unxtest'}/ )
@@ -399,7 +405,7 @@ sub protocol_main
 	    if ( defined $opt{'unexpand'} 
 		and $XMT::Xkeyword::kw{'Branch'}{val} =~ /$opt{'unexpand'}/ )
 	    {
-		$xk = XMT::Xkeyword::new(\%opt)		or die "$help_msg";
+		#constructor already called
 		$opt{srcbuf} = $xk->unexpand();
 	    }
 	}

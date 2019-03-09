@@ -100,7 +100,7 @@ public	class		Xhist
 	try 
 	{
 	    fd = new DataOutputStream(new FileOutputStream(
-		logNm + '.' + ProcessHandle.current().pid() + ".xhist")); 
+		logNm + '.' + ".xhist")); 
 	    Xhist.logdev(fd);
 	    Xhist.mapfile(mapFn);
 	    Xhist.version(version);

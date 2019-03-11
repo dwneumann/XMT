@@ -309,7 +309,7 @@ sub instrument
 		{
 		    (my $repl = $templates{$self->{fext}}{trace_stmt}) =~ s/FNUM/$self->{fnum}/g;
 		    $repl =~ s/LNUM/$self->{lnum}/g;
-		    eval {$self->{srcbuf} .= $xtokens{h_st} . $repl . $tokens{xh_end} }; 
+		    eval {$self->{srcbuf} .= $tokens{xh_st} . $repl . $tokens{xh_end} }; 
 		}
 		next;
 	    }
@@ -326,7 +326,7 @@ sub instrument
 		{
 		    (my $repl = $templates{$self->{fext}}{trace_stmt}) =~ s/FNUM/$self->{fnum}/g;
 		    $repl =~ s/LNUM/$self->{lnum}/g;
-		    eval {$self->{srcbuf} .= $xtokens{h_st} . $repl . $tokens{xh_end} }; 
+		    eval {$self->{srcbuf} .= $tokens{xh_st} . $repl . $tokens{xh_end} }; 
 		}
 		next;
 	    }

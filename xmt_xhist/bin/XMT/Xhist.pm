@@ -20,7 +20,6 @@
 package XMT::Xhist;
 use Carp;
 use Digest::CRC qw(crc16);
-use List::MoreUtils qw(natatime);
 
 sub version 
 {

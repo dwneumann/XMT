@@ -1,5 +1,3 @@
-/* xhist debug FALSE */
-/* xhist instrument TRUE */
 /**
  *  Copyright 2018 Visionary Research Inc.   All rights reserved.
  *    			legal@visionary-research.com

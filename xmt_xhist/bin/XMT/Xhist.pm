@@ -96,6 +96,8 @@ sub new
     $self->{fnum}++  while ( grep /$self->{fnum}/, values %filemap ); # handle collisions
     $filemap{$self->{srcfn}} = $self->{fnum};	# add name & hash to filemap
     $self->{lnum}	= 0;
+    $self->{dbg}	= defined $opts->{dbg} ? 1 : 0; # TRUE if lexer debugging enabled 
+    $self->{instr}	= 1;		# TRUE if instrumention enabled
 
     bless $self;
     return $self;
@@ -141,8 +143,6 @@ sub instrument
 {
     my $self = shift;
     my $nesting_level	= 0;	# increment each time we encounter a nested block
-    $dbg		= 0;		# TRUE if lexer debugging enabled 
-    $instr		= 1;		# TRUE if instrumention enabled
     my $regex;
 
     # if we don't grok this filetype, return gracefully.
@@ -209,28 +209,28 @@ sub instrument
 	    # "xhist debug TRUE" inside comment delimiters enables debug output 
 	    if ( $block =~ /$tokens{xh_dbg_T}/s )
 	    {
-		$dbg = 1;
-		$block .= "\t<DEBUG ON>" if $dbg;
+		$self->{dbg} = 1;
+		$block .= "\t<DEBUG ON>" if $self->{dbg};
 	    }
 
 	    # "xhist debug FALSE" inside comment delimiters disables debug output 
 	    if ( $block =~ /$tokens{xh_dbg_F}/s )
 	    {
-		$dbg = 0;
+		$self->{dbg} = 0;
 	    }
 
 	    # "xhist instrument TRUE" inside comment delimiters enables instrumentation
 	    if ( $block =~ /$tokens{xh_inst_T}/s )
 	    {
-		$instr = 1;
-		$block .= "\t<INSTRUMENT ON>" if $dbg;
+		$self->{instr} = 1;
+		$block .= "\t<INSTRUMENT ON>" if $self->{dbg};
 	    }
 
 	    # "xhist instrument FALSE" inside comment delimiters disables instrumentation
 	    if ( $block =~ /$tokens{xh_inst_F}/s )
 	    {
-		$instr = 0;
-		$block .= "\t<INSTRUMENT OFF>" if $dbg;
+		$self->{instr} = 0;
+		$block .= "\t<INSTRUMENT OFF>" if $self->{dbg};
 	    }
 	    $self->{srcbuf} .= $block;			# append the processed block to srcbuf
 	    $self->{lnum} += ($block =~ tr/\n//);	# increment by # of newlines found
@@ -267,7 +267,7 @@ sub instrument
 	    $regex2 = interpolate( q:[% identifier %]\.exit\(: );
 	    if ( $block =~ /$regex/s || $block =~ /$regex2/s )
 	    {
-		$block .= "\t<NOT REACHED>"	if ($dbg);
+		$block .= "\t<NOT REACHED>"	if ($self->{dbg});
 		$self->{srcbuf} .= $block;
 		$self->{lnum} += ($block =~ tr/\n//);	# increment by # of newlines found
 		next;
@@ -280,7 +280,7 @@ sub instrument
 		my ($stmt, $rest) = $postmatch =~ m:(.*?)([\n\s]*\{.*):s; # swallow everything up to brace
 		$block .= $stmt;
 		$srccpy = $rest; 
-		$block .= "\t<FOR>"	if ($dbg);
+		$block .= "\t<FOR>"	if ($self->{dbg});
 		$self->{srcbuf} .= $block;
 		$self->{lnum} += ($block =~ tr/\n//);	# increment by # of newlines found
 		next;
@@ -292,7 +292,7 @@ sub instrument
 	    my $regex2 = interpolate( q:\s*=\s*new\s+[% identifier %]: );
 	    if ( $block =~ /$regex/s || $block =~ /$regex2/s )
 	    {
-		$block .= "\t<DECLARATION>"	if ($dbg);
+		$block .= "\t<DECLARATION>"	if ($self->{dbg});
 		$self->{srcbuf} .= $block;
 		$self->{lnum} += ($block =~ tr/\n//);	# increment by # of newlines found
 		next;
@@ -302,10 +302,10 @@ sub instrument
 	    $regex = interpolate( q:\s*[% identifier %]\(.*\);: );
 	    if ( $block =~ /$regex/s )
 	    {
-		$block .= "\t<FUNC CALL>"	if ($dbg);
+		$block .= "\t<FUNC CALL>"	if ($self->{dbg});
 		$self->{srcbuf} .= $block;
 		$self->{lnum} += ($block =~ tr/\n//);	# increment by # of newlines found
-		if ( $instr && $nesting_level > 0 )
+		if ( $self->{instr} && $nesting_level > 0 )
 		{
 		    (my $repl = $templates{$self->{fext}}{trace_stmt}) =~ s/FNUM/$self->{fnum}/g;
 		    $repl =~ s/LNUM/$self->{lnum}/g;
@@ -319,10 +319,10 @@ sub instrument
 	    $regex = interpolate( q:[% identifier %]\s*[% operator %].*?;: );
 	    if ( $block =~ /$regex/s )
 	    {
-		$block .= "\t<STMT>"	if ($dbg);
+		$block .= "\t<STMT>"	if ($self->{dbg});
 		$self->{srcbuf} .= $block;
 		$self->{lnum} += ($block =~ tr/\n//);	# increment by # of newlines found
-		if ( $instr && $nesting_level > 0 )
+		if ( $self->{instr} && $nesting_level > 0 )
 		{
 		    (my $repl = $templates{$self->{fext}}{trace_stmt}) =~ s/FNUM/$self->{fnum}/g;
 		    $repl =~ s/LNUM/$self->{lnum}/g;

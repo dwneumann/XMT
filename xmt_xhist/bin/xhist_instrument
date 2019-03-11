@@ -19,6 +19,7 @@
 #	 --xhist_map=pathname	write execution history filename map to <pathname>.
 #	 --unxhist	unxhist (i.e. clean) xhist instrumentation found in stdin, 
 #			and write cleaned data stream to stdout.
+#	 --dbg		turn on xhist instrumentation debug output
 #
 #  Copyright 2018 Visionary Research Inc.   All rights reserved.
 #  			legal@visionary-research.com
@@ -57,11 +58,12 @@ $pgmname [<options>] [file]
   --xhist_map=pathname   write execution history filename map to <pathname>
   --unxhist     unxhist (i.e. clean) xhist instrumentation found in stdin, 
                 and write cleaned data stream to stdout.
+  --dbg	        turn on xhist instrumentation debug output
 __END__
 
 # parse commandline options
 my %opt = ();
-GetOptions( \%opt, "help", "verbose", "unxhist", "xhist_map=s", "fname=s") or die $help_msg;
+GetOptions( \%opt, "help", "verbose", "unxhist", "xhist_map=s", "fname=s", "dbg") or die $help_msg;
 die "$help_msg" if defined $opt{'help'};
     
 my $inbuf;

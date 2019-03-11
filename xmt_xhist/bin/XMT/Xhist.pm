@@ -156,8 +156,8 @@ sub instrument
     # Unfortunately neither one is mandatory so this may fail to instrument some files.
     # (this is a no-op for languages other than java).
     # we put all instrumentation between <XHIST> markers to allow for uninstrumentation
-    my $repl = '"$&\n$tokens{xh_st} import XMT.Xhist; $tokens{xh_end}\n"';
-    $self->{srcbuf} =~ s:\n(package|import)\s+.*?\n:$repl:ees;
+    my $repl = '"$&$tokens{xh_st} import XMT.Xhist; $tokens{xh_end}"';
+    $self->{srcbuf} =~ s:\n(package|import)\s+.*?;:$repl:ees;
     my $ptn = '/\*\s*<XHIST INIT>\s*\*/';
     my $v	= '$' . 'Version' . ':$';
     my $mf	= '$' . 'XhistMap' . ':$';

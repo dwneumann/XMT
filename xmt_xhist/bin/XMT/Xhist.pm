@@ -49,28 +49,27 @@ our %tokens = (
 	xh_inst_F	=> q:\/\*\s+xhist\s+instrument\s+FALSE\s*\*\/:,
 );
 
-# $templates are language-specific that we insert into code during instrumenting
-# at time of parsing.  
+# $templates are language-specific instrumentations added to code 
 our %templates = (
     c	=> {
-	trace_stmt	=> q: _XH_ADD( FNUM, LNUM );:,
-	write_stmt	=> q: xhist_write:,
-	init_stmt	=> q: xhist_init:,
+	trace_stmt	=> q{ _XH_ADD( FNUM, LNUM );},
+	write_stmt	=> q{ xhist_write},
+	init_stmt	=> q{ xhist_init},
     },
     cc	=> {
-	trace_stmt	=> q/ Xhist:add( FNUM, LNUM );/,
-	write_stmt	=> q/ Xhist:write/,
-	init_stmt	=> q/ Xhist:init/,
+	trace_stmt	=> q{ Xhist::add( FNUM, LNUM );},
+	write_stmt	=> q{ Xhist::write},
+	init_stmt	=> q{ Xhist::init},
     },
     cpp	=> {
-	trace_stmt	=> q/ Xhist:add( FNUM, LNUM );/,
-	write_stmt	=> q/ Xhist:write/,
-	init_stmt	=> q/ Xhist:init/,
+	trace_stmt	=> q{ Xhist::add( FNUM, LNUM );},
+	write_stmt	=> q{ Xhist::write},
+	init_stmt	=> q{ Xhist::init},
     },
     java	=> {
-	trace_stmt	=> q/ Xhist.add( FNUM, LNUM );/,
-	write_stmt	=> q/ Xhist.write/,
-	init_stmt	=> q/ Xhist.init/,
+	trace_stmt	=> q{ Xhist.add( FNUM, LNUM );},
+	write_stmt	=> q{ Xhist.write},
+	init_stmt	=> q{ Xhist.init},
     },
 );
 

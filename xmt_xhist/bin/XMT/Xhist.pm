@@ -152,7 +152,9 @@ sub instrument
     return $self->{srcbuf} if $self->{srcbuf} =~ m:$tokens{xh_stq}.*$tokens{xh_endq}:;
 
     # alas, java has no concept of conditional compilation so we unconditionally
-    # add "import XMT.Xhist;" (this is a no-op for languages other than java).
+    # add "import XMT.Xhist;" after either the package statement or the first import statement.
+    # Unfortunately neither one is mandatory so this may fail to instrument some files.
+    # (this is a no-op for languages other than java).
     # we put all instrumentation between <XHIST> markers to allow for uninstrumentation
     my $repl = '"$&\n$tokens{xh_st} import XMT.Xhist; $tokens{xh_end}\n"';
     $self->{srcbuf} =~ s:\n(package|import)\s+.*?\n:$repl:ees;
@@ -164,7 +166,7 @@ sub instrument
     $repl = '"$&$tokens{xh_st} $init_stmt(\"$tf\", \"$mf\", \"$v\"); $tokens{xh_end}"';
     $self->{srcbuf} =~ s:$ptn:$repl:ees;
 
-    # add Xhist.write() call after  <XHIST WRITE> comment
+    # add Xhist.write() call where we find a  <XHIST WRITE> comment
     my $ptn = '/\*\s*<XHIST WRITE>\s*\*/';
     my $write_stmt = interpolate( $templates{$self->{fext}}{write_stmt}, $self->{fext} );
     $repl 	= '"$&$tokens{xh_st} $write_stmt(); $tokens{xh_end}"';
@@ -177,14 +179,14 @@ sub instrument
     # iterate through srccpy, instrumenting executable statements inside code blocks
     while ($srccpy ne '')	
     {
-	# scan for either a block comment or inline comment or braces or a semicolon.
-	# if none found, append entire buffer to srcbuf & return.
+	# scan for a block comment or an inline comment or braces or a semicolon.
+	# if none found, just append the entire buffer to srcbuf & return.
 	my $block = '';
 	my ($prematch, $matched, $postmatch) = $srccpy =~ m:(.*?)(/\*|//|{|}|;)(.*):s;
 	if (!defined $matched) # nothing found. Just append to srcbuf & return.
 	{
 	    $self->{srcbuf} .= $srccpy;
-	    $self->{lnum} += ($srccpy =~ tr/\n//);	# increment lnum by # of newlines in block
+	    $self->{lnum} += ($srccpy =~ tr/\n//);	# increment by # of newlines in block
 	    return $self->{srcbuf};
 	}
 
@@ -194,11 +196,11 @@ sub instrument
 	    $block = $prematch . $matched . $cmt;
 	    $srccpy = $rest; 
 	    $self->{srcbuf} .= $block;			# append the processed block to srcbuf
-	    $self->{lnum} += ($block =~ tr/\n//);	# increment lnum by # of newlines found
+	    $self->{lnum} += ($block =~ tr/\n//);	# increment by # of newlines found
 	    next;
 	}
 
-	if ($matched eq "/*") # the thing matched was a comment block
+	if ($matched eq "/*") # the thing matched was a comment block ...
 	{
 	    my ($cmt, $rest) = $postmatch =~ m:(.*?\*/)(.*):s;	# swallow everything up to "*/"
 	    $block = $prematch . $matched . $cmt;
@@ -231,7 +233,7 @@ sub instrument
 		$block .= "\t<INSTRUMENT OFF>" if $dbg;
 	    }
 	    $self->{srcbuf} .= $block;			# append the processed block to srcbuf
-	    $self->{lnum} += ($block =~ tr/\n//);	# increment lnum by # of newlines found
+	    $self->{lnum} += ($block =~ tr/\n//);	# increment by # of newlines found
 	    next;
 	}
 
@@ -240,7 +242,7 @@ sub instrument
 	    $block = $prematch . $matched;
 	    $srccpy = $postmatch; 
 	    $self->{srcbuf} .= $block;
-	    $self->{lnum} += ($block =~ tr/\n//);	# increment lnum by # of newlines found
+	    $self->{lnum} += ($block =~ tr/\n//);	# increment by # of newlines found
 	    $nesting_level++;
 	    next;
 	}
@@ -250,7 +252,7 @@ sub instrument
 	    $block = $prematch . $matched;
 	    $srccpy = $postmatch; 
 	    $self->{srcbuf} .= $block;
-	    $self->{lnum} += ($block =~ tr/\n//);	# increment lnum by # of newlines found
+	    $self->{lnum} += ($block =~ tr/\n//);	# increment by # of newlines found
 	    $nesting_level--;
 	    next;
 	}
@@ -267,7 +269,7 @@ sub instrument
 	    {
 		$block .= "\t<NOT REACHED>"	if ($dbg);
 		$self->{srcbuf} .= $block;
-		$self->{lnum} += ($block =~ tr/\n//);	# increment lnum by # of newlines found
+		$self->{lnum} += ($block =~ tr/\n//);	# increment by # of newlines found
 		next;
 	    }
 
@@ -280,7 +282,7 @@ sub instrument
 		$srccpy = $rest; 
 		$block .= "\t<FOR>"	if ($dbg);
 		$self->{srcbuf} .= $block;
-		$self->{lnum} += ($block =~ tr/\n//);	# increment lnum by # of newlines found
+		$self->{lnum} += ($block =~ tr/\n//);	# increment by # of newlines found
 		next;
 	    }
 
@@ -292,18 +294,17 @@ sub instrument
 	    {
 		$block .= "\t<DECLARATION>"	if ($dbg);
 		$self->{srcbuf} .= $block;
-		$self->{lnum} += ($block =~ tr/\n//);	# increment lnum by # of newlines found
+		$self->{lnum} += ($block =~ tr/\n//);	# increment by # of newlines found
 		next;
 	    }
 
-	    # GOT TO HERE ---------
 	    # a function call looks like identifier( ... );
 	    $regex = interpolate( q:\s*[% identifier %]\(.*\);: );
 	    if ( $block =~ /$regex/s )
 	    {
 		$block .= "\t<FUNC CALL>"	if ($dbg);
 		$self->{srcbuf} .= $block;
-		$self->{lnum} += ($block =~ tr/\n//);	# increment lnum by # of newlines found
+		$self->{lnum} += ($block =~ tr/\n//);	# increment by # of newlines found
 		if ( $instr && $nesting_level > 0 )
 		{
 		    (my $repl = $templates{$self->{fext}}{trace_stmt}) =~ s/FNUM/$self->{fnum}/g;
@@ -320,7 +321,7 @@ sub instrument
 	    {
 		$block .= "\t<STMT>"	if ($dbg);
 		$self->{srcbuf} .= $block;
-		$self->{lnum} += ($block =~ tr/\n//);	# increment lnum by # of newlines found
+		$self->{lnum} += ($block =~ tr/\n//);	# increment by # of newlines found
 		if ( $instr && $nesting_level > 0 )
 		{
 		    (my $repl = $templates{$self->{fext}}{trace_stmt}) =~ s/FNUM/$self->{fnum}/g;
@@ -333,7 +334,7 @@ sub instrument
 	    # matched no known pattern; leave uninstrumented 
 	    {
 		$self->{srcbuf} .= $block;
-		$self->{lnum} += ($block =~ tr/\n//);	# increment lnum by # of newlines found
+		$self->{lnum} += ($block =~ tr/\n//);	# increment by # of newlines found
 	    }
 	}
     }

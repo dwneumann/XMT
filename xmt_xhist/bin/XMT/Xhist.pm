@@ -38,7 +38,7 @@ local %filemap = ();
 # /* xhist instrument TRUE|FALSE */ 	turns on/off instrumentation
 our %tokens = (
 	identifier    	=> q:[a-zA-Z0-9_\.]+:	,
-	operator	=> q:[-+<>=!\^\(,\)]:	,
+	operator	=> q:[-+<>=!\^\(\)]:	,
 	xh_st  		=> q:/*<XHIST>*/:  	, # for use in replacement ptn
 	xh_end		=> q:/*</XHIST>*/: 	, # for use in replacement ptn
 	xh_stq 		=> q:\/\*<XHIST>\*\/:	, # escaped for use in search ptn

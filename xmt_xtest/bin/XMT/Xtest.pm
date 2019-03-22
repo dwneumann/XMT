@@ -156,7 +156,7 @@ sub _expect
     my $str  = shift;		# the regex to be expected
     $self->{exp}->clear_accum();
     printf("%s: %2d: %s\n", $fn, $seqnum, $buf) if (defined $self->{verbose});
-    $self->{exp}->expect(\$Xtest::timeout, -re, $str); 
+    $self->{exp}->expect($Xtest::timeout, -re, $str); 
     if ( ! $self->{exp}->match() )
     {
 	printf("%s: %2d: %s\n", $fn, $seqnum, $Xtest::FAIL) if (defined $self->{verbose});

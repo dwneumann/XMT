@@ -29,8 +29,13 @@
 #   := assignements are evaluated during lexical scan;
 #    = assignments are recursively expanded during rule parsing
 srcs.java	:= $(shell find $(SRCDIR)/ -type f -name '*.java')
+
+#   MacOS bash leaves a preceding slash.  Needs the following patsubst.
 objs.java	:= $(patsubst $(SRCDIR)/%.java,%.class,$(srcs.java))
+objs.java	:= $(patsubst /%,%,$(objs.java))
 docs.java	:= $(patsubst $(SRCDIR)/%.java,$(DOCDIR)/%.html,$(srcs.java))
+docs.java	:= $(patsubst /%,%,$(docs.java))
+
 hdrs.java	:= 
 lnts.java	:= 
 

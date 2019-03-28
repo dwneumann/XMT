@@ -72,3 +72,6 @@ menu XMT.Syntax\ On				:color xmt<CR>:syntax on<CR>
 menu XMT.Syntax\ Dim\ Code			:XMTDimCode<CR>
 menu XMT.Syntax\ Dim\ Comments			:XMTDimComments<CR>
 menu XMT.Syntax\ No\ Dim			:XMTNoDim<CR>
+
+
+syn match	Todo		".*TO *DO.*\|.*FIX *ME\|.*GOT TO HERE.*"

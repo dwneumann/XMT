@@ -47,7 +47,7 @@ instrument:
 	for x in c java ; do				\
 	    m=$(CURDIR)/$(TESTDIR)/Mesh.$${x}.xmap; 	\
 	    for f in *.$$x ; do				\
-		/usr/local/bin/git_filter --expand=. --xhist=. --xhist_map=$$m $$f  \
+		$(XMTCM)/bin/git_filter --expand=. --xhist=. --xhist_map=$$m $$f  \
 		--xtest=. > $(SRCDIR)/$$f ;			\
 	    done					\
 	done)

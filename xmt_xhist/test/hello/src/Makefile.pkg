@@ -42,7 +42,7 @@ instrument:
 	    m=$(CURDIR)/$(TESTDIR)/Hello.$${x}.xmap; 	\
 	    for f in hello.c Hello.java ; do				\
 		$(XMTCM)/bin/git_filter --expand=. --xhist=. --xhist_map=$$m \
-			--fname=$$f  $$f.orig > $(SRCDIR)/$$f ;	\
+			--fname=$$f  < $$f.orig > $(SRCDIR)/$$f ;	\
 	    done					\
 	done)
 

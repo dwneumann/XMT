@@ -7,6 +7,8 @@
 #   	  --help	print help message & exit.
 #	  --trace=pathspec	execution history trace output
 #	  --map=pathspec	execution history filename map 
+#	  --thread=i		output only lines from thread i
+#	  --fmt=[vi|]		output as replayable script for vi or ...
 #
 #  Copyright 2018 Visionary Research Inc.   All rights reserved.
 #  			legal@visionary-research.com
@@ -31,6 +33,8 @@ $pgmname [<options>]
           --help 
           --trace=<pathspec>	
           --map=<pathspec>
+          --thread=<i>       output only lines from thread i
+          --fmt=vim          output as replayable vim commands
 __END__
 
 my %opt = ();
@@ -38,8 +42,9 @@ my %filemap = ();
 my ($fh, $mapfile, $srcversion, $numstmts, $tailindex, $intfmt, $bytes, $strlen);
 
 # parse commandline options
-GetOptions( \%opt, "help", "trace=s", "map=s" ) or die $help_msg;
-die "$help_msg" if (!defined $opt{'trace'});
+GetOptions( \%opt, "help", "trace=s", "map=s", "thread=i", "fmt=s" ) or die $help_msg;
+die "$help_msg" if (!defined $opt{trace});
+die "$help_msg" if (defined $opt{fmt} && $opt{fmt} ne 'vim');
 
 ## read the mapfile & populate the filename hash with values
 if (defined $opt{'map'})
@@ -86,25 +91,48 @@ die "$opt{'trace'}: read error"		unless read( $fh, $bytes, $strlen) == $strlen;
 $srcversion = unpack "a$strlen", $bytes;
 
 # print some identifying info ...
-printf("execution history of source build %s\n", $srcversion );
-printf("encoded with mapfile %s\n", $mapfile );
+printf("%s execution history of source build %s\n", 
+    ($opt{fmt} eq 'vim' ? '"' : ''), $srcversion );
+printf("%s encoded with mapfile %s\n", 
+    ($opt{fmt} eq 'vim' ? '"' : ''), $mapfile );
 
 # now read the entire execution history log
+# the log is 4 bytes * table length followed by 4-byte threadId * tbl length.
 die "$opt{'trace'}: read error"	unless read( $fh, $bytes, $numstmts*4) == $numstmts*4;
 push @xhist_tbl, unpack "($intfmt)*", $bytes;
+die "$opt{'trace'}: read error"	unless read( $fh, $bytes, $numstmts*4) == $numstmts*4;
+push @xhist_threadIds, unpack "($intfmt)*", $bytes;
 
 # The last statement executed is at index $tailindex.
 # We want to list the instructions in the order executed,
 # so we start at tailindex+1 and wrap around.
+my $prev_filenum = 0; 
 for (my $i = $tailindex+1; $i != $tailindex; $i++)
 {
+    $i = -1 if ($i >= $numstmts - 1); # wrap-around so next index is 0
     $filenum = $xhist_tbl[$i] >> 16;
     $linenum = $xhist_tbl[$i] & 0x00FF;
-    if ($linenum > 0)
+    $threadnum = $threadIds[$i];
+
+    next if ($opt{thread} != $threadnum); # skip if not the specified thread
+    next if ($linenum <= 0);	# skip if this element of the table was never populated
+    
+    if ($opt{fmt} eq 'vim' ) 	# output as replayable vimscript output
     {
-	printf("%s: %d\n", 
-	    (defined $filemap{$filenum} ? $filemap{$filenum} : "unknown"), $linenum);
+	printf(":set cursorline\n:set number\n") if ($prev_filenum == 0);
+	printf("%s\n%s\n%s\n", 
+	    ($filenum == $prev_filenum ? ":" . $linenum 
+	   	: ":e +" . $linenum . 
+		(defined $filemap{$filenum} ? " " . $filemap{$filenum} : " unknown")),
+	    ":redraw!",
+	    ":call input('Press any key to continue')" );
+	$prev_filenum = $filenum; 
     }
-    $i = -1 if ($i >= $numstmts - 1); # wrap-around so next index is 0
+    else	# output as human-readable tabular format 
+    {
+	printf("%s: thread %d\t line  %d\n", 
+	    (defined $filemap{$filenum} ? $filemap{$filenum} : "unknown"), 
+		$threadnum, $linenum);
+    }
 }
 # we're done.

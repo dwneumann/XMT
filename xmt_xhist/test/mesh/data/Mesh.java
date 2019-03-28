@@ -14,9 +14,9 @@
 
 import java.lang.Runtime;
 
-import java.lang.*;
-import java.io.*;
-import java.net.*;
+import java.lang.*;	// need everything
+import java.io.*;	// need FileStreams
+import java.net.*;	// need sockets
 
 /**
  * The Mesh class implements a toy mesh network to demonstrate execution history tracing
@@ -32,18 +32,18 @@ import java.net.*;
  */
 public	class	Mesh {
     public static final String id = "@(#) mesh.Mesh $Version:$";
-    public static final int MAX_NODES	= 100;		/* max # nodes in mesh		*/
-    public static MeshNode	myNode	= new MeshNode();	/* this Node		*/
+    public static final int MAX_NODES	= 100;			// max # nodes in mesh
+    public static MeshNode	myNode	= new MeshNode();	// this Node
 
 
     public static void main(String []args) throws NumberFormatException {
-	Packet 		pkt		= null;		/* packet to be sent		*/
-	int		nodes[] = new int[MAX_NODES];	/* port #'s of all nodes	*/
-	int		numNodes	= 0;		/* # nodes in mesh		*/
-	int		myNodeIndex	= 0;		/* index of my port#		*/
-	int		nextPort	= 0;		/* value of nodes[myNodeIndex+1]*/
-	int		dfltPktsToSend	= 10;		/* # pkts to initiate		*/
-	int		dfltHops	= 10;		/* # hops before ack		*/
+	Packet 		pkt		= null;		// packet to be sent
+	int		nodes[] = new int[MAX_NODES];	// port #'s of all nodes
+	int		numNodes	= 0;		// # nodes in mesh
+	int		myNodeIndex	= 0;		// index of my port#
+	int		nextPort	= 0;		// value of nodes[myNodeIndex+1]
+	int		dfltPktsToSend	= 10;		// # pkts to initiate
+	int		dfltHops	= 10;		// # hops before ack
 	int		i		= 0;
 
 	/* <XHIST INIT> */

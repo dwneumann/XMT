@@ -72,9 +72,10 @@ public	class		Xhist
     private static final int	XhistTableSize		= 1000;
     public static String buildTag;	// buildTag of instrumented source
     public static String mapFn;		// mapping file used during instrumentation
-    public static int[] tbl		= new  int[XhistTableSize];
-    public static int tail		= 0;
-    public static DataOutputStream logStream	= null;
+    public static volatile int[] tbl		= new  int[XhistTableSize];
+    public static volatile int[] threadId	= new  int[XhistTableSize];
+    public static volatile int tail		= 0;
+    public static volatile DataOutputStream logStream	= null;
     public static boolean forceFail	= false;
 
 
@@ -85,6 +86,7 @@ public	class		Xhist
     */
     public	static void add( int fnum,  int lnum ) { 
 	tbl[tail] = (((short) fnum << 16) | (short) lnum);
+	threadId[tail] = (int) Thread.currentThread().getId();
 	tail = (short) ((tail+1) % XhistTableSize);
     }
 
@@ -101,9 +103,7 @@ public	class		Xhist
 	{
 	    /* ProcessHandle not available in jdk-8
 	    fd = new DataOutputStream(new FileOutputStream(
-		logNm + '.' + ProcessHandle.current().pid() + ".xhist")); 
-	    */
-	    fd = new DataOutputStream(new FileOutputStream( logNm + ".xhist")); 
+		logNm + '.' + ".xhist")); 
 	    Xhist.logdev(fd);
 	    Xhist.mapfile(mapFn);
 	    Xhist.version(version);
@@ -148,7 +148,7 @@ public	class		Xhist
     }
 
     /**
-    * Sets the strea to export the execution history to. 
+    * Sets the stream to export the execution history to. 
     * @param	fd	DatOutputStream to write output to
     */
     public	static void logdev( DataOutputStream fd ) { 
@@ -187,6 +187,10 @@ public	class		Xhist
 	for (i = 0; i < tbl.length; i++)
 	{
 	    logStream.writeInt(tbl[i]);
+	}
+	for (i = 0; i < tbl.length; i++)
+	{
+	    logStream.writeInt(threadId[i]);
 	}
     }
 }

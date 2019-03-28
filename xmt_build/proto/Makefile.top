@@ -99,7 +99,13 @@ depend:
 	>/dev/null 2>&1 )
 
 clean:
-	-/bin/rm $(OBJDIR)/* $(TGTDIR)/*
+	-/bin/rm -r $(OBJDIR)/* $(TGTDIR)/*
+
+cleanall:
+	( for d in  $(XMTBUILD_SUPP_ARCHS) ; do \
+	    echo -/bin/rm -r ../obj/$$d; \
+	    echo -/bin/rm -r ../tgt/$$d; \
+	  done; )
 
 sources:	
 	(cd $(SRCDIR); $(CMSOURCES))

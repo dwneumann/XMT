@@ -32,168 +32,46 @@ sub version
 $VERSION = &version;
 local %filemap = ();
 
-# $tokens is a hash of language-specific tokens to be interpolated at time of pattern matching
-our $tokens = {
-    c		=> {
-	identifier    	=> q:[a-zA-Z0-9_]+:	,
-	operator	=> q:[-+<>=!\^\(]:	,
-	cmt_start	=> q:/\*:		,
-	cmt_end		=> q:\*/:		,
-	indent		=> ""			,	# this changes dynamically
-    },
-    h		=> {
-	identifier    	=> q:[a-zA-Z0-9_]+:	,
-	operator	=> q:[-+<>=!\^\(]:	,
-	cmt_start	=> q:/\*:		,
-	cmt_end		=> q:\*/:		,
-	indent		=> ""			,	# this changes dynamically
-    },
-    cc	=> {
-	identifier    	=> q:[a-zA-Z0-9_]+:	,
-	operator	=> q:[-+<>=!\^\(]:	,
-	cmt_start	=> q:/\*:		,
-	cmt_end		=> q:\*/:		,
-	indent		=> ""			,	# this changes dynamically
-    },
-    cpp	=> {
-	identifier    	=> q:[a-zA-Z0-9_]+:	,
-	operator	=> q:[-+<>=!\^\(]:	,
-	cmt_start	=> q:/\*:		,
-	cmt_end		=> q:\*/:		,
-	indent		=> ""			,	# this changes dynamically
-    },
-    hh	=> {
-	identifier    	=> q:[a-zA-Z0-9_]+:	,
-	operator	=> q:[-+<>=!\^\(]:	,
-	cmt_start	=> q:/\*:		,
-	cmt_end		=> q:\*/:		,
-	indent		=> ""			,	# this changes dynamically
-    },
-    hpp	=> {
-	identifier    	=> q:[a-zA-Z0-9_]+:	,
-	operator	=> q:[-+<>=!\^\(]:	,
-	cmt_start	=> q:/\*:		,
-	cmt_end		=> q:\*/:		,
-	indent		=> ""			,	# this changes dynamically
-    },
-    java	=> {
-	identifier    	=> q:[a-zA-Z0-9_]+:	,
-	operator	=> q:[-+<>=!\^\(]:	,
-	cmt_start	=> q:/\*:		,
-	cmt_end		=> q:\*/:		,
-	indent		=> ""			,	# this changes dynamically
-    },
-};
+# $tokens is a hash of language-independent lexical tokens interpolated in pattern matching
+# tokens /*<XHIST>*/ and /*</XHIST>*/	delimit instrumentation added to code.
+# /* xhist debug TRUE|FALSE */ 		turns on/off debug output
+# /* xhist instrument TRUE|FALSE */ 	turns on/off instrumentation
+our %tokens = (
+	identifier    	=> q:[a-zA-Z0-9_\.]+:	,
+	operator	=> q:[-+<>=!\^\(\)]:	,
+	xh_st  		=> q:/*<XHIST>*/:  	, # for use in replacement ptn
+	xh_end		=> q:/*</XHIST>*/: 	, # for use in replacement ptn
+	xh_stq 		=> q:\/\*<XHIST>\*\/:	, # escaped for use in search ptn
+	xh_endq 	=> q:\/\*<\/XHIST>\*\/:	, # escaped for use in search ptn
+	xh_dbg_T	=> q:\/\*\s+xhist\s+debug\s+TRUE\s*\*\/:,
+	xh_dbg_F	=> q:\/\*\s+xhist\s+debug\s+FALSE\s*\*\/:,
+	xh_inst_T	=> q:\/\*\s+xhist\s+instrument\s+TRUE\s*\*\/:,
+	xh_inst_F	=> q:\/\*\s+xhist\s+instrument\s+FALSE\s*\*\/:,
+);
 
-# $templates are language-specific patterns that are interpolated with tokens 
-# at time of parsing.  This allows tokens to dynamically change (e.g. $indent)
-our $templates = {
+# $templates are language-specific instrumentations added to code 
+our %templates = (
     c	=> {
-	func_begin	=> q:^(\s*)\{\s*$:,
-	func_end	=> q:^[% indent %]\}\s*$:,
-	declaration	=> q:^\s*[% identifier %]\**\s+\(?\**[% identifier %].*[,;]:,
-	for_stmt	=> q:\s+for\s+\(.*;.*:,
-	rtn_stmt	=> q:\s+return\s*\(*.*\)*\s*;:,
-	executable	=> q:[% operator %].*;:,
-	xh_dbg_T	=> q:[% cmt_start %]\s+xhist\s+debug\s+TRUE\s*[% cmt_end %]:,
-	xh_dbg_F	=> q:[% cmt_start %]\s+xhist\s+debug\s+FALSE\s*[% cmt_end %]:,
-	xh_inst_T	=> q:[% cmt_start %]\s+xhist\s+instrument\s+TRUE\s*[% cmt_end %]:,
-	xh_inst_F	=> q:[% cmt_start %]\s+xhist\s+instrument\s+FALSE\s*[% cmt_end %]:,
-	xh_startmk	=> q:[% cmt_start %]<XHIST>[% cmt_end %]:,
-	xh_endmk	=> q:[% cmt_start %]</XHIST>[% cmt_end %]:,
-	trace_stmt	=> q: _XH_ADD( FNUM, LNUM );:,
-    },
-    h	=> {
-	func_begin	=> q:^(\s*)\{\s*$:,
-	func_end	=> q:^[% indent %]\}\s*$:,
-	declaration	=> q:^\s*[% identifier %]\**\s+\(?\**[% identifier %].*[,;]:,
-	for_stmt	=> q:\s+for\s+\(.*;.*:,
-	rtn_stmt	=> q:\s+return\s*\(*.*\)*\s*;:,
-	executable	=> q:[% operator %].*;:,
-	xh_dbg_T	=> q:[% cmt_start %]\s+xhist\s+debug\s+TRUE\s*[% cmt_end %]:,
-	xh_dbg_F	=> q:[% cmt_start %]\s+xhist\s+debug\s+FALSE\s*[% cmt_end %]:,
-	xh_inst_T	=> q:[% cmt_start %]\s+xhist\s+instrument\s+TRUE\s*[% cmt_end %]:,
-	xh_inst_F	=> q:[% cmt_start %]\s+xhist\s+instrument\s+FALSE\s*[% cmt_end %]:,
-	xh_startmk	=> q:[% cmt_start %]<XHIST>[% cmt_end %]:,
-	xh_endmk	=> q:[% cmt_start %]</XHIST>[% cmt_end %]:,
-	trace_stmt	=> q: _XH_ADD( FNUM, LNUM );:,
+	trace_stmt	=> q{ _XH_ADD( FNUM, LNUM );},
+	write_stmt	=> q{ xhist_write},
+	init_stmt	=> q{ xhist_init},
     },
     cc	=> {
-	func_begin	=> q:^(\s*)(public|private|protected).*\{\s*:,
-	func_end	=> q:^[% indent %]\}\s*$:,
-	declaration	=> q:^\s*[% identifier %]\**\s+\(?\**[% identifier %].*[,;]:,
-	for_stmt	=> q:\s+for\s+\(.*;.*:,
-	rtn_stmt	=> q:\s+return\s*\(*.*\)*\s*;:,
-	executable	=> q:[% operator %].*;:,
-	xh_dbg_T	=> q:[% cmt_start %]\s+xhist\s+debug\s+TRUE\s*[% cmt_end %]:,
-	xh_dbg_F	=> q:[% cmt_start %]\s+xhist\s+debug\s+FALSE\s*[% cmt_end %]:,
-	xh_inst_T	=> q:[% cmt_start %]\s+xhist\s+instrument\s+TRUE\s*[% cmt_end %]:,
-	xh_inst_F	=> q:[% cmt_start %]\s+xhist\s+instrument\s+FALSE\s*[% cmt_end %]:,
-	xh_startmk	=> q:[% cmt_start %]<XHIST>[% cmt_end %]:,
-	xh_endmk	=> q:[% cmt_start %]</XHIST>[% cmt_end %]:,
-	trace_stmt	=> q: Xhist.add( FNUM, LNUM );:,
+	trace_stmt	=> q{ Xhist::add( FNUM, LNUM );},
+	write_stmt	=> q{ Xhist::write},
+	init_stmt	=> q{ Xhist::init},
     },
     cpp	=> {
-	func_begin	=> q:^(\s*)(public|private|protected).*\{\s*:,
-	func_end	=> q:^[% indent %]\}\s*$:,
-	declaration	=> q:^\s*[% identifier %]\**\s+\(?\**[% identifier %].*[,;]:,
-	for_stmt	=> q:\s+for\s+\(.*;.*:,
-	rtn_stmt	=> q:\s+return\s*\(*.*\)*\s*;:,
-	executable	=> q:[% operator %].*;:,
-	xh_dbg_T	=> q:[% cmt_start %]\s+xhist\s+debug\s+TRUE\s*[% cmt_end %]:,
-	xh_dbg_F	=> q:[% cmt_start %]\s+xhist\s+debug\s+FALSE\s*[% cmt_end %]:,
-	xh_inst_T	=> q:[% cmt_start %]\s+xhist\s+instrument\s+TRUE\s*[% cmt_end %]:,
-	xh_inst_F	=> q:[% cmt_start %]\s+xhist\s+instrument\s+FALSE\s*[% cmt_end %]:,
-	xh_startmk	=> q:[% cmt_start %]<XHIST>[% cmt_end %]:,
-	xh_endmk	=> q:[% cmt_start %]</XHIST>[% cmt_end %]:,
-	trace_stmt	=> q: Xhist.add( FNUM, LNUM );:,
-    },
-    hh	=> {
-	func_begin	=> q:^(\s*)(public|private|protected).*\{\s*:,
-	func_end	=> q:^[% indent %]\}\s*$:,
-	declaration	=> q:^\s*[% identifier %]\**\s+\(?\**[% identifier %].*[,;]:,
-	for_stmt	=> q:\s+for\s+\(.*;.*:,
-	rtn_stmt	=> q:\s+return\s*\(*.*\)*\s*;:,
-	executable	=> q:[% operator %].*;:,
-	xh_dbg_T	=> q:[% cmt_start %]\s+xhist\s+debug\s+TRUE\s*[% cmt_end %]:,
-	xh_dbg_F	=> q:[% cmt_start %]\s+xhist\s+debug\s+FALSE\s*[% cmt_end %]:,
-	xh_inst_T	=> q:[% cmt_start %]\s+xhist\s+instrument\s+TRUE\s*[% cmt_end %]:,
-	xh_inst_F	=> q:[% cmt_start %]\s+xhist\s+instrument\s+FALSE\s*[% cmt_end %]:,
-	xh_startmk	=> q:[% cmt_start %]<XHIST>[% cmt_end %]:,
-	xh_endmk	=> q:[% cmt_start %]</XHIST>[% cmt_end %]:,
-	trace_stmt	=> q: Xhist.add( FNUM, LNUM );:,
-    },
-    hpp	=> {
-	func_begin	=> q:^(\s*)(public|private|protected).*\{\s*:,
-	func_end	=> q:^[% indent %]\}\s*$:,
-	declaration	=> q:^\s*[% identifier %]\**\s+\(?\**[% identifier %].*[,;]:,
-	for_stmt	=> q:\s+for\s+\(.*;.*:,
-	rtn_stmt	=> q:\s+return\s*\(*.*\)*\s*;:,
-	executable	=> q:[% operator %].*;:,
-	xh_dbg_T	=> q:[% cmt_start %]\s+xhist\s+debug\s+TRUE\s*[% cmt_end %]:,
-	xh_dbg_F	=> q:[% cmt_start %]\s+xhist\s+debug\s+FALSE\s*[% cmt_end %]:,
-	xh_inst_T	=> q:[% cmt_start %]\s+xhist\s+instrument\s+TRUE\s*[% cmt_end %]:,
-	xh_inst_F	=> q:[% cmt_start %]\s+xhist\s+instrument\s+FALSE\s*[% cmt_end %]:,
-	xh_startmk	=> q:[% cmt_start %]<XHIST>[% cmt_end %]:,
-	xh_endmk	=> q:[% cmt_start %]</XHIST>[% cmt_end %]:,
-	trace_stmt	=> q: Xhist.add( FNUM, LNUM );:,
+	trace_stmt	=> q{ Xhist::add( FNUM, LNUM );},
+	write_stmt	=> q{ Xhist::write},
+	init_stmt	=> q{ Xhist::init},
     },
     java	=> {
-	func_begin	=> q:^(\s*)(public|private|protected).*\{\s*:,
-	func_end	=> q:^[% indent %]\}\s*$:,
-	declaration	=> q:^\s*[% identifier %]\**\s+\(?\**[% identifier %].*[,;]:,
-	for_stmt	=> q:\s+for\s+\(.*;.*:,
-	rtn_stmt	=> q:\s+return\s*\(*.*\)*\s*;:,
-	executable	=> q:[% operator %].*;:,
-	xh_dbg_T	=> q:[% cmt_start %]\s+xhist\s+debug\s+TRUE\s*[% cmt_end %]:,
-	xh_dbg_F	=> q:[% cmt_start %]\s+xhist\s+debug\s+FALSE\s*[% cmt_end %]:,
-	xh_inst_T	=> q:[% cmt_start %]\s+xhist\s+instrument\s+TRUE\s*[% cmt_end %]:,
-	xh_inst_F	=> q:[% cmt_start %]\s+xhist\s+instrument\s+FALSE\s*[% cmt_end %]:,
-	xh_startmk	=> q:[% cmt_start %]<XHIST>[% cmt_end %]:,
-	xh_endmk	=> q:[% cmt_start %]</XHIST>[% cmt_end %]:,
-	trace_stmt	=> q: Xhist.add( FNUM, LNUM );:,
+	trace_stmt	=> q{ Xhist.add( FNUM, LNUM );},
+	write_stmt	=> q{ Xhist.write},
+	init_stmt	=> q{ Xhist.init},
     },
-};
+);
 
 ## nothing below this line should be language-dependent.
 
@@ -209,13 +87,16 @@ sub new
 
     $self->{srcfn}	= $opts->{fname}  or carp "input filename undefined" & return undef;
     $self->{srcbuf}	= length($opts->{srcbuf}) > 0 ? $opts->{srcbuf} : "";
-    $self->{mapfn}	= $opts->{map} if (defined $opts->{map} || defined $opts->{xhist_map});
+    $self->{mapfn}	= $opts->{xhist_map} if defined $opts->{xhist_map};
     $self->{fext}	= (defined($self->{srcfn}) ?
     			lc $self->{srcfn} =~ s/.*\.(.*?)$/$1/r : "c");
     $self->{fnum}	= crc16($self->{srcfn}) or carp "crc16 failed" & return undef;
     $self->{fnum}++  while ( grep /$self->{fnum}/, values %filemap ); # handle collisions
     $filemap{$self->{srcfn}} = $self->{fnum};	# add name & hash to filemap
     $self->{lnum}	= 0;
+    $self->{dbg}	= defined $opts->{dbg} ? 1 : 0; # TRUE if lexer debugging enabled 
+    $self->{instr}	= 1;		# TRUE if instrumention enabled
+
     bless $self;
     return $self;
 }
@@ -259,163 +140,200 @@ sub source
 sub instrument
 {
     my $self = shift;
-    my $in_func		= 0;	# increment each time we encounter a nested routine
-    my $xh_debug	= 0;	# TRUE if debugging lexer 
-    my $xh_instrument	= 1;	# TRUE if instrumenting should occur
+    my $nesting_level	= 0;	# increment each time we encounter a nested block
     my $regex;
 
     # if we don't grok this filetype, return gracefully.
-    return $self->{srcbuf} if (!defined $tokens->{$self->{fext}});
-
-    my $startmk = interpolate( $templates->{$self->{fext}}{xh_startmk}, $self->{fext} );
-    my $endmk = interpolate( $templates->{$self->{fext}}{xh_endmk}, $self->{fext} );
-    $startmk =~ s/\\//g;
-    $endmk =~ s/\\//g;
+    return $self->{srcbuf} if (!defined $templates{$self->{fext}});
 
     # refuse to instrument source that's already instrumented.
-    # Probably not what the user wanted, and will certainly screw up unxhist.
-    return $self->{srcbuf} if ($self->{srcbuf} =~ /$startmk.*$endmk/);
+    return $self->{srcbuf} if $self->{srcbuf} =~ m:$tokens{xh_stq}.*$tokens{xh_endq}:;
 
-    # add import XMT.Xhist 
-    my $repl = '"$&$startmk import XMT.Xhist; $endmk"';
-    $self->{srcbuf} =~ s:.*^import\s+.*?\n:$repl:eems;
-
-    # add Xhist.init() call after  <XHIST INIT> comment
-    # put the function call between <XHIST> markers to allow for uninstrumentation
+    # alas, java has no concept of conditional compilation so we unconditionally
+    # add "import XMT.Xhist;" after either the package statement or the first import statement.
+    # Unfortunately neither one is mandatory so this may fail to instrument some files.
+    # (this is a no-op for languages other than java).
+    # we put all instrumentation between <XHIST> markers to allow for uninstrumentation
+    my $repl = '"$&$tokens{xh_st} import XMT.Xhist; $tokens{xh_end}"';
+    $self->{srcbuf} =~ s:\n(package|import)\s+.*?;:$repl:ees;
     my $ptn = '/\*\s*<XHIST INIT>\s*\*/';
     my $v	= '$' . 'Version' . ':$';
     my $mf	= '$' . 'XhistMap' . ':$';
     my $tf	= $self->{srcfn};
-    $repl 	= '"$&$startmk Xhist.init(\"$tf\", \"$mf\", \"$v\"); $endmk"';
+    my $init_stmt = interpolate( $templates{$self->{fext}}{init_stmt}, $self->{fext} );
+    $repl = '"$&$tokens{xh_st} $init_stmt(\"$tf\", \"$mf\", \"$v\"); $tokens{xh_end}"';
     $self->{srcbuf} =~ s:$ptn:$repl:ees;
 
-    # add Xhist.write() call after  <XHIST WRITE> comment
-    # put the function call between <XHIST> markers to allow for uninstrumentation
+    # add Xhist.write() call where we find a  <XHIST WRITE> comment
     my $ptn = '/\*\s*<XHIST WRITE>\s*\*/';
-    $repl 	= '"$&$startmk Xhist.write(); $endmk"';
+    my $write_stmt = interpolate( $templates{$self->{fext}}{write_stmt}, $self->{fext} );
+    $repl 	= '"$&$tokens{xh_st} $write_stmt(); $tokens{xh_end}"';
     $self->{srcbuf} =~ s:$ptn:$repl:ees;
 
-    local @indent_fifo	= [""];	# FIFO stack of function indentation levels
-    my @lines	 = split /\n/, $self->{srcbuf};
-    $self->{lnum} = 0;
-    $self->{srcbuf} = '';
-    while (scalar @lines > 0)
+    # now process srcbuf, matching templates
+    my $srccpy = $self->{srcbuf};	# working copy of srcbuf
+    $self->{srcbuf} = '';		# empty ready for reconstructing
+    $self->{lnum} = 1;			# keep track of line numbers 
+    # iterate through srccpy, instrumenting executable statements inside code blocks
+    while ($srccpy ne '')	
     {
-	$_ = shift @lines;
-	$self->{lnum}++;
-
-	# append instrumentation to line ...
-	# "xhist debug TRUE" inside a comment enables tracing 
-	$regex = interpolate( $templates->{$self->{fext}}{xh_dbg_T}, $self->{fext} );
-	if ( /$regex/ )
+	# scan for a block comment or an inline comment or braces or a semicolon.
+	# if none found, just append the entire buffer to srcbuf & return.
+	my $block = '';
+	my ($prematch, $matched, $postmatch) = $srccpy =~ m:(.*?)(/\*|//|{|}|;)(.*):s;
+	if (!defined $matched) # nothing found. Just append to srcbuf & return.
 	{
-	    $xh_debug = 1;
-	    $self->{srcbuf} .= $_ . "$startmk <DEBUG ON> $endmk\n";
+	    $self->{srcbuf} .= $srccpy;
+	    $self->{lnum} += ($srccpy =~ tr/\n//);	# increment by # of newlines in block
+	    return $self->{srcbuf};
+	}
+
+	if ($matched eq "//") # the thing matched was an inline comment 
+	{
+	    my ($cmt, $rest) = $postmatch =~ m:(.*?)(\n.*):s;	# swallow everything up to "\n"
+	    $block = $prematch . $matched . $cmt;
+	    $srccpy = $rest; 
+	    $self->{srcbuf} .= $block;			# append the processed block to srcbuf
+	    $self->{lnum} += ($block =~ tr/\n//);	# increment by # of newlines found
 	    next;
 	}
 
-	# "xhist debug FALSE" inside a comment disables tracing 
-	$regex = interpolate( $templates->{$self->{fext}}{xh_dbg_F}, $self->{fext} );
-	if ( /$regex/ )
+	if ($matched eq "/*") # the thing matched was a comment block ...
 	{
-	    $xh_debug = 0;
-	    $self->{srcbuf} .= $_ . "$startmk <DEBUG OFF> $endmk\n";
-	    next;
-	}
+	    my ($cmt, $rest) = $postmatch =~ m:(.*?\*/)(.*):s;	# swallow everything up to "*/"
+	    $block = $prematch . $matched . $cmt;
+	    $srccpy = $rest; 
 
-	# "xhist instrument TRUE" inside a comment enables instrumentation
-	$regex = interpolate( $templates->{$self->{fext}}{xh_inst_T}, $self->{fext} );
-	if ( /$regex/ )
-	{
-	    $xh_instrument = 1;
-	    $self->{srcbuf} .= $_ . ($xh_debug ? "$startmk <INSTRUMENT ON> $endmk" : '') . "\n";
-	    next;
-	}
-
-	# "xhist instrument FALSE" inside a comment disables instrumentation
-	$regex = interpolate( $templates->{$self->{fext}}{xh_inst_F}, $self->{fext} );
-	if ( /$regex/ )
-	{
-	    $xh_instrument = 0;
-	    $self->{srcbuf} .= $_ . ($xh_debug ? "$startmk <INSTRUMENT OFF> $endmk" : '') . "\n";
-	    next;
-	}
-
-	$regex = interpolate( $templates->{$self->{fext}}{func_begin}, $self->{fext} );
-	if ( /$regex/ )
-	{
-	    unshift @indent_fifo, $1;	# push new indent onto stack
-	    $tokens->{$self->{fext}}{indent} = $indent_fifo[0];	
-	    $in_func++;
-	    $self->{srcbuf} .= $_ . ($xh_debug ? "$startmk <FUNC START> $endmk" : '') . "\n";
-	    next;
-	}
-
-	$regex = interpolate( $templates->{$self->{fext}}{func_end}, $self->{fext} );
-	if ( /$regex/ )
-	{
-	    shift @indent_fifo;		# pop indent off of stack
-	    unshift @indent_fifo, "" if ! @indent_fifo; # handle func_end without func_start
-	    $tokens->{$self->{fext}}{indent} = $indent_fifo[0];	
-	    $in_func--; 
-	    $self->{srcbuf} .= $_ . ($xh_debug ? "$startmk <FUNC END> $endmk" : '') . "\n"; 
-	    next;
-	}
-
-	$regex = interpolate( $templates->{$self->{fext}}{declaration}, $self->{fext} );
-	if ( /$regex/ )
-	{
-	    $self->{srcbuf} .= $_ . ($xh_debug ? "$startmk <DECL> $endmk" : '') . "\n";
-	    next;
-	}
-
-	$regex = interpolate( $templates->{$self->{fext}}{for_stmt}, $self->{fext} );
-	if ( /$regex/ )
-	{
-	    $self->{srcbuf} .= $_ . ($xh_debug ? "$startmk <FOR> $endmk" : '') . "\n";
-	    next;
-	}
-
-	$regex = interpolate( $templates->{$self->{fext}}{rtn_stmt}, $self->{fext} );
-	if ( /$regex/ )
-	{
-	    if ( $in_func )
+	    # "xhist debug TRUE" inside comment delimiters enables debug output 
+	    if ( $block =~ /$tokens{xh_dbg_T}/s )
 	    {
-		$self->{srcbuf} .= $_ . ($xh_debug ? "$startmk <RETURN> $endmk" : '') . "\n";
+		$self->{dbg} = 1;
+		$block .= "\t<DEBUG ON>" if $self->{dbg};
 	    }
-	    else
+
+	    # "xhist debug FALSE" inside comment delimiters disables debug output 
+	    if ( $block =~ /$tokens{xh_dbg_F}/s )
 	    {
-		$self->{srcbuf} .= $_ . ($xh_debug ? "$startmk<RETURN OUTSIDE FUNC> $endmk" : '') . "\n";
+		$self->{dbg} = 0;
 	    }
+
+	    # "xhist instrument TRUE" inside comment delimiters enables instrumentation
+	    if ( $block =~ /$tokens{xh_inst_T}/s )
+	    {
+		$self->{instr} = 1;
+		$block .= "\t<INSTRUMENT ON>" if $self->{dbg};
+	    }
+
+	    # "xhist instrument FALSE" inside comment delimiters disables instrumentation
+	    if ( $block =~ /$tokens{xh_inst_F}/s )
+	    {
+		$self->{instr} = 0;
+		$block .= "\t<INSTRUMENT OFF>" if $self->{dbg};
+	    }
+	    $self->{srcbuf} .= $block;			# append the processed block to srcbuf
+	    $self->{lnum} += ($block =~ tr/\n//);	# increment by # of newlines found
 	    next;
 	}
 
-	# a line containing an operator and terminating with a semicolon indicates 
-	# an executable statement. this is where we append trace statements.
-	# anything else is passed through unaltered.
-	$regex = interpolate( $templates->{$self->{fext}}{executable}, $self->{fext} );
-	if ( /$regex/ )
+	if ($matched eq "{") # the thing matched was an opening brace and we are not inside a comment
 	{
-	    if ( $in_func )
+	    $block = $prematch . $matched;
+	    $srccpy = $postmatch; 
+	    $self->{srcbuf} .= $block;
+	    $self->{lnum} += ($block =~ tr/\n//);	# increment by # of newlines found
+	    $nesting_level++;
+	    next;
+	}
+
+	if ($matched eq "}") # the thing matched was a closing brace and we are not inside a comment
+	{
+	    $block = $prematch . $matched;
+	    $srccpy = $postmatch; 
+	    $self->{srcbuf} .= $block;
+	    $self->{lnum} += ($block =~ tr/\n//);	# increment by # of newlines found
+	    $nesting_level--;
+	    next;
+	}
+
+	if ($matched eq ";") # the thing matched was a semicolon and we are not in a comment
+	{
+	    $block = $prematch . $matched;
+	    $srccpy = $postmatch; 
+
+	    # return, throw, continue, next, break & exit handled identically
+	    $regex = interpolate( q:\s+(return|throw|continue|next|break|exit)\b: );
+	    $regex2 = interpolate( q:[% identifier %]\.exit\(: );
+	    if ( $block =~ /$regex/s || $block =~ /$regex2/s )
 	    {
-		$self->{srcbuf} .= $_ . ($xh_debug ? "$startmk <STMT> $endmk" : '');
-		(my $repl = $templates->{$self->{fext}}{trace_stmt}) =~ s/FNUM/$self->{fnum}/g;
-		$repl =~ s/LNUM/$self->{lnum}/g;
-		if ($xh_instrument == 1)
+		$block .= "\t<NOT REACHED>"	if ($self->{dbg});
+		$self->{srcbuf} .= $block;
+		$self->{lnum} += ($block =~ tr/\n//);	# increment by # of newlines found
+		next;
+	    }
+
+	    # a for statement looks like for ( ... ;
+	    $regex = interpolate( q:\s+for\s+\(.*?;: );
+	    if ( $block =~ /$regex/s )
+	    {
+		my ($stmt, $rest) = $postmatch =~ m:(.*?)([\n\s]*\{.*):s; # swallow everything up to brace
+		$block .= $stmt;
+		$srccpy = $rest; 
+		$block .= "\t<FOR>"	if ($self->{dbg});
+		$self->{srcbuf} .= $block;
+		$self->{lnum} += ($block =~ tr/\n//);	# increment by # of newlines found
+		next;
+	    }
+
+	    # a declaration looks like two identifers in a row followed by a semicolon
+	    # or like a constructor call   = new ...
+	    $regex = interpolate( q:\n\s*[% identifier %]\**\s+[% identifier %].*?;: );
+	    my $regex2 = interpolate( q:\s*=\s*new\s+[% identifier %]: );
+	    if ( $block =~ /$regex/s || $block =~ /$regex2/s )
+	    {
+		$block .= "\t<DECLARATION>"	if ($self->{dbg});
+		$self->{srcbuf} .= $block;
+		$self->{lnum} += ($block =~ tr/\n//);	# increment by # of newlines found
+		next;
+	    }
+
+	    # a function call looks like identifier( ... );
+	    $regex = interpolate( q:\s*[% identifier %]\(.*\);: );
+	    if ( $block =~ /$regex/s )
+	    {
+		$block .= "\t<FUNC CALL>"	if ($self->{dbg});
+		$self->{srcbuf} .= $block;
+		$self->{lnum} += ($block =~ tr/\n//);	# increment by # of newlines found
+		if ( $self->{instr} && $nesting_level > 0 )
 		{
-		    eval {$self->{srcbuf} .= $startmk . $repl . $endmk }; 
+		    (my $repl = $templates{$self->{fext}}{trace_stmt}) =~ s/FNUM/$self->{fnum}/g;
+		    $repl =~ s/LNUM/$self->{lnum}/g;
+		    eval {$self->{srcbuf} .= $tokens{xh_st} . $repl . $tokens{xh_end} }; 
 		}
-		$self->{srcbuf} .= "\n";
+		next;
 	    }
-	    else
+
+	    # an executable stmt looks like identifier operator ... semicolon 
+	    # this is where we append trace statements.  
+	    $regex = interpolate( q:[% identifier %]\s*[% operator %].*?;: );
+	    if ( $block =~ /$regex/s )
 	    {
-		$self->{srcbuf} .= $_ . ($xh_debug ? "$startmk <STMT OUTSIDE FUNC> $endmk" : '') . "\n";
+		$block .= "\t<STMT>"	if ($self->{dbg});
+		$self->{srcbuf} .= $block;
+		$self->{lnum} += ($block =~ tr/\n//);	# increment by # of newlines found
+		if ( $self->{instr} && $nesting_level > 0 )
+		{
+		    (my $repl = $templates{$self->{fext}}{trace_stmt}) =~ s/FNUM/$self->{fnum}/g;
+		    $repl =~ s/LNUM/$self->{lnum}/g;
+		    eval {$self->{srcbuf} .= $tokens{xh_st} . $repl . $tokens{xh_end} }; 
+		}
+		next;
 	    }
-	    next;
-	}
-	else	# matches nothing; just output original line
-	{
-	    $self->{srcbuf} .= "$_\n";	
+
+	    # matched no known pattern; leave uninstrumented 
+	    {
+		$self->{srcbuf} .= $block;
+		$self->{lnum} += ($block =~ tr/\n//);	# increment by # of newlines found
+	    }
 	}
     }
     return $self->{srcbuf};
@@ -432,11 +350,9 @@ sub uninstrument
     my $ptn;
 
     # if we don't grok this filetype, return unmodified srcbuf.
-    return $self->{srcbuf} if (!defined $tokens->{$self->{fext}});
+    return $self->{srcbuf} if (!defined $templates{$self->{fext}});
 
-    my $startmk = interpolate( $templates->{$self->{fext}}{xh_startmk}, $self->{fext} );
-    my $endmk	= interpolate( $templates->{$self->{fext}}{xh_endmk}, $self->{fext} );
-    $self->{srcbuf} =~ s:$startmk(.*?)$endmk::sg;
+    $self->{srcbuf} =~ s:$tokens{xh_stq}(.*?)$tokens{xh_endq}::sg;
     return $self->{srcbuf};
 }
 
@@ -445,12 +361,12 @@ sub uninstrument
 #************************************************************************/
 sub interpolate
 {
-    my ($ptn, $ext) = @_;
+    my ($ptn) = @_;
     my $output = $ptn;
 
-    foreach my $key (keys %{$tokens->{$ext}})
+    foreach my $key (keys %tokens)
     {
-        $output =~ s/\[% $key %\]/$tokens->{$ext}{$key}/g;
+        $output =~ s/\[% $key %\]/$tokens{$key}/g;
     }
     return $output;
 }

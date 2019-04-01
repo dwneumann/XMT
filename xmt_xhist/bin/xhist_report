@@ -114,7 +114,7 @@ for (my $i = $tailindex+1; $i != $tailindex; $i++)
     $linenum = $xhist_tbl[$i] & 0x00FF;
     $threadnum = $xhist_threadIds[$i];
 
-    next if ($opt{thread} != $threadnum); # skip if not the specified thread
+    next if ($opt{thread} != $threadnum) && $opt{thread} != 0; # skip if not the specified thread
     next if ($linenum <= 0);	# skip if this element of the table was never populated
     
     if ($opt{fmt} eq 'vim' ) 	# output as replayable vimscript output

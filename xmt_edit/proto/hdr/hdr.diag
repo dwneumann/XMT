@@ -24,7 +24,7 @@ print qq{
     if ( diagnosing( DIAG_??? ) )
     {
 	DIAG_TRACE;	/* output filename & line number */
-	(void) fprintf( stderr, "diagnostic statement...\n" );
+	(void) fprintf( stderr, "diagnostic statement..." );
     }
 #endif 
 };

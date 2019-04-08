@@ -21,7 +21,7 @@
 
 print qq{
 #ifdef DIAGNOSTICS
-    if ( diagnosing( DIAG_??? ) )
+    if ( diagnosing( DIAG_xxx ) )
     {
 	DIAG_TRACE;	/* output filename & line number */
 	(void) fprintf( stderr, "diagnostic statement..." );

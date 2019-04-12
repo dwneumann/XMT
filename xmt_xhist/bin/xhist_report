@@ -111,7 +111,7 @@ for (my $i = $tailindex+1; $i != $tailindex; $i++)
 {
     $i = -1 if ($i >= $numstmts - 1); # wrap-around so next index is 0
     $filenum = $xhist_tbl[$i] >> 16;
-    $linenum = $xhist_tbl[$i] & 0x00FF;
+    $linenum = $xhist_tbl[$i] & 0x0000FFFF;
     $threadnum = $xhist_threadIds[$i];
 
     next if ($opt{thread} != $threadnum); # skip if not the specified thread

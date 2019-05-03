@@ -83,6 +83,7 @@ public	class		Xhist
     * @param	lnum		line number just executed
     */
     public	static void add( int fnum,  int lnum ) { 
+	// must make this thread safe
 	tbl[tail] = (((short) fnum << 16) | (short) lnum);
 	threadId[tail] = (int) Thread.currentThread().getId();
 	tail = (short) ((tail+1) % XhistTableSize);

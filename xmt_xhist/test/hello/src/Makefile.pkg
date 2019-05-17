@@ -1,5 +1,5 @@
 #************************************************************************
-#   Package	: libxhist
+#   Package	: xhist
 #   $Version:$
 #    Copyright 2018 Visionary Research Inc.   All rights reserved.
 #*   			legal@visionary-research.com
@@ -17,20 +17,11 @@
 #   Purpose	: Customize make environment for the current package.
 #************************************************************************
 
-PKG_NM		= Xhist
-ARCH		= linux_x86
-BUILD_TGT	= exe
-CFLAGS.c	+= -I$(XMT)/xmt_xhist/libxhist/src -g -DXHIST
+ARCH		= jre
+LANGUAGE	= java
 CFLAGS.java	+= -cp .:$(OBJDIR):$(XMTXHIST)/libxhist/tgt/$(ARCH)/Xhist.jar
-LIBS.c		= $(XMT)/xmt_xhist/libxhist/tgt/$(ARCH)/libXhist.a 
-
-java:	
-	$(MAKE) LANGUAGE=java JAVA_PKGROOT=. \
-	EXTRA_OBJS='Hello$$$$1.class' PKG_NM=Hello EXE_NM=Hello  exe
-
-c:	
-	$(MAKE) LANGUAGE=c PKG_NM=Xhist EXE_NM=hello LIBS=$(LIBS.c) exe
-
+#EXTRA_OBJS='Hello$$$$1.class' 
+srcs.java =  $(SRCDIR)/Hello.java
 
 # instrument sources for xhist:
 #  cd to $(DATADIR) (where the uninstrumented src resides)
@@ -38,11 +29,17 @@ c:
 #  write xhist_map file to $(TESTDIR) directory 
 instrument:
 	(cd $(DATADIR) ;				\
-	for x in c java ; do				\
-	    m=$(CURDIR)/$(TESTDIR)/Hello.$${x}.xmap; 	\
-	    for f in hello.c Hello.java ; do				\
+	    m=$(CURDIR)/$(TESTDIR)/Hello.java.xmap; 	\
+	    for f in Hello.java ; do			\
 		$(XMTCM)/bin/git_filter --expand=. --xhist=. --xhist_map=$$m \
 			--fname=$$f  < $$f.orig > $(SRCDIR)/$$f ;	\
 	    done					\
-	done)
+	)
+
+
+jre: 
+	javac -d $(OBJDIR) $(CFLAGS.java) $(srcs.java)
+
+android: 
+	javac -d $(OBJDIR) $(CFLAGS.java) $(srcs.java)
 

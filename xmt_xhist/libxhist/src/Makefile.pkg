@@ -16,29 +16,22 @@
 #   Synopsis	: included automatically by $(XMTBUILD)/proto/Makefile.top
 #   Purpose	: Customize make environment for the current package.
 #************************************************************************
+MIN_ANDROID_API = 15
 
 PKG_NM		= Xhist
-ARCH		= linux_x86
 BUILD_TGT	= lib
-CFLAGS.c	+= -g -DUSING_XMTBUILD -DHAVE_STDIO_H -DHAVE_ERRNO_H \
-		   -DHAVE_UNISTD_H -DHAVE_STRING_H 
-#CFLAGS.c	+= -ftest-coverage -fprofile-arcs
-#LDFLAGS.c	+= -lgcov --coverage
-CFLAGS.java	+= -cp .:$(OBJDIR):$(JAVA_PKGROOT)
 LANGUAGE	= java
 JAVA_PKGROOT	= XMT
 
-java:	
-	$(MAKE) LANGUAGE=java JAVA_PKGROOT=XMT lib
+cleaneach:
+	$(MAKE) ARCH=jre clean
+	$(MAKE) ARCH=android clean
 
-c:	
-	$(MAKE) LANGUAGE=c PKG_NM=Xhist LIBS=$(LIBS.c) 	lib
+jre: srcs.java =  $(SRCDIR)/XMT/Xhist.java  $(SRCDIR)/XMT/Signals.java
+jre:
+	$(MAKE) LANGUAGE=java JAVA_PKGROOT=XMT srcs.java="$(srcs.java)" ARCH=jre lib
 
+android: srcs.java =  $(SRCDIR)/XMT/Xhist.java  $(SRCDIR)/XMT/android/IntentReceiver.java  $(SRCDIR)/XMT/android/Intents.java
+android:
+	$(MAKE) LANGUAGE=java JAVA_PKGROOT=XMT srcs.java="$(srcs.java)" ARCH=android MIN_ANDROID_API=$(MIN_ANDROID_API) lib
 
-gcov:
-	gcov	--object-directory $(OBJDIR) 		\
-		--demangled-names 			\
-		--branch-probabilities			\
-		--function-summaries			\
-		--human-readable			\
-		--use-colors				\

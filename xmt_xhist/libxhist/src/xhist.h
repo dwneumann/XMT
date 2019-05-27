@@ -28,9 +28,9 @@ typedef char boolean;
 #endif	
 
 #define XHIST_MAX_HISTORY	1000		// max history depth per thread
-#define XHIST_MAX_THREADS	20		// max number of threads to keep history 
-#define XHIST_MAPFNLENGTH	256		// length of string storing map filename
-#define XHIST_VERSIONLENGTH	64		// length of string storing build version
+#define XHIST_MAX_THREADS	20		// max number of threads to keep history for
+#define XHIST_MAX_PATHLEN	256		// max length of map filepath 
+#define XHIST_VERSIONLEN	64		// max length of build version string
 
 # if (XHIST_MAX_THREADS > 1)  		
 # define XHIST_MULTI_THREADED	
@@ -42,9 +42,10 @@ typedef struct
     long	tbl[ XHIST_MAX_THREADS ][ XHIST_MAX_HISTORY ];	// N trace stmts x M threads
     long	thread_ids[ XHIST_MAX_THREADS ];		// thread to column mapping
     long	tails[ XHIST_MAX_THREADS ];			// last stmt indexes
-    char	mapfn[ XHIST_MAPFNLENGTH ];			// filemap filename
-    char	buildtag[ XHIST_VERSIONLENGTH ];		// callers version string
-    int  	logfd;						// file descriptor
+    char	buildtag[ XHIST_VERSIONLEN ];			// callers version string
+    char	mapfn[ XHIST_MAX_PATHLEN ];			// filemap filename
+    char	logfn[ XHIST_MAX_PATHLEN ];			// trace output filename
+    int  	logfd;						// trace output file descriptor
 } xh_t;
 
 /*
@@ -61,11 +62,12 @@ typedef struct
 extern xh_t		xh;			// xhist table instance
 extern __thread short	xh_idx;			// per-thread index into other tables
 
-extern boolean	xhist_init( char *logfile, char *mapfile, char *version );
+extern boolean	xhist_init(char *, char *, char *);
 extern void	xhist_deinit();
-extern void	xhist_mapfile(char *s);
-extern void	xhist_version(char *s);
-extern void	xhist_logdev(int fd);
+extern void	xhist_mapfile(char *);
+extern void	xhist_logfile(char *);
+extern void	xhist_logdev(int);
+extern void	xhist_version(char *);
 extern void	xhist_write();
 
 #endif /* __xhist_h	*/

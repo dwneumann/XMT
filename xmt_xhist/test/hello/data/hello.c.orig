@@ -16,10 +16,6 @@
 *   Purpose	: demonstrate xhist usage 
 ************************************************************************/ 
  
-#ifdef XHIST 
-#include "xhist.h" 
-#endif  
-
 #define __hello_c 
  
 #ifdef EMBED_REVISION_STRINGS 
@@ -29,27 +25,50 @@ static const char hello_c_id[] = "@(#) libxhist::hello.c	$Version:$";
 #include <stdlib.h> 
 #include <stdio.h> 
 #include <unistd.h> 
-#ifdef XHIST
-#include "xhist.h"
-#endif 
- 
+#include <sys/syscall.h>
+#include <pthread.h>
+
+#ifdef XHIST 
+#include "xhist.h" 
+#endif  
+
+#define NUM_THREADS	10
 void foo();
- 
+void *thread_main(void *arg);
+
+/* xhist instrument FALSE */
 int main(int argc, char *argv[]) 
+{
+    int i = 0;
+    pthread_t thr[NUM_THREADS];
+
+    for (i = 0; i < NUM_THREADS; i++)	// thread loop
+    {
+        pthread_create(&thr[i], NULL, thread_main, NULL);
+    }
+
+    for (i = 0; i < NUM_THREADS; i++)	// thread loop
+    {
+	pthread_join(thr[i], NULL); // wait for all threads to complete
+    }
+}
+/* xhist instrument TRUE */
+
+void *thread_main(void *arg) 
 {
     int	i;
  
-/* <xhist init> */
+    /* <xhist init> */
  
-    for (i = 0; i < 10; i++)
+    for (i = 0; i < 5; i++)
     { 
 	sleep(1);	
 	foo();	
     } 
-    xhist_write();	
+    return( 0 );
 }
 
 void foo()
 {
-    printf("hello foo (C version)\n");
+    printf("hello from thread %d\n", (int) syscall(SYS_gettid));
 }

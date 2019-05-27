@@ -45,9 +45,11 @@
 *	boolean	xhist_init( char *logfile, char *mapfile, char *version )
 *	void	xhist_deinit()
 *	void	xhist_mapfile(char *s)
-*	void	xhist_version(char *s)
+*	void	xhist_logfile(char *s)
 *	void	xhist_logdev(int fd)
+*	void	xhist_version(char *s)
 *	void	xhist_write()
+*	static void	xhist_write_to_descriptor( int fd )
 *
 *   Copyright (c) 1998	Neumann & Associates Information Systems Inc.
 *   All Rights reserved.	legal.info@neumann-associates.com
@@ -100,13 +102,15 @@ static const char xhist_c_id[] = "@(#) xhist::xhist.c	$Version:$";
 	if (ex) { fprintf(stderr, "%s\n", msg); goto backout; }
 
 #include "xhist.h"
+static void	xhist_write_to_descriptor(int);
 
 #if defined( XHIST_MULTI_THREADED ) //  pull in stuff we need for multi-threaded operation
+# include <sys/syscall.h>
 # include <pthread.h>
 #endif 
 
 
-/* instantiate one global xhist table */
+/* instantiate one global xhist table, a mutex and a thread-local table index */
 xh_t		xh = { 0 };
 
 #if defined( XHIST_MULTI_THREADED )
@@ -142,7 +146,7 @@ xh_t		xh = { 0 };
 ***********************************************************************/
 boolean xhist_init( char *logfile, char *mapfile, char *version )
 {
-    unsigned int	i, thr;
+    int		i, thr;
     boolean	rc = FALSE;
 
     /*
@@ -152,7 +156,7 @@ boolean xhist_init( char *logfile, char *mapfile, char *version )
      */
     
 #if defined( XHIST_MULTI_THREADED )
-    thr = (unsigned int) pthread_self();
+    thr = (int) syscall(SYS_gettid);
     pthread_mutex_lock(&xh_mutex);
 #endif
 
@@ -170,18 +174,15 @@ boolean xhist_init( char *logfile, char *mapfile, char *version )
     }
 
     xh.thread_ids[i] = thr;	// claim the first unused column for this thread
-    xh_idx = i;		// save the column index 
+    xh_idx = i;			// save the column index 
 
     xhist_mapfile(mapfile);	// save the mapfile path 
+    xhist_logfile(logfile);	// save the logfile path 
     xhist_version(version);	// save the version string
-    if ( xh.logfd <= 0 )	// only open a logfile if not already a valid descriptor.
-    {
-	BACKOUT_IF((xh.logfd = open(logfile, O_RDWR|O_CREAT, 
-		S_IRUSR|S_IWUSR|S_IRGRP|S_IWGRP)) < 0,  "error opening logfile");
-	atexit(xhist_write);	// install handler to write table at program exit
-    }
-    rc = TRUE; // successful initialization
+    atexit(xhist_write);	// install handler to write table at program exit
+    rc = TRUE; 			// successful initialization
 
+    /* this is how we do try-catch blocks in C */
     backout:
     // free the mutex lock
     pthread_mutex_unlock(&xh_mutex);
@@ -205,7 +206,8 @@ boolean xhist_init( char *logfile, char *mapfile, char *version )
 ***********************************************************************/
 void xhist_deinit() 
 {
-    xh.thread_ids[xh_idx] = 0;		//  release this column index for reuse
+    xh.thread_ids[xh_idx] = 0;		// release this column index for reuse
+    xh_idx = -1;
 }
 
 
@@ -225,30 +227,30 @@ void xhist_deinit()
 ***********************************************************************/
 void	xhist_mapfile(char *s)
 {
-    memset( (void *) xh.mapfn, (int) 0, (size_t) XHIST_MAPFNLENGTH );
-    (void) strncpy( xh.mapfn, s, (size_t) XHIST_MAPFNLENGTH );
-    xh.mapfn[XHIST_MAPFNLENGTH - 1] = '\0';
+    memset( (void *) xh.mapfn, (int) 0, (size_t) XHIST_MAX_PATHLEN );
+    (void) strncpy( xh.mapfn, s, (size_t) XHIST_MAX_PATHLEN );
+    xh.mapfn[XHIST_MAX_PATHLEN - 1] = '\0';
 }
 
 /************************************************************************
 *   Synopsis:
-*	void	xhist_version(char *s)
+*	void	xhist_logfile(char *s)
 *
 *   Purpose:
-*	Stores the build tag of the instrumented source from which the table was geenerated.
+*       Stores the path to the file to write the history buffer to. 
 * 
 *   Parameters: 
-*	char	*s : version string to store
+*	char	*s : path to create & write output to
 * 
 *   Values Returned: 
 *	none	 
 * 
 ***********************************************************************/
-void	xhist_version(char *s)
+void	xhist_logfile(char *s)
 {
-    memset( (void *) xh.buildtag, (int) 0, (size_t) XHIST_MAPFNLENGTH );
-    strncpy( xh.buildtag, s, (size_t) XHIST_VERSIONLENGTH );
-    xh.buildtag[XHIST_VERSIONLENGTH - 1] = '\0';
+    memset( (void *) xh.logfn, (int) 0, (size_t) XHIST_MAX_PATHLEN );
+    (void) strncpy( xh.logfn, s, (size_t) XHIST_MAX_PATHLEN );
+    xh.logfn[XHIST_MAX_PATHLEN - 1] = '\0';
 }
 
 
@@ -274,11 +276,38 @@ void	xhist_logdev(int fd)
 
 /************************************************************************
 *   Synopsis:
+*	void	xhist_version(char *s)
+*
+*   Purpose:
+*	Stores the build tag of the instrumented source from which the table was geenerated.
+* 
+*   Parameters: 
+*	char	*s : version string to store
+* 
+*   Values Returned: 
+*	none	 
+* 
+***********************************************************************/
+void	xhist_version(char *s)
+{
+    memset( (void *) xh.buildtag, (int) 0, (size_t) XHIST_VERSIONLEN );
+    strncpy( xh.buildtag, s, (size_t) XHIST_VERSIONLEN );
+    xh.buildtag[XHIST_VERSIONLEN - 1] = '\0';
+}
+
+/************************************************************************
+*   Synopsis:
 *	void	xhist_write()
 *
 *   Purpose:
-*	Writes in-memory table to the log device 
-*       specified via xhist_logdev().
+*	Writes in-memory table to the log device specified via xhist_logfile() or xhist_logdev().
+*       NOTE: Sucessive calls to xhist_write() when xhist_logfile() has been
+*       specified overwrites the file with each invokation.  Successive calls
+*       to xhist_write() when a file descriptor (eg a socket) has been specified 
+*	via xhist_logdev() does not / cannot overwrite previous writes.
+*	If xhist_logdev() specifies a descriptor to a file on a filesystem and you invoke
+*	xhist_write() successively, you will concatentate output to the file, resulting
+*	in an invalid file.
 * 
 *   Parameters: 
 *	none	 
@@ -289,22 +318,66 @@ void	xhist_logdev(int fd)
 ***********************************************************************/
 void	xhist_write()
 {
-    long		l;
-    short		s;
+    int fd;
 
-    BACKOUT_IF( xh.logfd < 0, "invalid log device" );
+    /*
+     * if a pre-existing descriptor has been specified, write to that.
+     * Otherwise open the logfile, write to that, then close it
+     * so that subsequent invokations will overwrite the file.
+     */
+
+    if ( xh.logfd > 0 )
+    {
+	xhist_write_to_descriptor(xh.logfd);
+    }
+    else
+    {
+	BACKOUT_IF((fd = open(xh.logfn, O_RDWR|O_CREAT, 
+		S_IRUSR|S_IWUSR|S_IRGRP|S_IWGRP)) < 0,  "error opening logfile");
+	xhist_write_to_descriptor(fd);
+	close(fd);
+    }
+
+    /* this is how we do try-catch blocks in C */
+    backout:
+    fd = -1;
+}
+
+/************************************************************************
+*   Synopsis:
+*	static void	xhist_write_to_descriptor( int fd )
+*
+*   Purpose:
+*	write the history table to the open descriptor <fd>
+*	Also see xhist_write().
+* 
+*   Parameters: 
+*	int	fd 	: open file descriptor to write to
+* 
+*   Values Returned: 
+*	none	
+* 
+***********************************************************************/
+static void	xhist_write_to_descriptor( int fd )
+{
+    long	l;
+    short	s;
+
+
+    BACKOUT_IF( fd < 0, "invalid log device" );
 
     /*
      *  write 4 bytes containing the magic number 5.  
-     *  This establishes our byte order for the reader.
+     *  This establishes the version of binary file being written
+     *  and our byte order for the reader.
      *  Then write the depth of the history per thread.
      */
 
     l = (long) 5;
-    BACKOUT_IF(write(xh.logfd, (char *) &l, sizeof(l)) < sizeof(l), strerror(errno));
+    BACKOUT_IF(write(fd, (char *) &l, sizeof(l)) < sizeof(l), strerror(errno));
 
     l = (long) XHIST_MAX_HISTORY;
-    BACKOUT_IF(write(xh.logfd, (char *) &l, sizeof(l)) < sizeof(l), strerror(errno));
+    BACKOUT_IF(write(fd, (char *) &l, sizeof(l)) < sizeof(l), strerror(errno));
 
 
     /*
@@ -312,12 +385,12 @@ void	xhist_write()
      *  and   the 2-byte length & build tag of the instrumented source
      */
     s = (short) strlen(xh.mapfn);
-    BACKOUT_IF(write(xh.logfd, (char *) &s, sizeof(s)) < sizeof(s), strerror(errno));
-    BACKOUT_IF(write(xh.logfd, (char *) &xh.mapfn, s) < s, strerror(errno));
+    BACKOUT_IF(write(fd, (char *) &s, sizeof(s)) < sizeof(s), strerror(errno));
+    BACKOUT_IF(write(fd, (char *) &xh.mapfn, s) < s, strerror(errno));
 
     s = (short) strlen(xh.buildtag);
-    BACKOUT_IF(write(xh.logfd, (char *) &s, sizeof(s)) < sizeof(s), strerror(errno));
-    BACKOUT_IF(write(xh.logfd, (char *) &xh.buildtag, s) < s, strerror(errno));
+    BACKOUT_IF(write(fd, (char *) &s, sizeof(s)) < sizeof(s), strerror(errno));
+    BACKOUT_IF(write(fd, (char *) &xh.buildtag, s) < s, strerror(errno));
     
     /*
      *  now write the history table for all threads.
@@ -328,21 +401,18 @@ void	xhist_write()
 	if (xh.thread_ids[s] > 0)	//  only write non-empty threads
 	{
 	    /* write 4-byte thread ID and 4-byte index of tail entry for this thread */
-	    BACKOUT_IF(write(xh.logfd, (char *) &xh.thread_ids[s], sizeof(l)) 
+	    BACKOUT_IF(write(fd, (char *) &xh.thread_ids[s], sizeof(l)) 
 		    < sizeof(l), strerror(errno));
-	    BACKOUT_IF(write(xh.logfd, (char *) &xh.tails[s], sizeof(l)) 
+	    BACKOUT_IF(write(fd, (char *) &xh.tails[s], sizeof(l)) 
 		    < sizeof(l), strerror(errno));
 
 	    /*  the table is stored in row-major order so write the entire row at once. */
-	    BACKOUT_IF(write(xh.logfd, (char *) xh.tbl[s], sizeof(xh.tbl[s])) 
+	    BACKOUT_IF(write(fd, (char *) xh.tbl[s], sizeof(xh.tbl[s])) 
 		< sizeof(xh.tbl[s]), strerror(errno));
 	}
     }
 
-backout:
-    /* 
-     * we want to allow multiple successive xhist_write() calls to overwrite the
-     * wriiten file, so seek to the beginning of file...  do not close the file.  
-     */
-    lseek(xh.logfd, 0, SEEK_SET);
+    /* this is how we do try-catch blocks in C */
+    backout:
+    fd = -1;
 }

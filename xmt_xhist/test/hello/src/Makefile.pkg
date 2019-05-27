@@ -19,8 +19,8 @@
 
 CFLAGS.java	+= -cp .:$(OBJDIR):$(XMTXHIST)/libxhist/tgt/$(ARCH)/Xhist.jar
 CFLAGS.c	+= -g -DXHIST -I$(XMTXHIST)/libxhist/src 
-LIBS.c		+= $(XMTXHIST)/libxhist/tgt/$(ARCH)/libXhist.a
-LDFLAGS.c	+= -lpthread 
+LIBS.c		+= $(XMTXHIST)/libxhist/tgt/$(ARCH)/libXhist.a	
+LD.append	= -lpthread
 
 # instrument sources for xhist:
 #  cd to $(DATADIR) (where the uninstrumented src resides)
@@ -29,8 +29,8 @@ LDFLAGS.c	+= -lpthread
 instrument:
 	(cd $(DATADIR) ;				\
 	    for f in *.orig ; do			\
-		s=$${f%*.orig};				\
-		m=$(CURDIR)/$(TESTDIR)/$s.xmap; 	\
+		s=$${f%.orig};				\
+		m=$(CURDIR)/$(TESTDIR)/$$s.xmap; 	\
 		$(XMTCM)/bin/git_filter --expand=. --xhist=. --xhist_map=$$m \
 			--fname=$$s  < $$f > $(SRCDIR)/$$s ;	\
 	    done					\

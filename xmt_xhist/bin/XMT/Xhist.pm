@@ -54,15 +54,14 @@ our %tokens = (
 # at time of parsing.
 our %templates = (
     c	=> {
-	trace_stmt	=> q: _XH_ADD( FNUM, LNUM );:,
-	write_stmt	=> q: xhist_write:,
-	init_stmt	=> q: xhist_init:,
-	deinit_stmt	=> q: xhist_deinit:,
+	trace_stmt	=> q/ xhist_add( FNUM, LNUM );/,
+	write_stmt	=> q/ xhist_write/,
+	init_stmt	=> q/ xhist_init/,
+	deinit_stmt	=> q/ xhist_deinit/,
     },
     cc	=> {
 	trace_stmt	=> q/ Xhist:add( FNUM, LNUM );/,
 	write_stmt	=> q/ Xhist:write/,
-	init_stmt	=> q/ Xhist:init/,
 	init_stmt	=> q/ Xhist:init/,
 	deinit_stmt	=> q/ Xhist:deinit/,
     },
@@ -75,29 +74,9 @@ our %templates = (
     java	=> {
 	trace_stmt	=> q/ Xhist.add( FNUM, LNUM );/,
 	write_stmt	=> q/ Xhist.write/,
-	writeBytes_stmt	=> q/ Xhist.writeBytes/,
 	init_stmt	=> q/ Xhist.init/,
 	deinit_stmt	=> q/ Xhist.deinit/,
-	signal_stmt => q/ XMT.Signals.registerListener();/,
-	intentreg_stmt   => q/ XMT.android.Intents.registerIntentReceiver(getApplicationContext());/,
-	exceptionreg_stmt => q/ Xhist.setDefaultExceptionHandler/,
-	androidperms_stmt => q/ XMT.android.Permissions.requestAll/,
-	path_stmt => q/ XMT.Xhist.getTracePath()/,
     },
-	gradle  => {
-	jre_app_dep_stmt     => q/ jre_app_dep.stmt.ARG1 "io.rightmesh.xmt:xhist-jre:jre_app_dep.stmt.ARG2"/,
-	android_app_dep_stmt => q/ android_app_dep.stmt.ARG1 "io.rightmesh.xmt:xhist-android:android_app_dep.stmt.ARG2"/,
-	lib_dep_stmt => q/ lib_dep.stmt.ARG1 "io.rightmesh.xmt:xhist-api:lib_dep.stmt.ARG2"/,
-	artifact_id_suffix => q/ + "-instrumented"/,
-	xmap_artifact => 'artifact(file("../xhist.xmap")) { classifier = "xmap" }',
-	},
-	kts  => {
-	jre_app_dep_stmt     => q/ jre_app_dep.stmt.ARG1("io.rightmesh.xmt:xhist-jre:jre_app_dep.stmt.ARG2")/,
-	android_app_dep_stmt => q/ android_app_dep.stmt.ARG1("io.rightmesh.xmt:xhist-android:android_app_dep.stmt.ARG2")/,
-	lib_dep_stmt => q/ lib_dep.stmt.ARG1("io.rightmesh.xmt:xhist-api:lib_dep.stmt.ARG2")/,
-	artifact_id_suffix => q/ + "-instrumented"/,
-	xmap_artifact => 'artifact(file("../xhist.xmap")) { classifier = "xmap" }',
-	},
 );
 
 ## nothing below this line should be language-dependent.
@@ -354,7 +333,7 @@ sub instrument
 	}
     }
 
-	# add Xhist.init() call where we find a <xhist.init> comment
+    # add Xhist.init() call where we find a <xhist.init> comment
     my $ptn = '/\*\s*<xhist.init>\s*\*/';
     my $v	= '$' . 'Version' . ':$';
     my $mf	= '$' . 'XhistMap' . ':$';
@@ -363,108 +342,13 @@ sub instrument
     $repl = '"$&$tokens{xh_st} $init_stmt(\"$tf\", \"$mf\", \"$v\"); $tokens{xh_end}"';
     $self->{srcbuf} =~ s:$ptn:$repl:eegs;
 
-	# add Xhist.deinit() call where we find a <xhist.deinit> comment
+    # add Xhist.deinit() call where we find a <xhist.deinit> comment
     my $ptn = '/\*\s*<xhist.deinit>\s*\*/';
     my $tf	= $self->{srcfn};
     my $deinit_stmt = interpolate( $templates{$self->{fext}}{deinit_stmt}, $self->{fext} );
     $repl = '"$&$tokens{xh_st} $deinit_stmt(); $tokens{xh_end}"';
     $self->{srcbuf} =~ s:$ptn:$repl:eegs;
 
-	# add $pre$ Xhist.write($args$) call where we find a  <xhist.($pre$)write($args$)> comment
-    my $ptn = '/\*\s*<xhist.\(?([0-9a-zA-Z-_=\s\.]+)?\)?write\(?([0-9a-zA-Z-_\./"]+)?\)?>\s*\*/';
-    my $write_stmt = interpolate( $templates{$self->{fext}}{write_stmt}, $self->{fext} );
-    $repl 	= '"$&$tokens{xh_st} $1 $write_stmt($2); $tokens{xh_end}"';
-    $self->{srcbuf} =~ s:$ptn:$repl:eegs;
-
-    # add $pre$ Xhist.writeBytes($args$) call where we find a  <xhist.($pre$)writeBytes($args$)> comment
-    my $ptn = '/\*\s*<xhist.\(?([0-9a-zA-Z-_=\s\.]+)?\)?writeBytes\(?([0-9a-zA-Z-_\./"]+)?\)?>\s*\*/';
-    my $write_stmt = interpolate( $templates{$self->{fext}}{write_stmt}, $self->{fext} );
-    $repl 	= '"$&$tokens{xh_st} $1 $writebytes_stmt($2); $tokens{xh_end}"';
-    $self->{srcbuf} =~ s:$ptn:$repl:eegs;
-
-	# add arbitrary code from <xhist.exec{}> comment
-    # put the modification between <XHIST> markers to allow for uninstrumentation
-    my $ptn = '/\*\s*<xhist.exec\{(.*)\}>\s*\*/';
-	$repl 	= '"$&$tokens{xh_st} $1 $tokens{xh_end}"';
-    $self->{srcbuf} =~ s:$ptn:$repl:eegs;
-
-	# add signal registration call after  <xhist.registerDefaultSignalHandler> comment
-    # put the function call between <XHIST> markers to allow for uninstrumentation
-    my $ptn = '/\*\s*<xhist.registerDefaultSignalHandler>\s*\*/';
-	my $signal_stmt = interpolate( $templates{$self->{fext}}{signal_stmt}, $self->{fext} );
-    $repl 	= '"$&$tokens{xh_st} $signal_stmt $tokens{xh_end}"';
-    $self->{srcbuf} =~ s:$ptn:$repl:ees;
-
-	# add permission request call after  <xhist.getPermissions> comment
-    # put the function call between <XHIST> markers to allow for uninstrumentation
-    my $ptn = '/\*\s*<xhist.getPermissions\(([0-9a-zA-Z-_\.]+)\)>\s*\*/';
-	my $androidperms_stmt = interpolate( $templates{$self->{fext}}{androidperms_stmt}, $self->{fext} );
-    $repl 	= '"$&$tokens{xh_st} $androidperms_stmt($1, 21952); $tokens{xh_end}"';
-    $self->{srcbuf} =~ s:$ptn:$repl:ees;
-
-	# add intent receiver registration call after  <xhist.registerDefaultIntentReceiver(activity)> comment
-    # put the function call between <XHIST> markers to allow for uninstrumentation
-    my $ptn = '/\*\s*<xhist.registerDefaultIntentReceiver>\s*\*/';
-	my $intentreg_stmt = interpolate( $templates{$self->{fext}}{intentreg_stmt}, $self->{fext} );
-    $repl 	= '"$&$tokens{xh_st} $intentreg_stmt $tokens{xh_end}"';
-    $self->{srcbuf} =~ s:$ptn:$repl:ees;
-
-	# add exception handler registraion call after  <xhist.setDefaultExceptionHandler(thread)> comment
-    # put the function call between <XHIST> markers to allow for uninstrumentation
-    my $ptn = '/\*\s*<xhist.setDefaultExceptionHandler>\s*\*/';
-	my $exceptionreg_stmt = interpolate( $templates{$self->{fext}}{exceptionreg_stmt}, $self->{fext} );
-    $repl 	= '"$&$tokens{xh_st} $exceptionreg_stmt(); $tokens{xh_end}"';
-    $self->{srcbuf} =~ s:$ptn:$repl:ees;
-
-	# add xhist artifactId appendix after <xhist.artifactSuffix> comment
-    # put the modification between <XHIST> markers to allow for uninstrumentation
-    my $ptn = '/\*\s*<xhist.artifactSuffix>\s*\*/';
-	my $artifact_id_suffix = interpolate( $templates{$self->{fext}}{artifact_id_suffix}, $self->{fext} );
-    $repl 	= '"$&$tokens{xh_st} $artifact_id_suffix $tokens{xh_end}"';
-    $self->{srcbuf} =~ s:$ptn:$repl:ees;
-
-	# add xhist artifact for the map file after <xhist.xmapArtifact> comment
-    # put the modification between <XHIST> markers to allow for uninstrumentation
-    my $ptn = '/\*\s*<xhist.xmapArtifact>\s*\*/';
-	my $xmap_artifact = interpolate( $templates{$self->{fext}}{xmap_artifact}, $self->{fext} );
-    $repl 	= '"$&$tokens{xh_st} $xmap_artifact $tokens{xh_end}"';
-    $self->{srcbuf} =~ s:$ptn:$repl:ees;
-
-	# add dependency on xhist-jre after <xhist.(configuration)jreImpl(version)> comment
-    # put the function call between <XHIST> markers to allow for uninstrumentation
-    my $ptn = '/\*\s*<xhist.\(([a-zA-Z]+)\)jreImpl\(([0-9a-zA-Z-_\.\+\*$]+)\)>\s*\*/';
-	my $jre_app_dep_stmt = interpolate( $templates{$self->{fext}}{jre_app_dep_stmt}, $self->{fext} );
-    $repl 	= '"$&$tokens{xh_st} $jre_app_dep_stmt $tokens{xh_end}"';
-	$self->{srcbuf} =~ m:$ptn:;
-	my $arg1 = $1;
-	my $arg2 = $2;
-    $self->{srcbuf} =~ s:$ptn:$repl:ees;
-	$self->{srcbuf} =~ s:jre_app_dep.stmt.ARG1:'$arg1':ees;
-	$self->{srcbuf} =~ s:jre_app_dep.stmt.ARG2:'$arg2':ees;
-
-	# add dependency on xhist-android after <xhist.(configuration)androidImpl(version)> comment
-    # put the function call between <XHIST> markers to allow for uninstrumentation
-    my $ptn = '/\*\s*<xhist.\(([a-zA-Z]+)\)androidImpl\(([0-9a-zA-Z-_\.\+\*$]+)\)>\s*\*/';
-	my $android_app_dep_stmt = interpolate( $templates{$self->{fext}}{android_app_dep_stmt}, $self->{fext} );
-    $repl 	= '"$&$tokens{xh_st} $android_app_dep_stmt $tokens{xh_end}"';
-    $self->{srcbuf} =~ m:$ptn:;
-	my $arg1 = $1;
-	my $arg2 = $2;
-    $self->{srcbuf} =~ s:$ptn:$repl:ees;
-	$self->{srcbuf} =~ s:android_app_dep.stmt.ARG1:'$arg1':ees;
-	$self->{srcbuf} =~ s:android_app_dep.stmt.ARG2:'$arg2':ees;
-
-	# add dependency on xhist-api after <xhist.(configuration)api(version)> comment
-    # put the function call between <XHIST> markers to allow for uninstrumentation
-    my $ptn = '/\*\s*<xhist.\(([a-zA-Z]+)\)api\(([0-9a-zA-Z-_\.\+\*$]+)\)>\s*\*/';
-	my $lib_dep_stmt = interpolate( $templates{$self->{fext}}{lib_dep_stmt}, $self->{fext} );
-    $repl 	= '"$&$tokens{xh_st} $lib_dep_stmt $tokens{xh_end}"';
-    $self->{srcbuf} =~ m:$ptn:;
-	my $arg1 = $1;
-	my $arg2 = $2;
-    $self->{srcbuf} =~ s:$ptn:$repl:ees;
-	$self->{srcbuf} =~ s:lib_dep.stmt.ARG1:'$arg1':ees;
-	$self->{srcbuf} =~ s:lib_dep.stmt.ARG2:'$arg2':ees;
 
     return $self->{srcbuf};
 }

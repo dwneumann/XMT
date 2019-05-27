@@ -39,7 +39,7 @@ typedef char boolean;
 /* xhist global struct */
 typedef struct  
 {
-    long	tbl[ XHIST_MAX_THREADS ][ XHIST_MAX_HISTORY ];	// trace stmts per thread
+    long	tbl[ XHIST_MAX_THREADS ][ XHIST_MAX_HISTORY ];	// N trace stmts x M threads
     long	thread_ids[ XHIST_MAX_THREADS ];		// thread to column mapping
     long	tails[ XHIST_MAX_THREADS ];			// last stmt indexes
     char	mapfn[ XHIST_MAPFNLENGTH ];			// filemap filename

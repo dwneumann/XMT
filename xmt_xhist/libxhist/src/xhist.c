@@ -106,6 +106,7 @@ static const char xhist_c_id[] = "@(#) xhist::xhist.c	$Version:$";
 #endif 
 
 
+/* instantiate one global xhist table */
 xh_t		xh = { 0 };
 
 #if defined( XHIST_MULTI_THREADED )
@@ -175,7 +176,8 @@ boolean xhist_init( char *logfile, char *mapfile, char *version )
     xhist_version(version);	// save the version string
     if ( xh.logfd <= 0 )	// only open a logfile if not already a valid descriptor.
     {
-	BACKOUT_IF((xh.logfd = open(logfile, O_WRONLY)) < 0,  "error opening logfile");
+	BACKOUT_IF((xh.logfd = open(logfile, O_RDWR|O_CREAT, 
+		S_IRUSR|S_IWUSR|S_IRGRP|S_IWGRP)) < 0,  "error opening logfile");
 	atexit(xhist_write);	// install handler to write table at program exit
     }
     rc = TRUE; // successful initialization
@@ -307,7 +309,7 @@ void	xhist_write()
 
     /*
      *  write the 2-byte length & name of the map file created during instrumentation
-     *  and the 2-byte length & build tag of the instrumented source
+     *  and   the 2-byte length & build tag of the instrumented source
      */
     s = (short) strlen(xh.mapfn);
     BACKOUT_IF(write(xh.logfd, (char *) &s, sizeof(s)) < sizeof(s), strerror(errno));
@@ -318,23 +320,29 @@ void	xhist_write()
     BACKOUT_IF(write(xh.logfd, (char *) &xh.buildtag, s) < s, strerror(errno));
     
     /*
-     *  now write the history table one thread at a time
+     *  now write the history table for all threads.
      */
     
     for (s = 0; s < XHIST_MAX_THREADS; ++s)
     {
-	/* write the 4-byte thread ID and the 4-byte index of tail entry for this thread */
-	BACKOUT_IF(write(xh.logfd, (char *) &xh.thread_ids[s], sizeof(l)) < sizeof(l), strerror(errno));
-	BACKOUT_IF(write(xh.logfd, (char *) &xh.tails[s], sizeof(l)) < sizeof(l), strerror(errno));
-
-	for (l = 0; l < XHIST_MAX_HISTORY; ++l)
+	if (xh.thread_ids[s] > 0)	//  only write non-empty threads
 	{
-	    BACKOUT_IF(write(xh.logfd, (char *) &xh.tbl[s], sizeof(xh.tbl[s])) 
+	    /* write 4-byte thread ID and 4-byte index of tail entry for this thread */
+	    BACKOUT_IF(write(xh.logfd, (char *) &xh.thread_ids[s], sizeof(l)) 
+		    < sizeof(l), strerror(errno));
+	    BACKOUT_IF(write(xh.logfd, (char *) &xh.tails[s], sizeof(l)) 
+		    < sizeof(l), strerror(errno));
+
+	    /*  the table is stored in row-major order so write the entire row at once. */
+	    BACKOUT_IF(write(xh.logfd, (char *) xh.tbl[s], sizeof(xh.tbl[s])) 
 		< sizeof(xh.tbl[s]), strerror(errno));
 	}
     }
 
 backout:
-    close(xh.logfd);
-    fflush(stderr);
+    /* 
+     * we want to allow multiple successive xhist_write() calls to overwrite the
+     * wriiten file, so seek to the beginning of file...  do not close the file.  
+     */
+    lseek(xh.logfd, 0, SEEK_SET);
 }

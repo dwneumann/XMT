@@ -100,6 +100,7 @@ sub new
     $self->{fnum}++  while ( grep /$self->{fnum}/, values %filemap ); # handle collisions
     $filemap{$self->{srcfn}} = $self->{fnum};	# add name & hash to filemap
     $self->{lnum}	= 0;
+    $self->{funcs_only}	= defined $opts->{funcs_only} ? 1 : 0; # TRUE if instrumenting function calls only
     $self->{dbg}	= defined $opts->{dbg} ? 1 : 0; # TRUE if lexer debugging enabled
     $self->{instr}	= 1;		# TRUE if instrumention enabled
 
@@ -150,20 +151,23 @@ sub instrument
     my $regex;
 
     # if we don't grok this filetype, return gracefully.
-    return $self->{srcbuf} if (!defined $templates{$self->{fext}});
+    carp "unknown file type \'$self->{fext}\'" & return $self->{srcbuf} 
+	if (!defined $templates{$self->{fext}});
 
     # refuse to instrument source that's already instrumented.
-    return $self->{srcbuf} if $self->{srcbuf} =~ m:$tokens{xh_stq}.*$tokens{xh_endq}:;
+    carp "refusing to instrument source that\'s already instrumented" & return $self->{srcbuf} 
+    	if $self->{srcbuf} =~ m:$tokens{xh_stq}.*$tokens{xh_endq}:;
 
     # alas, java has no concept of conditional compilation so we unconditionally
     # add "import XMT.Xhist;" after either the package statement or the first import statement.
     # Unfortunately neither one is mandatory so this may fail to instrument some files.
     # (this is a no-op for languages other than java).
     # we put all instrumentation between <XHIST> markers to allow for uninstrumentation
-	if ($self->{fext} =~ m:java:) {
-    my $repl = '"$&$tokens{xh_st} import XMT.Xhist; $tokens{xh_end}"';
-    $self->{srcbuf} =~ s:(package|import)\s+.*?;:$repl:ees;
-	}
+    if ($self->{fext} =~ m:java:) 
+    {
+	my $repl = '"$&$tokens{xh_st} import XMT.Xhist; $tokens{xh_end}"';
+	$self->{srcbuf} =~ s:(package|import)\s+.*?;:$repl:ees;
+    }
 
     # now process srcbuf, matching templates
     my $srccpy = $self->{srcbuf};	# working copy of srcbuf
@@ -256,7 +260,8 @@ sub instrument
 	    $block = $prematch . $matched;
 	    $srccpy = $postmatch;
 
-	    # return, throw, continue, next, break & exit handled identically
+	    # return, throw, continue, next, break & exit 
+	    # can't have instrumentation added after the semicolon
 	    $regex = interpolate( q:\s+(return|throw|continue|next|break|exit)\b: );
 	    $regex2 = interpolate( q:[% identifier %]\.exit\(: );
 	    if ( $block =~ /$regex/s || $block =~ /$regex2/s )
@@ -318,9 +323,13 @@ sub instrument
 		$self->{lnum} += ($block =~ tr/\n//);	# increment by # of newlines found
 		if ( $self->{instr} && $nesting_level > 0 )
 		{
-		    (my $repl = $templates{$self->{fext}}{trace_stmt}) =~ s/FNUM/$self->{fnum}/g;
-		    $repl =~ s/LNUM/$self->{lnum}/g;
-		    eval {$self->{srcbuf} .= $tokens{xh_st} . $repl . $tokens{xh_end} };
+		    # execute non-function-call statements only if funcs-only not specified
+		    if ( !$self->{funcs_only} ) 
+		    {
+			(my $repl = $templates{$self->{fext}}{trace_stmt}) =~ s/FNUM/$self->{fnum}/g;
+			$repl =~ s/LNUM/$self->{lnum}/g;
+			eval {$self->{srcbuf} .= $tokens{xh_st} . $repl . $tokens{xh_end} };
+		    }
 		}
 		next;
 	    }

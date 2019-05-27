@@ -336,7 +336,7 @@ sub instrument
     # add Xhist.init() call where we find a <xhist.init> comment
     my $ptn = '/\*\s*<xhist.init>\s*\*/';
     my $v	= '$' . 'Version' . ':$';
-    my $mf	= '$' . 'XhistMap' . ':$';
+    my $mf	= (defined $self->{mapfn} ?  $self->{mapfn} : '$' . 'XhistMap' . ':$');
     my $tf	= $self->{srcfn} . '.xhist';
     my $init_stmt = interpolate( $templates{$self->{fext}}{init_stmt}, $self->{fext} );
     $repl = '"$&$tokens{xh_st} $init_stmt(\"$tf\", \"$mf\", \"$v\"); $tokens{xh_end}"';

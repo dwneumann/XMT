@@ -47,7 +47,7 @@ public	class	Mesh {
 	int		dfltHops	= 10;		// # hops before ack
 	int		i		= 0;
 
-	/* <XHIST INIT> */
+	/* <XHIST INIT> */ /*</XHIST>*/
 
 	/* usage: mesh <my index> <starting port#> <num nodes> ... */
 	if (args.length == 3)

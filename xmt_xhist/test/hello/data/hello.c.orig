@@ -26,36 +26,20 @@
 static const char hello_c_id[] = "@(#) libxhist::hello.c	$Version:$";
 #endif 
  
-#ifdef XHIST 
-#include <sys/types.h> 
 #include <stdlib.h> 
 #include <stdio.h> 
-#include <fcntl.h> 
-#include <signal.h> 
 #include <unistd.h> 
-#include "xhist.h" 
-#endif  
+#ifdef XHIST
+#include "xhist.h"
+#endif 
  
 void foo();
  
 int main(int argc, char *argv[]) 
 {
+    int	i;
  
-#ifdef XHIST 
-/* xhist instrument FALSE */
-    int i, fd;
- 
-    if ((fd=open("hello.xhist", O_RDWR|O_CREAT, 0644)) < 0) 
-    { 
-        perror(XHIST_LOGFILE);
-	exit(1);
-    } 
-    xhist_logdev(fd);
-    xhist_mapfile("$XhistMap:$");
-    xhist_version("$Version:$");
-    signal(SIGUSR1, xhist_write);
-/* xhist instrument TRUE */
-#endif 
+/* <xhist init> */
  
     for (i = 0; i < 10; i++)
     { 

@@ -17,28 +17,46 @@
 #   Purpose	: Customize make environment for the current package.
 #************************************************************************
 
-PKG_NM		= Xhist
-ARCH		= linux_x86
-BUILD_TGT	= lib
-CFLAGS.c	+= -g -DUSING_XMTBUILD -DHAVE_STDIO_H -DHAVE_ERRNO_H \
-		   -DHAVE_UNISTD_H -DHAVE_STRING_H 
-#CFLAGS.c	+= -ftest-coverage -fprofile-arcs
-#LDFLAGS.c	+= -lgcov --coverage
-CFLAGS.java	+= -cp .:$(OBJDIR):$(JAVA_PKGROOT)
-LANGUAGE	= java
-JAVA_PKGROOT	= XMT
-
-java:	
-	$(MAKE) LANGUAGE=java JAVA_PKGROOT=XMT lib
-
-c:	
-	$(MAKE) LANGUAGE=c PKG_NM=Xhist LIBS=$(LIBS.c) 	lib
+ifdef do_vars
+#************************************************************************
+# DO ALL VARIABLE ASSIGNMENTS HERE
+#************************************************************************
+    PKG_NM	= Xhist
+    BUILD_TGT	= lib
+    LANGUAGE	= java
+    ARCH	= jre
+    CFLAGS.c	+= -g -DXMTBUILD -DHAVE_STDIO_H -DHAVE_ERRNO_H -DHAVE_STRING_H -DHAVE_UNISTD_H 
 
 
-gcov:
-	gcov	--object-directory $(OBJDIR) 		\
-		--demangled-names 			\
-		--branch-probabilities			\
-		--function-summaries			\
-		--human-readable			\
-		--use-colors				\
+endif
+ifdef do_rules
+#************************************************************************
+# DO TARGET RULE OVERRIDES HERE
+#************************************************************************
+
+xhist-c:
+	$(MAKE) LANGUAGE=c ARCH=linux_x86 lib
+
+# java-jre includes no platform-specific signal or intent handlers
+# java-linux installs signal handler to write history
+# java-android installs intent receiver to write history
+# we achieve this by overriding srcs.java
+
+xhist-java-jre:
+	$(MAKE) LANGUAGE=java ARCH=jre 			\
+	    srcs.java="$(SRCDIR)/XMT/Xhist.java" lib 
+
+xhist-java-linux:
+	$(MAKE) LANGUAGE=java ARCH=linux_x86 		\
+	    srcs.java="$(SRCDIR)/XMT/Xhist.java $(SRCDIR)/XMT/Signals.java" lib
+
+xhist-java-android:
+	$(MAKE) LANGUAGE=java ARCH=android MIN_ANDROID_API=15 		\
+	    srcs.java="$(SRCDIR)/XMT/Xhist.java  			\
+			$(SRCDIR)/XMT/android/IntentReceiver.java 	\
+			$(SRCDIR)/XMT/android/Intents.java" lib
+
+
+#************************************************************************
+endif
+

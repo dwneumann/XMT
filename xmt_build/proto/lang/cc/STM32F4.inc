@@ -25,6 +25,12 @@
 #************************************************************************
 
 
+ifdef do_vars
+#************************************************************************
+# DO ALL VARIABLE ASSIGNMENTS HERE
+#************************************************************************
+
+
 CMSIS	= $(STM32_FW)/Libraries/CMSIS
 
 #**********************************************************************
@@ -54,6 +60,12 @@ ARFLAGS.cc.STM32F4	+= -rscDv
 LINTFLAGS.cc.STM32F4	+= $(CFLAGS.cc.STM32F4)
 DOCFLAGS.cc.STM32F4	+= 
 
+
+endif
+ifdef do_rules
+#************************************************************************
+# DO TARGET RULE OVERRIDES HERE
+#************************************************************************
 
 bin: exe
 	$(OBJCOPY.cc.STM32F4) -O binary $(TGTDIR)/$(EXE_NM) $(TGTDIR)/$(PKG_NM).bin
@@ -100,3 +112,6 @@ $(TGTDIR)/$(EXE_NM): $(objs.$(LANGUAGE)) $(EXTRA_OBJS)
 	$(LD.$(LANGUAGE).$(ARCH)) @$@.ldflags $^ \
 	    $(LIBS) $(LIBS.$(LANGUAGE)) $(LIBS.$(LANGUAGE).$(ARCH)) 
 
+
+#************************************************************************
+endif

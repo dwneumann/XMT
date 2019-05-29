@@ -8,7 +8,8 @@
 *  All Rights reserved.	legal.info@neumann-associates.com
 *************************************************************************/
 
-/* xhist instrument FALSE */	/* do not instrument this file.  ever. */
+/* xhist instrument FALSE */			// never instrument this file
+
 #ifndef __xhist_h
 #define __xhist_h
 
@@ -16,24 +17,57 @@
 static const char xhist_h_id[] = "@(#) xhist::xhist.h	$Version:$";
 #endif
 
-#define XHIST_TBLSIZE		1000		/* number of stmts to store in tbl */
-#define XHIST_MAPFNLENGTH	64		/* length of string storing map filename */
-#define XHIST_VERSIONLENGTH	64		/* length of string storing build version */
-#define XHIST_LOGFILE		"xhist.dat" 	/* default log file name */
-#define _XH_ADD(filenum, linenum)		/* inline version of xhist_add() */	\
-{											\
-    xhist_tbl[xhist_tail] = (((unsigned short) filenum << 16) | (unsigned short) linenum);\
-    xhist_tail = (unsigned short) ((xhist_tail+1) % XHIST_TBLSIZE);			\
+typedef char boolean;
+#ifndef TRUE
+# define TRUE 1
+# define FALSE 0
+#endif
+
+#ifndef ASSERT
+# define ASSERT(x)
+#endif	
+
+#define XHIST_MAX_HISTORY	1000		// max history depth per thread
+#define XHIST_MAX_THREADS	20		// max number of threads to keep history for
+#define XHIST_MAX_PATHLEN	256		// max length of map filepath 
+#define XHIST_VERSIONLEN	64		// max length of build version string
+
+# if (XHIST_MAX_THREADS > 1)  		
+# define XHIST_MULTI_THREADED	
+#endif 
+
+/* xhist global struct */
+typedef struct  
+{
+    long	tbl[ XHIST_MAX_THREADS ][ XHIST_MAX_HISTORY ];	// N trace stmts x M threads
+    long	thread_ids[ XHIST_MAX_THREADS ];		// thread to column mapping
+    long	tails[ XHIST_MAX_THREADS ];			// last stmt indexes
+    char	buildtag[ XHIST_VERSIONLEN ];			// callers version string
+    char	mapfn[ XHIST_MAX_PATHLEN ];			// filemap filename
+    char	logfn[ XHIST_MAX_PATHLEN ];			// trace output filename
+    int  	logfd;						// trace output file descriptor
+} xh_t;
+
+/*
+ * xhist_add is defined as a macro which appends (filenum, linenum) 
+ * to the execution history buffer for the current thread.
+ * It is thread-safe, constant-time with no function call overhead.
+ */
+#define xhist_add(f, l)								\
+{										\
+    xh.tbl[xh_idx][xh.tails[xh_idx]] = (((short) f << 16) | (short) l);		\
+    xh.tails[xh_idx] = (long) ((xh.tails[xh_idx]+1) % XHIST_MAX_HISTORY);	\
 }
 
-extern unsigned long	xhist_tbl[ XHIST_TBLSIZE ];
-extern unsigned long	xhist_tail;
-extern char		xhist_mapfn[ XHIST_MAPFNLENGTH ];	/* filemap filename */
-extern char		xhist_buildtag[ XHIST_VERSIONLENGTH ];	/* callers version string */
+extern xh_t		xh;			// xhist table instance
+extern __thread short	xh_idx;			// per-thread index into other tables
 
-extern  void	xhist_logdev(int fd);
-extern  void	xhist_mapfile(char *s);		/* store filename of mapfile to decode tbl */
-extern  void	xhist_version(char *s);		/* store version tag of instrumented source */
-extern  void	xhist_write();
+extern boolean	xhist_init(char *, char *, char *);
+extern void	xhist_deinit();
+extern void	xhist_mapfile(char *);
+extern void	xhist_logfile(char *);
+extern void	xhist_logdev(int);
+extern void	xhist_version(char *);
+extern void	xhist_write();
 
 #endif /* __xhist_h	*/

@@ -1,6 +1,6 @@
 #!/usr/bin/env perl
 #************************************************************************
-#*   $Version: 5.2.2-22 [experimental] $
+#*   $Version:$
 #*   Package	: xmt_cm
 #*   Purpose	: Xkeyword class (invoked by git_filter)
 #*
@@ -24,7 +24,7 @@ use POSIX qw(strftime);
 sub version 
 {
     local $^W=0; 
-    my @v = split(/\s+/,'$Version: 5.2.2-22 [experimental] $'); 
+    my @v = split(/\s+/,'$Version:$'); 
     my $s=sprintf("%f", $v[1]);
     $s=~ s/0+$//;
     return $s;

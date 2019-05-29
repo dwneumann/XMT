@@ -17,15 +17,28 @@
 #   Purpose	: Customize make environment for the current package.
 #************************************************************************
 
+ifdef do_vars
+#************************************************************************
+# DO ALL VARIABLE ASSIGNMENTS HERE
+#************************************************************************
+
 CFLAGS.java	+= -cp .:$(OBJDIR):$(XMTXHIST)/libxhist/tgt/$(ARCH)/Xhist.jar
 CFLAGS.c	+= -g -DXHIST -I$(XMTXHIST)/libxhist/src 
 LIBS.c		+= $(XMTXHIST)/libxhist/tgt/$(ARCH)/libXhist.a	
+# gcc requires the -lpthread flag to be at the end of the commandline
 LD.append	= -lpthread
+
+
+endif
+ifdef do_rules
+#************************************************************************
+# DO TARGET RULE OVERRIDES HERE
+#************************************************************************
 
 # instrument sources for xhist:
 #  cd to $(DATADIR) (where the uninstrumented src resides)
-#  write instrumented sources to $(SRCDIR) for compilation
-#  write xhist_map file to $(TESTDIR) directory 
+#  write all instrumented sources to $(SRCDIR) for compilation
+#  write all xhist_map files to $(TESTDIR) directory 
 instrument:
 	(cd $(DATADIR) ;				\
 	    for f in *.orig ; do			\
@@ -36,13 +49,12 @@ instrument:
 	    done					\
 	)
 
-
 c: instrument
 	$(MAKE) LANGUAGE=c ARCH=linux_x86 exe
 
-# jre is the platform-agnostic java lib
-jre: srcs.java =  $(SRCDIR)/Hello.java
-jre: instrument
-	javac -d $(OBJDIR) $(CFLAGS.java) $(srcs.java)
-	$(MAKE) LANGUAGE=java JAVA_PKGROOT=XMT srcs.java="$(srcs.java)" ARCH=jre lib
+java: instrument
+	$(MAKE) LANGUAGE=java ARCH=jre lib
 
+
+#************************************************************************
+endif

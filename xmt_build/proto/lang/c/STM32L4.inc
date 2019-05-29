@@ -24,6 +24,11 @@
 #*  limitations under the License. 
 #************************************************************************
 
+ifdef do_vars
+#************************************************************************
+# DO ALL VARIABLE ASSIGNMENTS HERE
+#************************************************************************
+
 
 #**********************************************************************
 # define program paths...
@@ -56,6 +61,12 @@ ARFLAGS.c.STM32L4	+= -rscDv
 LINTFLAGS.c.STM32L4	+= $(CFLAGS.c.STM32L4)
 DOCFLAGS.c.STM32L4	+= 
 
+
+endif
+ifdef do_rules
+#************************************************************************
+# DO TARGET RULE OVERRIDES HERE
+#************************************************************************
 
 bin: exe
 	$(OBJCOPY.c.STM32L4) -O binary $(TGTDIR)/$(EXE_NM) $(TGTDIR)/$(PKG_NM).bin
@@ -103,3 +114,6 @@ $(TGTDIR)/$(EXE_NM): $(objs.$(LANGUAGE)) $(EXTRA_OBJS)
 	    $(LIBS) $(LIBS.$(LANGUAGE)) $(LIBS.$(LANGUAGE).$(ARCH)) 
 
 
+
+#************************************************************************
+endif

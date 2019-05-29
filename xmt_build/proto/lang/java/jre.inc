@@ -25,11 +25,16 @@
 #*  limitations under the License. 
 #************************************************************************
 
+ifdef do_vars
+#************************************************************************
+# DO ALL VARIABLE ASSIGNMENTS HERE
+#************************************************************************
+
 
 #**********************************************************************
 # define program paths...
 #**********************************************************************
-COMPILE.java.jre	:= javac
+COMPILE.java.jre:= javac
 LD.java.jre	:= /bin/true
 AR.java.jre	:= jar
 LINT.java.jre	:= echo no lint installed for Java
@@ -39,7 +44,7 @@ DOC.java.jre	:= javadoc
 # This is the place to define flags that are specific to THIS language
 # when compiled for THIS architecture.
 #**********************************************************************
-CFLAGS.java.jre	= -cp .:$(OBJDIR)
+CFLAGS.java.jre		=
 LDFLAGS.java.jre	= 
 ARFLAGS.java.jre	=
 LINTFLAGS.java.jre= 
@@ -49,44 +54,12 @@ LIB_SFX.java.jre	:= .jar
 EXE_PFX.java.jre	:= 
 EXE_SFX.java.jre	:= 
 
-$(OBJDIR)/%.class: $(SRCDIR)/%.java
-	@mkdir -p $(OBJDIR)/$(JAVA_PKGROOT);
-	@echo	$(CFLAGS) $(CFLAGS.java) $(CFLAGS.java.$(ARCH)) > $(OBJDIR)/$@.cflags ;
-	$(COMPILE.java.$(ARCH))	@$(OBJDIR)/$@.cflags $< 
-
-%.class: $(SRCDIR)/%.java
-	@mkdir -p $(OBJDIR)/$(JAVA_PKGROOT);
-	@echo	$(CFLAGS) $(CFLAGS.java) $(CFLAGS.java.$(ARCH)) > $(OBJDIR)/$@.cflags ;
-	$(COMPILE.java.$(ARCH))	@$(OBJDIR)/$@.cflags $< 
+endif
+ifdef do_rules
+#************************************************************************
+# DO TARGET RULE OVERRIDES HERE
+#************************************************************************
 
 
-arch/$(ARCH)/$(JAVA_PKGROOT)/%.class: subdirs=$(patsubst $(ARCH)/$(JAVA_PKGROOT)/%,%,$(dir $@))
-arch/$(ARCH)/$(JAVA_PKGROOT)/%.class: arch/$(ARCH)/$(JAVA_PKGROOT)/%.java
-	(\
-	mkdir -p $(OBJDIR)/$(JAVA_PKGROOT)/arch;\
-	echo	$(CFLAGS) $(CFLAGS.java) $(CFLAGS.java.$(ARCH)) > $(OBJDIR)/$(JAVA_PKGROOT)/arch/$(notdir $@).cflags ;\
-	$(COMPILE.java.$(ARCH))	@$(OBJDIR)/$(JAVA_PKGROOT)/arch/$(notdir $@).cflags $<;\
-	)
-
-$(JAVA_PKGROOT)/%.class: subdirs=$(patsubst $(JAVA_PKGROOT)/%,%,$(dir $@))
-$(JAVA_PKGROOT)/%.class: $(SRCDIR)/$(JAVA_PKGROOT)/%.java
-	(\
-	mkdir -p $(OBJDIR)/$(JAVA_PKGROOT)/$(subdirs);\
-	echo	$(CFLAGS) $(CFLAGS.java) $(CFLAGS.java.$(ARCH)) > $(OBJDIR)/$(JAVA_PKGROOT)/$(subdirs)/$(notdir $@).cflags ;\
-	$(COMPILE.java.$(ARCH))	@$(OBJDIR)/$(JAVA_PKGROOT)/$(subdirs)/$(notdir $@).cflags $<;\
-	)
-
-
-
-$(DOCDIR)/%.html: $(SRCDIR)/$(JAVA_PKGROOT)/%.java
-	cd $(DOCDIR); $(DOC.java.$(ARCH)) $(DOCFLAGS) $(DOCFLAGS.java) $(DOCFLAGS.java.$(ARCH)) $<
-
-.lib.$(LANGUAGE):	$(TGTDIR)/$(LIB_NM)
-.exe.$(LANGUAGE):	$(TGTDIR)/$(LIB_NM)
-$(TGTDIR)/$(LIB_NM): $(objs.java) 
-	(cd $(OBJDIR);  \
-	echo $(ARFLAGS) $(ARFLAGS.$(LANGUAGE)) $(ARFLAGS.$(LANGUAGE).$(ARCH)) > $(LIB_NM).arflags;\
-	$(AR.$(LANGUAGE).$(ARCH)) @$(LIB_NM).arflags $(LIB_NM) `find . -name '*.class'`;)
-	@/bin/mkdir -p $(TGTDIR)
-	/bin/mv $(OBJDIR)/$(LIB_NM) $(TGTDIR)/$(LIB_NM)
-
+#************************************************************************
+endif

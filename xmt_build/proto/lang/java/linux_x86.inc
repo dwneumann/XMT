@@ -25,6 +25,11 @@
 #*  limitations under the License. 
 #************************************************************************
 
+ifdef do_vars
+#************************************************************************
+# DO ALL VARIABLE ASSIGNMENTS HERE
+#************************************************************************
+
 
 #**********************************************************************
 # define program paths...
@@ -49,33 +54,12 @@ LIB_SFX.java.linux_x86	:= .jar
 EXE_PFX.java.linux_x86	:= 
 EXE_SFX.java.linux_x86	:= 
 
-#**********************************************************************
-# rule for java files without namespace heirarchy
-#**********************************************************************
-$(OBJDIR)/%.class: $(SRCDIR)/%.java
-	@mkdir -p $(OBJDIR)/$(JAVA_PKGROOT);
-	@echo	$(CFLAGS) $(CFLAGS.java) $(CFLAGS.java.$(ARCH)) > $(OBJDIR)/$@.cflags ;
-	$(COMPILE.java.$(ARCH))	@$(OBJDIR)/$@.cflags $< 
+endif
+ifdef do_rules
+#************************************************************************
+# DO TARGET RULE OVERRIDES HERE
+#************************************************************************
 
-#**********************************************************************
-# rule for java files with namespace heirarchy of arbitrary depth
-#**********************************************************************
-$(JAVA_PKGROOT)/%.class: subdirs=$(patsubst $(JAVA_PKGROOT)/%,%,$(dir $@))
-$(JAVA_PKGROOT)/%.class: $(SRCDIR)/$(JAVA_PKGROOT)/%.java
-	( mkdir -p $(OBJDIR)/$(JAVA_PKGROOT)/$(subdirs);\
-	echo  $(CFLAGS) $(CFLAGS.java) $(CFLAGS.java.$(ARCH)) > \
-	$(OBJDIR)/$(JAVA_PKGROOT)/$(subdirs)/$(notdir $@).cflags ;\
-	$(COMPILE.java.$(ARCH)) @$(OBJDIR)/$(JAVA_PKGROOT)/$(subdirs)/$(notdir $@).cflags $<;\
-	)
 
-$(DOCDIR)/%.html: $(SRCDIR)/$(JAVA_PKGROOT)/%.java
-	cd $(DOCDIR); $(DOC.java.$(ARCH)) $(DOCFLAGS) $(DOCFLAGS.java) $(DOCFLAGS.java.$(ARCH)) $<
-
-.lib.$(LANGUAGE):	$(TGTDIR)/$(LIB_NM)
-.exe.$(LANGUAGE):	$(TGTDIR)/$(LIB_NM)
-$(TGTDIR)/$(LIB_NM): $(objs.java) 
-	(cd $(OBJDIR);  \
-	echo $(ARFLAGS) $(ARFLAGS.$(LANGUAGE)) $(ARFLAGS.$(LANGUAGE).$(ARCH)) > $(LIB_NM).arflags;\
-	$(AR.$(LANGUAGE).$(ARCH)) @$(LIB_NM).arflags $(LIB_NM) `find . -name '*.class'`;)
-	-/bin/mv $(OBJDIR)/$(LIB_NM) $(TGTDIR)/$(LIB_NM)
-
+#************************************************************************
+endif

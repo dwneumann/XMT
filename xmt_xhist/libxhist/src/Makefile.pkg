@@ -16,25 +16,47 @@
 #   Synopsis	: included automatically by $(XMTBUILD)/proto/Makefile.top
 #   Purpose	: Customize make environment for the current package.
 #************************************************************************
-PKG_NM		= Xhist
-BUILD_TGT	= lib
-CFLAGS.c	+= -g -DXMTBUILD -DHAVE_STDIO_H -DHAVE_ERRNO_H -DHAVE_STRING_H -DHAVE_UNISTD_H 
 
-c:
+ifdef do_vars
+#************************************************************************
+# DO ALL VARIABLE ASSIGNMENTS HERE
+#************************************************************************
+    PKG_NM	= Xhist
+    BUILD_TGT	= lib
+    LANGUAGE	= java
+    ARCH	= jre
+    CFLAGS.c	+= -g -DXMTBUILD -DHAVE_STDIO_H -DHAVE_ERRNO_H -DHAVE_STRING_H -DHAVE_UNISTD_H 
+
+
+endif
+ifdef do_rules
+#************************************************************************
+# DO TARGET RULE OVERRIDES HERE
+#************************************************************************
+
+xhist-c:
 	$(MAKE) LANGUAGE=c ARCH=linux_x86 lib
 
-# jre is the platform-agnostic java lib
-jre: srcs.java =  $(SRCDIR)/XMT/Xhist.java  
-jre:
-	$(MAKE) LANGUAGE=java JAVA_PKGROOT=XMT srcs.java="$(srcs.java)" ARCH=jre lib
+# java-jre includes no platform-specific signal or intent handlers
+# java-linux installs signal handler to write history
+# java-android installs intent receiver to write history
+# we achieve this by overriding srcs.java
 
-# linux_x86 is the java lib with signal handling
-linux_x86: srcs.java =  $(SRCDIR)/XMT/Xhist.java  $(SRCDIR)/XMT/Signals.java
-linux_x86:
-	$(MAKE) LANGUAGE=java JAVA_PKGROOT=XMT srcs.java="$(srcs.java)" ARCH=linux_x86 lib
+xhist-java-jre:
+	$(MAKE) LANGUAGE=java ARCH=jre 			\
+	    srcs.java="$(SRCDIR)/XMT/Xhist.java" lib 
 
-# android is the java lib with intent handling
-android: srcs.java =  $(SRCDIR)/XMT/Xhist.java  $(SRCDIR)/XMT/android/IntentReceiver.java  $(SRCDIR)/XMT/android/Intents.java
-android:
-	$(MAKE) LANGUAGE=java JAVA_PKGROOT=XMT srcs.java="$(srcs.java)" ARCH=android MIN_ANDROID_API=15 lib
+xhist-java-linux:
+	$(MAKE) LANGUAGE=java ARCH=linux_x86 		\
+	    srcs.java="$(SRCDIR)/XMT/Xhist.java $(SRCDIR)/XMT/Signals.java" lib
+
+xhist-java-android:
+	$(MAKE) LANGUAGE=java ARCH=android MIN_ANDROID_API=15 		\
+	    srcs.java="$(SRCDIR)/XMT/Xhist.java  			\
+			$(SRCDIR)/XMT/android/IntentReceiver.java 	\
+			$(SRCDIR)/XMT/android/Intents.java" lib
+
+
+#************************************************************************
+endif
 

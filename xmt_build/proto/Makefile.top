@@ -1,6 +1,6 @@
 #************************************************************************
 #*   $Version:$
-#*   Package	: build
+#*   Package	: xmt_build
 #*   Synopsis	: include $(XMTBUILD)/proto/Makefile.top
 #*   Purpose	: 
 #*              This Makefile contains top-level standard make rules
@@ -36,10 +36,10 @@
 #   := assignements are evaluated during lexical scan;
 #    = assignemtns are recursively evaluated during rule parsing
 #**********************************************************************
-shell		= /bin/bash
-SHELL		= $(shell)
-pkg_dir		= $(shell cd ..;pwd)
-supp_langs	= $(notdir $(wildcard $(XMTBUILD)/proto/lang/*))
+shell		:= /bin/bash
+SHELL		:= $(shell)
+pkg_dir		?= $(shell cd ..;pwd)
+supp_langs	?= $(notdir $(wildcard $(XMTBUILD)/proto/lang/*))
 allsrcs		= $(sort $(foreach e,$(supp_langs),$(srcs.$(e))))
 
 #**********************************************************************
@@ -49,22 +49,21 @@ allsrcs		= $(sort $(foreach e,$(supp_langs),$(srcs.$(e))))
 #**********************************************************************
 MAKE		= make
 MAKEDEPEND	= makedepend
-ARCH		= $(XMTBUILD_DFLT_ARCH)
-SRCDIR		= ../src
-TESTDIR		= ../test
-DOCDIR		= ../doc
-DATADIR		= ../data
-CMSOURCES	= co -u SVN/*
-CMCLEAN		= svn update -P -d *
-JAVA_PKGTREE	= .
-PKG_NM		= $(notdir $(pkg_dir))
-PKG_TGT         = lib
-OBJDIR		= ../obj/$(ARCH)
-TGTDIR		= ../tgt/$(ARCH)
-LIB_NM          = $(LIB_PFX.$(LANGUAGE).$(ARCH))$(PKG_NM)$(LIB_SFX.$(LANGUAGE).$(ARCH))
-EXE_NM          = $(EXE_PFX.$(LANGUAGE).$(ARCH))$(PKG_NM)$(EXE_SFX.$(LANGUAGE).$(ARCH))
-LANGUAGE	= c
-BUILD_TGT	= all
+ARCH		?= $(XMTBUILD_DFLT_ARCH)
+SRCDIR		:= ../src
+TESTDIR		:= ../test
+DOCDIR		:= ../doc
+DATADIR		:= ../data
+CMSOURCES	:= co -u SVN/*
+CMCLEAN		:= svn update -P -d *
+PKG_NM		?= $(notdir $(pkg_dir))
+PKG_TGT         ?= lib
+OBJDIR		?= ../obj/$(ARCH)
+TGTDIR		?= ../tgt/$(ARCH)
+LIB_NM          ?= $(LIB_PFX.$(LANGUAGE).$(ARCH))$(PKG_NM)$(LIB_SFX.$(LANGUAGE).$(ARCH))
+EXE_NM          ?= $(EXE_PFX.$(LANGUAGE).$(ARCH))$(PKG_NM)$(EXE_SFX.$(LANGUAGE).$(ARCH))
+LANGUAGE	?= c
+BUILD_TGT	?= all
 .DEFAULT	= build
 
 #**********************************************************************
@@ -78,18 +77,35 @@ LINTFLAGS	=
 DOCFLAGS	=
 
 #**********************************************************************
-# Now include:
-# language & architecture-specific Makefiles:
-# project-level Makefile, then
-# package-level ./Makefile.pkg
-# recursive variables are evaluated when a matching recipe is found.
+# do two passes through included Makefiles from generic to specific.
+# first include language & architecture-specific defaults:
+# then override those with project-level Makefile (if any),
+# then override those with package-level Makefile.pkg (if any)
+# NOTE: we do two passes because recursive variables are evaluated 
+# when the first matching recipe is found.  
+# So 1st pass does all variable definitions,
+# then 2nd pass does all recipe definitions.
 #**********************************************************************
 
--include ./Makefile.pkg	
--include $(PROJECT)/proto/Makefile.top
+do_vars	= true
+undefine do_rules
+-include ./Makefile.pkg		# define LANGUAGE, ARCH, etc
 -include $(XMTBUILD)/proto/lang/$(LANGUAGE)/generic.inc
 -include $(XMTBUILD)/proto/lang/$(LANGUAGE)/$(ARCH).inc
+-include $(PROJECT)/proto/Makefile.top
+-include ./Makefile.pkg		# override defaults set above
 
+do_rules	= true
+undefine do_vars
+-include ./Makefile.pkg		# first rule wins, so include this first.
+-include $(XMTBUILD)/proto/lang/$(LANGUAGE)/generic.inc
+-include $(XMTBUILD)/proto/lang/$(LANGUAGE)/$(ARCH).inc
+-include $(PROJECT)/proto/Makefile.top
+
+
+#**********************************************************************
+# recipe definitions below.  No variable definitions after this point.
+#**********************************************************************
 all: $(PKG_TGT)
 depend: 
 	(cd $(SRCDIR); \
@@ -103,8 +119,7 @@ clean:
 
 cleanall:
 	( for d in  $(XMTBUILD_SUPP_ARCHS) ; do \
-	    echo -/bin/rm -r ../obj/$$d; \
-	    echo -/bin/rm -r ../tgt/$$d; \
+	    $(MAKE) ARCH=$d clean;		\
 	  done; )
 
 sources:	
@@ -112,7 +127,7 @@ sources:
 
 lint:	$(lnts.$(LANGUAGE))
 doc:	$(docs.$(LANGUAGE))
-objs: $(objs.$(LANGUAGE)) $(EXTRA_OBJS)
+objs:   $(objs.$(LANGUAGE)) $(EXTRA_OBJS)
 lib:	.lib.$(LANGUAGE)
 exe:	.exe.$(LANGUAGE)
 

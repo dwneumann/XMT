@@ -1,5 +1,5 @@
 /************************************************************************
-*   $Version: 
+*   $Version:$
 *   Package	: xhist
 *   Purpose : This file contains functions to maintain an in-memory trace
 *   of execution history for multiple threads, and to output the trace to

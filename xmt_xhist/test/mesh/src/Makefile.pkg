@@ -16,7 +16,14 @@
 #   Synopsis	: included automatically by $(XMTBUILD)/proto/Makefile.top
 #   Purpose	: Customize make environment for the current package.
 #************************************************************************
-PKG_NM		= Xhist
+
+
+ifdef do_vars
+#************************************************************************
+# DO ALL VARIABLE ASSIGNMENTS HERE
+#************************************************************************
+
+PKG_NM		= mesh
 ARCH		= linux_x86
 BUILD_TGT	= exe
 CFLAGS.c	+= -I$(XMT)/xmt_xhist/libxhist/src -g -DXHIST -ftest-coverage -fprofile-arcs
@@ -24,11 +31,19 @@ LIBS.c		= $(XMT)/xmt_xhist/libxhist/tgt/$(ARCH)/libXhist.a
 LDFLAGS.c	+= -lgcov --coverage
 CFLAGS.java	+= -cp .:$(OBJDIR):$(XMTXHIST)/libxhist/tgt/$(ARCH)/Xhist.jar
 
+
+endif
+ifdef do_rules
+#************************************************************************
+# DO TARGET RULE OVERRIDES HERE
+#************************************************************************
+
 java:	
-	$(MAKE) LANGUAGE=java JAVA_PKGROOT=. EXTRA_OBJS='Mesh$$$$1.class' PKG_NM=Mesh EXE_NM=Mesh	exe
+	$(MAKE) LANGUAGE=java PKG_NM=Mesh EXE_NM=Mesh exe
+#	$(MAKE) LANGUAGE=java EXTRA_OBJS='Mesh$$$$1.class' PKG_NM=Mesh EXE_NM=Mesh exe
 
 c:	
-	$(MAKE) LANGUAGE=c PKG_NM=Xhist EXE_NM=mesh LIBS=$(LIBS.c) 	exe
+	$(MAKE) LANGUAGE=c EXE_NM=mesh LIBS=$(LIBS.c) exe
 
 gcov:
 	gcov	--object-directory $(OBJDIR) 		\
@@ -47,8 +62,11 @@ instrument:
 	for x in c java ; do				\
 	    m=$(CURDIR)/$(TESTDIR)/Mesh.$${x}.xmap; 	\
 	    for f in *.$$x ; do				\
-		$(XMTCM)/bin/git_filter --funcs_only --expand=. --xhist=. --xhist_map=$$m $$f  \
+		$(XMTCM)/bin/git_filter --expand=. --xhist=. --xhist_map=$$m $$f  \
 		--xtest=. > $(SRCDIR)/$$f ;			\
 	    done					\
 	done)
 
+
+#************************************************************************
+endif

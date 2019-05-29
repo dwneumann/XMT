@@ -32,13 +32,14 @@ import java.net.*;	// need sockets
  */
 public	class	Mesh {
     public static final String id = "@(#) mesh.Mesh $Version:$";
-    public static final int MAX_NODES	= 100;			// max # nodes in mesh
+    public static final int MAX_NODES	= 10000;		// max # nodes in mesh
     public static MeshNode	myNode	= new MeshNode();	// this Node
 
 
     public static void main(String []args) throws NumberFormatException {
 	Packet 		pkt		= null;		// packet to be sent
 	int		nodes[] = new int[MAX_NODES];	// port #'s of all nodes
+	int		basePort	= 0;		// starting port $
 	int		numNodes	= 0;		// # nodes in mesh
 	int		myNodeIndex	= 0;		// index of my port#
 	int		nextPort	= 0;		// value of nodes[myNodeIndex+1]
@@ -48,19 +49,21 @@ public	class	Mesh {
 
 	/* <XHIST INIT> */
 
-	/* usage: mesh <my (0-based) myNode index> <port#> <port#> <port#> ... */
-	numNodes = -1;
-	for (String s: args)
+	/* usage: mesh <my index> <starting port#> <num nodes> ... */
+	if (args.length == 3)
 	{
-	    if (numNodes < 0)
+	    myNodeIndex = Integer.parseInt(args[0]);
+	    basePort = Integer.parseInt(args[1]);
+	    numNodes = Integer.parseInt(args[2]);
+	    for (i=0; i< numNodes; i++)
 	    {
-		myNodeIndex = Integer.parseInt(s);
-		numNodes++;
+		nodes[i++] = basePort + i;
 	    }
-	    else
-	    {
-		nodes[numNodes++] = Integer.parseInt(s);
-	    }
+	}
+	else
+	{
+	    System.out.println("usage: mesh <my index> <starting port#> <num nodes>\n");
+	    System.exit(1);
 	}
 
 	/* create the MeshNode and associated socket */

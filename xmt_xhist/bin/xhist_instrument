@@ -20,6 +20,7 @@
 #	 --unxhist	unxhist (i.e. clean) xhist instrumentation found in stdin, 
 #			and write cleaned data stream to stdout.
 #	 --dbg		turn on xhist instrumentation debug output
+#	 --funcs_only	add xhist instrumentation to function calls only
 #
 #  Copyright 2018 Visionary Research Inc.   All rights reserved.
 #  			legal@visionary-research.com
@@ -59,11 +60,13 @@ $pgmname [<options>] [file]
   --unxhist     unxhist (i.e. clean) xhist instrumentation found in stdin, 
                 and write cleaned data stream to stdout.
   --dbg	        turn on xhist instrumentation debug output
+  --funcs_only  add xhist instrumentation to function calls only
 __END__
 
 # parse commandline options
 my %opt = ();
-GetOptions( \%opt, "help", "verbose", "unxhist", "xhist_map=s", "fname=s", "dbg") or die $help_msg;
+GetOptions( \%opt, "help", "verbose", "unxhist", "xhist_map=s", "fname=s", "dbg", "funcs_only") 
+	or die $help_msg;
 die "$help_msg" if defined $opt{'help'};
     
 my $inbuf;

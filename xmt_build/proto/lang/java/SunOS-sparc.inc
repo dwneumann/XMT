@@ -25,6 +25,10 @@
 #*  limitations under the License. 
 #************************************************************************
 
+ifdef do_vars
+#************************************************************************
+# DO ALL VARIABLE ASSIGNMENTS HERE
+#************************************************************************
 
 #**********************************************************************
 # define program paths...
@@ -49,34 +53,11 @@ LIB_SFX.java.SunOS-sparc	:= .jar
 EXE_PFX.java.SunOS-sparc	:= 
 EXE_SFX.java.SunOS-sparc	:= 
 
-#**********************************************************************
-# rule for java files without namespace heirarchy
-#**********************************************************************
-$(OBJDIR)/%.class: $(SRCDIR)/%.java
-	@mkdir -p $(OBJDIR)/$(JAVA_PKGROOT);
-	@echo	$(CFLAGS) $(CFLAGS.java) $(CFLAGS.java.$(ARCH)) > $(OBJDIR)/$@.cflags ;
-	$(COMPILE.java.$(ARCH))	@$(OBJDIR)/$@.cflags $< 
-
-#**********************************************************************
-# rule for java files with namespace heirarchy of arbitrary depth
-#**********************************************************************
-$(JAVA_PKGROOT)/%.class: subdirs=$(patsubst $(JAVA_PKGROOT)/%,%,$(dir $@))
-$(JAVA_PKGROOT)/%.class: $(SRCDIR)/$(JAVA_PKGROOT)/%.java
-	( mkdir -p $(OBJDIR)/$(JAVA_PKGROOT)/$(subdirs);\
-	echo  $(CFLAGS) $(CFLAGS.java) $(CFLAGS.java.$(ARCH)) > \
-	$(OBJDIR)/$(JAVA_PKGROOT)/$(subdirs)/$(notdir $@).cflags ;\
-	$(COMPILE.java.$(ARCH)) @$(OBJDIR)/$(JAVA_PKGROOT)/$(subdirs)/$(notdir $@).cflags $<;\
-	)
-
-$(DOCDIR)/%.html: $(SRCDIR)/$(JAVA_PKGROOT)/%.java
-	cd $(DOCDIR); $(DOC.java.$(ARCH)) $(DOCFLAGS) $(DOCFLAGS.java) $(DOCFLAGS.java.$(ARCH)) $<
-
-.lib.$(LANGUAGE):	$(TGTDIR)/$(LIB_NM)
-.lib.$(LANGUAGE):	$(TGTDIR)/$(LIB_NM)
-$(TGTDIR)/$(LIB_NM): $(objs.$(LANGUAGE)) 
-	(cd $(OBJDIR);  \
-	echo $(ARFLAGS) $(ARFLAGS.$(LANGUAGE)) $(ARFLAGS.$(LANGUAGE).$(ARCH)) > $(LIB_NM).arflags;\
-	$(AR.$(LANGUAGE).$(ARCH)) @$(LIB_NM).arflags $(LIB_NM) $(objs.$(LANGUAGE)) $(EXTRA_OBJS);)
-	-/bin/mv $(OBJDIR)/$(LIB_NM) $(TGTDIR)/$(LIB_NM)
+ifdef do_vars
+#************************************************************************
+# DO ALL VARIABLE ASSIGNMENTS HERE
+#************************************************************************
 
 
+#************************************************************************
+endif

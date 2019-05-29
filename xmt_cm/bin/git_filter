@@ -35,6 +35,7 @@
 #		  	 $ XhistMap: /tmp/<Tag>-<BuildNum>-<Branch>.xmap $ 
 #
 #		--xhist && --unxhist :
+#		--funcs_only
 #		  instruments files to capture execution history by xhist.
 #		  See xmt_xhist/README for explanation.
 #
@@ -63,6 +64,7 @@
 #	 --xhist=<branchspec> only if in a branch matching regex pattern <branchspec>,
 #	 		instrument files for execution history capture on checkout.
 #	 --xhist	is equivalent to --xhist='.*'
+#	 --funcs_only	add xhist instrumentation to function calls only`
 #	 --xhist_map=pathname	write execution history filename map to <pathname>.
 #	 --xtest=<branchspec> only if in a branch matching regex pattern <branchspec>,
 #	 		instrument files for whitebox test on checkout.
@@ -134,6 +136,7 @@ $::pgmname [<options>] [file]
   --xhist=<branchspec> only if in a branch matching regex pattern <branchspec>,
                 instrument files for execution history capture on checkout.
   --xhist       is equivalent to --xhist='.*'
+  --funcs_only  add xhist instrumentation to function calls only`
   --xhist_map=pathname  write execution history filename map to <pathname>.
   --xtest=<branchspec> only if in a branch matching regex pattern <branchspec>,
                 instrument files for whitebox test on checkout.
@@ -153,7 +156,7 @@ __END__
 my %opt = ();
 GetOptions( \%opt, "help", "verbose", "list:s@", "binary", "process", "debug", 
 	    "expand:s", "unexpand:s", 
-	    "xhist:s", "unxhist:s", "xhist_map=s", "fname=s",
+	    "xhist:s", "unxhist:s", "funcs_only", "xhist_map=s", "fname=s",
 	    "xtest:s", "unxtest:s" ) 
 	    or die $help_msg;
 

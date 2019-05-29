@@ -25,81 +25,39 @@
 #*  limitations under the License. 
 #************************************************************************
 
-
 ifdef do_vars
 #************************************************************************
 # DO ALL VARIABLE ASSIGNMENTS HERE
 #************************************************************************
 
-
 #**********************************************************************
 # define program paths...
 #**********************************************************************
-COMPILE.$l.SunOS-sparc	:= /usr/local/bin/g++
-LD.$l.SunOS-sparc	:= $(COMPILE.$l.SunOS-sparc)
-AR.$l.SunOS-sparc	:= $(COMPILE.$l.SunOS-sparc)
-LINT.$l.SunOS-sparc	:= echo /usr/ucb/lint not installed
-DOC.$l.SunOS-sparc	:= $(XMTBUILD)/bin/srcdoc 
+COMPILE.java.android	:= javac
+LD.java.android	:= /bin/true
+AR.java.android	:= jar
+LINT.java.android	:= echo no lint installed for Java
+DOC.java.android	:= javadoc
 
 #**********************************************************************
-# This is the place to define default flags that are specific to THIS 
-# platform and THIS language.
+# This is the place to define flags that are specific to THIS language
+# when compiled for THIS architecture.
 #**********************************************************************
-CFLAGS.$l.SunOS-sparc	:= -Wall -fpic
-LDFLAGS.$l.SunOS-sparc	:= -Wall 
-ARFLAGS.$l.SunOS-sparc	:= -Wall -shared
-LINTFLAGS.$l.SunOS-sparc	 = $(CFLAGS.cc.SunOS-sparc)
-DOCFLAGS.$l.SunOS-sparc	:= 
-LIB_PFX.$l.SunOS-sparc	:= lib
-LIB_SFX.$l.SunOS-sparc	:= .so
-EXE_PFX.$l.SunOS-sparc	:= 
-EXE_SFX.$l.SunOS-sparc	:= 
-
+CFLAGS.java.android     += -cp .:$(OBJDIR):$(ANDROID_HOME)/platforms/android-$(MIN_ANDROID_API)/android.jar
+LDFLAGS.java.android	=
+ARFLAGS.java.android	=
+LINTFLAGS.java.android  =
+DOCFLAGS.java.android	=
+LIB_PFX.java.android	:= 
+LIB_SFX.java.android	:= .jar
+EXE_PFX.java.android	:= 
+EXE_SFX.java.android	:= 
 
 endif
 ifdef do_rules
 #************************************************************************
 # DO TARGET RULE OVERRIDES HERE
 #************************************************************************
-
-
-
-$(OBJDIR)/%.o	: %.S
-	@echo $(CFLAGS) $(CFLAGS.c) $(CFLAGS.c.$(ARCH)) > $@.cflags ; 
-	$(COMPILE.c.$(ARCH)) @$@.cflags $< 
-
-$(OBJDIR)/%.o	: %.s
-	@echo $(CFLAGS) $(CFLAGS.c) $(CFLAGS.c.$(ARCH)) > $@.cflags ; 
-	$(COMPILE.c.$(ARCH)) @$@.cflags $< 
-
-$(OBJDIR)/%.o	: %.c
-	@echo $(CFLAGS) $(CFLAGS.c) $(CFLAGS.c.$(ARCH)) > $@.cflags ; 
-	$(COMPILE.c.$(ARCH)) @$@.cflags $< 
-
-$(OBJDIR)/%.i	: /%.c
-	@echo -E $(CFLAGS) $(CFLAGS.c) $(CFLAGS.c.$(ARCH)) > $@.cflags ; 
-	$(COMPILE.c.$(ARCH)) @$@.cflags $< 
-
-$(OBJDIR)/%.ln	: %.c
-	@echo $(LINTFLAGS) $(LINTFLAGS.c) $(LINTFLAGS.c.$(ARCH)) > $@.lintflags ; 
-	$(LINT.c.$(ARCH)) @$@.lintflags $< 
-
-$(DOCDIR)/%.html: $(SRCDIR)/%.c
-	@echo $(DOCFLAGS) $(DOCFLAGS.c) $(DOCFLAGS.c.$(ARCH)) > $@.docflags ; 
-	$(DOC.c.$(ARCH)) @$@.docflags $< 
-
-.lib.$(LANGUAGE):	$(TGTDIR)/$(LIB_NM)
-$(LIB_NM): $(TGTDIR)/$(LIB_NM)
-$(TGTDIR)/$(LIB_NM): $(objs.$(LANGUAGE)) $(EXTRA_OBJS)
-	@echo 	$(ARFLAGS) $(ARFLAGS.$(LANGUAGE)) $(ARFLAGS.$(LANGUAGE).$(ARCH)) > $@.arflags;
-	$(AR.$(LANGUAGE).$(ARCH)) @$@.arflags $@ $^ 	
-
-.exe.$(LANGUAGE):	$(TGTDIR)/$(EXE_NM)
-$(EXE_NM): $(TGTDIR)/$(EXE_NM)
-$(TGTDIR)/$(EXE_NM): $(objs.$(LANGUAGE)) $(EXTRA_OBJS) 
-	@echo $(LDFLAGS) $(LDFLAGS.$(LANGUAGE)) $(LDFLAGS.$(LANGUAGE).$(ARCH)) > $@.ldflags;
-	$(LD.$(LANGUAGE).$(ARCH)) @$@.ldflags $^ \
-	    $(LIBS) $(LIBS.$(LANGUAGE)) $(LIBS.$(LANGUAGE).$(ARCH)) 
 
 
 #************************************************************************

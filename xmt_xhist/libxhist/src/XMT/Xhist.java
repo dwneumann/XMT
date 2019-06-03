@@ -222,11 +222,14 @@ public final class Xhist
 	    
 	    for (index = 0; index < XhistMaxThreads; index++)
 	    {
-		logStream.writeInt(threadIds[index]);
-		logStream.writeInt(tails[index]);
-		for (i = 0; i < historyTbl[index].length; i++)
+		if (threadIds[index] > 0)	//  only write non-empty threads
 		{
-		    logStream.writeInt(historyTbl[index][i]);
+		    logStream.writeInt(threadIds[index]);
+		    logStream.writeInt(tails[index]);
+		    for (i = 0; i < historyTbl[index].length; i++)
+		    {
+			logStream.writeInt(historyTbl[index][i]);
+		    }
 		}
 	    }
 	    logStream.close();

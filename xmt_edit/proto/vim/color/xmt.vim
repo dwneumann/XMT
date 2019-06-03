@@ -25,13 +25,13 @@ hi StatusLineNC term=NONE cterm=NONE ctermfg=fg ctermbg=LightGrey gui=NONE guifg
 hi VertSplit term=NONE cterm=NONE ctermfg=Black ctermbg=LightGrey gui=NONE guifg=Black guibg=LightGrey
 
 " Highlighted
-hi CursorColor term=NONE cterm=NONE ctermfg=NONE ctermbg=236 gui=NONE guifg=white guibg=DarkCyan
-hi iCursorColor term=NONE cterm=NONE ctermfg=NONE ctermbg=236 gui=NONE guifg=white guibg=Cyan
+hi CursorColor term=NONE cterm=NONE ctermfg=Yellow ctermbg=NONE gui=NONE guifg=white guibg=DarkCyan
+hi iCursorColor term=NONE cterm=NONE ctermfg=Yellow ctermbg=NONE gui=NONE guifg=Yellow guibg=Cyan
 hi Directory term=NONE cterm=NONE ctermfg=69 ctermbg=NONE gui=NONE guifg=#5F87FF guibg=NONE
 hi ErrorMsg term=NONE cterm=NONE ctermfg=fg ctermbg=52 gui=NONE guifg=fg guibg=#5F0000
 hi Error term=NONE cterm=NONE ctermfg=fg ctermbg=52 gui=NONE guifg=fg guibg=#5F0000
 hi IncSearch term=NONE cterm=NONE ctermfg=Black ctermbg=green gui=NONE guifg=Black guibg=green
-hi MatchParen term=NONE cterm=NONE ctermfg=White ctermbg=DarkCyan gui=NONE guifg=White guibg=DarkCyan
+hi MatchParen term=NONE cterm=NONE ctermfg=Cyan ctermbg=NONE gui=NONE guifg=Cyan guibg=NONE
 hi ModeMsg term=NONE cterm=NONE ctermfg=69 ctermbg=NONE gui=NONE guifg=#5F87FF guibg=NONE
 hi MoreMsg term=NONE cterm=NONE ctermfg=69 ctermbg=NONE gui=NONE guifg=#5F87FF guibg=NONE
 hi PmenuSel term=NONE cterm=NONE ctermfg=Black ctermbg=13 gui=NONE guifg=Black guibg=#FF00FF
@@ -52,10 +52,10 @@ hi Visual term=reverse cterm=reverse ctermfg=NONE ctermbg=NONE gui=reverse guifg
 hi VisualNOS term=reverse,underline cterm=reverse,underline ctermfg=NONE ctermbg=NONE gui=reverse,underline guifg=NONE guibg=NONE
 
 " Diff
-hi DiffAdd term=NONE cterm=NONE ctermfg=2 ctermbg=NONE gui=NONE guifg=#008000 guibg=NONE
-hi DiffChange term=NONE cterm=NONE ctermfg=3 ctermbg=NONE gui=NONE guifg=#808000 guibg=NONE
-hi DiffDelete term=NONE cterm=NONE ctermfg=1 ctermbg=NONE gui=NONE guifg=#800000 guibg=NONE
-hi DiffText term=NONE cterm=NONE ctermfg=4 ctermbg=NONE gui=NONE guifg=#000080 guibg=NONE
+hi DiffAdd term=NONE cterm=NONE ctermfg=2 ctermbg=NONE gui=NONE guifg=NONE guibg=#000F00
+hi DiffChange term=NONE cterm=NONE ctermfg=3 ctermbg=NONE gui=NONE guifg=NONE guibg=#0F0F00
+hi DiffDelete term=NONE cterm=NONE ctermfg=1 ctermbg=NONE gui=NONE guifg=NONE guibg=#0F0000
+hi DiffText term=NONE cterm=NONE ctermfg=4 ctermbg=NONE gui=NONE guifg=NONE guibg=NONE
 
 " Spell
 hi SpellBad term=underline cterm=underline ctermfg=13 ctermbg=NONE gui=underline guifg=#FF00FF guibg=NONE

@@ -69,21 +69,21 @@ public final class Xhist
     private static final String id = "@(#) XMT.Xhist $Version:$";
     private static final int	XhistMaxHistory	= 1000;	// max history depth per thread 
     private static final int	XhistMaxThreads	= 20;	// max number of threads to keep history for
-    private static String buildTag;	// buildTag of instrumented source
-    private static String mapFn;	// mapping file used during instrumentation
+    private static String buildTag;			// buildTag of instrumented source
+    private static String mapFn;			// mapping file used during instrumentation
     private static volatile int[][] historyTbl	= new  int[XhistMaxThreads][XhistMaxHistory];
-    private static volatile int[] threadIds	= new  int[XhistMaxThreads]; // map of threadIds to columns
+    private static volatile int[] threadIds	= new  int[XhistMaxThreads]; // threadId to column map
     private static volatile short[] tails	= new  short[XhistMaxThreads]; //initial values =0
     private static ThreadLocal<Integer> myTblIndex = ThreadLocal.withInitial(() -> -1);
     private static volatile DataOutputStream logStream	= null;
 
 
     /**
-    * initializes xhist execution history logging.
-    * @param	logFn		pathname of trace log to write to
-    * @param	mapFn		pathname of mapFile to store in trace log
-    * @param	version		source build tag to store in trace log
-    */
+     * initializes xhist execution history logging.
+     * @param	logFn		pathname of trace log to write to
+     * @param	mapFn		pathname of mapFile to store in trace log
+     * @param	version		source build tag to store in trace log
+     */
     public static synchronized boolean init( String logFn, String mapFn, String version ) 
     {
 	DataOutputStream	fd	= null;
@@ -140,39 +140,38 @@ public final class Xhist
     }
 
     /**
-    * deinitializes Xhist for the current thread 
-    * (called during cleanup of crashed thread, before restarting a new thread).
-    */
+     * deinitializes Xhist for the current thread 
+     * (called during cleanup of crashed thread, before restarting a new thread).
+     */
     public static synchronized void deinit() 
     {
 	threadIds[myTblIndex.get()] = 0;// release this column index for reuse
 	myTblIndex.set( -1 );		// instrumenting this thread becomes a no-op
-
     }
 
     /**
-    * sets the build tag of the instrumented source to write into the trace file.
-    * @param	s	build tag of the instrumented source
-    */
+     * sets the build tag of the instrumented source to write into the trace file.
+     * @param	s	build tag of the instrumented source
+     */
     public	static void version( String s ) 
     {
 	buildTag = s;
     }
 
     /**
-    * sets the the name of the mapfile needed to decode the file numbers
-    * recorded in the table.
-    * @param	s	filename of mapfile used during instruentation
-    */
+     * sets the the name of the mapfile needed to decode the file numbers
+     * recorded in the table.
+     * @param	s	filename of mapfile used during instruentation
+     */
     public	static void mapfile( String s ) 
     {
 	mapFn = s;
     }
 
     /**
-    * Sets the stream to export the execution history to. 
-    * @param	fd	DatOutputStream to write output to
-    */
+     * Sets the stream to export the execution history to. 
+     * @param	fd	DatOutputStream to write output to
+     */
     public	static void logdev( DataOutputStream fd ) 
     { 
 	logStream = fd;
@@ -180,11 +179,11 @@ public final class Xhist
 
 
     /**
-    * Appends (filenum, linenum) to execution history log.
-    * This function call gets appended to every exeutable statement so it must be O(1).
-    * @param	fnum		filename hash (mapping stored in mapfile())
-    * @param	lnum		line number just executed
-    */
+     * Appends (filenum, linenum) to execution history log.
+     * This function call gets appended to every exeutable statement so it must be O(1).
+     * @param	fnum		filename hash (mapping stored in mapfile())
+     * @param	lnum		line number just executed
+     */
     public	static void add( int fnum,  int lnum ) 
     { 
 	int	index, tail;
@@ -200,49 +199,71 @@ public final class Xhist
 
 
     /**
-    * Writes in-memory table to the stream specified via logdev().
-    * Squashes exceptions thrown while attempting to write.
-    */
+     * Writes in-memory table to the stream specified via logdev().
+     * Squashes exceptions thrown while attempting to write.
+     */
     public static void write() 
+    {
+	writeToStream(logStream);
+    }
+
+    /**
+     * Writes in-memory table to byte array.
+     * @return the data of in-memory table in form of the byte array.
+     */
+    public static byte[] writeToByteArray()
+    {
+	    ByteArrayOutputStream byteArrayOutputStream = new ByteArrayOutputStream();
+	    DataOutputStream dataOutputStream = new DataOutputStream(byteArrayOutputStream);
+	    writeToStream(dataOutputStream);
+	    return byteArrayOutputStream.toByteArray();
+    }
+
+
+    /**
+     * Writes in-memory table to the stream specified via logdev().
+     * Squashes exceptions thrown while attempting to write.
+     */
+    public static void writeToStream(DataOutputStream stream) 
     {
 	int	i, index;
 	try 
 	{
 
 	    /*
-	    *  write 4 bytes containing the file format magic number 5.
-	    *  This allows the xhist_report program to determine the byte order of the writer.
-	    *  (xhist_report is agnostic to the language and architecture of the writer).
-	    *  Then write the depth of the histry table.
-	    */
+	     *  write 4 bytes containing the file format magic number 5.
+	     *  This allows the xhist_report program to determine the byte order of the writer.
+	     *  (xhist_report is agnostic to the language and architecture of the writer).
+	     *  Then write the depth of the histry table.
+	     */
 
-	    logStream.writeInt(5);
-	    logStream.writeInt(XhistMaxHistory);
+	    stream.writeInt(5);
+	    stream.writeInt(XhistMaxHistory);
 
 	    /*
-	    *  now write the length & name of the map file created during instrumentation
-	    *  and the length & build tag of the instrumented source
-	    */
-	    logStream.writeUTF(mapFn);
-	    logStream.writeUTF(buildTag);
+	     *  now write the length & name of the map file created during instrumentation
+	     *  and the length & build tag of the instrumented source
+	     */
+	    stream.writeUTF(mapFn);
+	    stream.writeUTF(buildTag);
 	    
 	    /*
-	    *  now write the history table one thread at a time
-	    */
+	     *  now write the history table one thread at a time
+	     */
 	    
 	    for (index = 0; index < XhistMaxThreads; index++)
 	    {
 		if (threadIds[index] > 0)	//  only write non-empty threads
 		{
-		    logStream.writeInt(threadIds[index]);
-		    logStream.writeInt(tails[index]);
+		    stream.writeInt(threadIds[index]);
+		    stream.writeInt(tails[index]);
 		    for (i = 0; i < historyTbl[index].length; i++)
 		    {
-			logStream.writeInt(historyTbl[index][i]);
+			stream.writeInt(historyTbl[index][i]);
 		    }
 		}
 	    }
-	    logStream.close();
+	    stream.close();
 	} 
 	catch (IOException ioe) 
 	{

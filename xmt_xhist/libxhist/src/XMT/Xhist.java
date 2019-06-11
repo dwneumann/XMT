@@ -84,7 +84,8 @@ public final class Xhist
     * @param	mapFn		pathname of mapFile to store in trace log
     * @param	version		source build tag to store in trace log
     */
-    public static synchronized boolean init( String logFn, String mapFn, String version ) {
+    public static synchronized boolean init( String logFn, String mapFn, String version ) 
+    {
 	DataOutputStream	fd	= null;
 	int			myId, i;
     
@@ -142,15 +143,19 @@ public final class Xhist
     * deinitializes Xhist for the current thread 
     * (called during cleanup of crashed thread, before restarting a new thread).
     */
-    public static synchronized void deinit() {
-	myTblIndex.set( 0 );	//  release this column index for reuse
+    public static synchronized void deinit() 
+    {
+	threadIds[myTblIndex.get()] = 0;// release this column index for reuse
+	myTblIndex.set( -1 );		// instrumenting this thread becomes a no-op
+
     }
 
     /**
     * sets the build tag of the instrumented source to write into the trace file.
     * @param	s	build tag of the instrumented source
     */
-    public	static void version( String s ) {
+    public	static void version( String s ) 
+    {
 	buildTag = s;
     }
 
@@ -159,7 +164,8 @@ public final class Xhist
     * recorded in the table.
     * @param	s	filename of mapfile used during instruentation
     */
-    public	static void mapfile( String s ) {
+    public	static void mapfile( String s ) 
+    {
 	mapFn = s;
     }
 
@@ -167,7 +173,8 @@ public final class Xhist
     * Sets the stream to export the execution history to. 
     * @param	fd	DatOutputStream to write output to
     */
-    public	static void logdev( DataOutputStream fd ) { 
+    public	static void logdev( DataOutputStream fd ) 
+    { 
 	logStream = fd;
     }
 
@@ -178,7 +185,8 @@ public final class Xhist
     * @param	fnum		filename hash (mapping stored in mapfile())
     * @param	lnum		line number just executed
     */
-    public	static void add( int fnum,  int lnum ) { 
+    public	static void add( int fnum,  int lnum ) 
+    { 
 	int	index, tail;
 
 	index = myTblIndex.get();	// retrieve my ThreadLocal table index
@@ -195,9 +203,11 @@ public final class Xhist
     * Writes in-memory table to the stream specified via logdev().
     * Squashes exceptions thrown while attempting to write.
     */
-    public static void write() {
+    public static void write() 
+    {
 	int	i, index;
-	    try {
+	try 
+	{
 
 	    /*
 	    *  write 4 bytes containing the file format magic number 5.
@@ -233,7 +243,9 @@ public final class Xhist
 		}
 	    }
 	    logStream.close();
-	} catch (IOException ioe) {
+	} 
+	catch (IOException ioe) 
+	{
 		; /* Fail silently */
 	}
     }

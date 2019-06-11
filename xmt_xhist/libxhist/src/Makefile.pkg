@@ -51,7 +51,7 @@ xhist-java-linux:
 	    srcs.java="$(SRCDIR)/XMT/Xhist.java $(SRCDIR)/XMT/Signals.java" lib
 
 xhist-java-android:
-	$(MAKE) LANGUAGE=java ARCH=android MIN_ANDROID_API=15 		\
+	$(MAKE) LANGUAGE=java ARCH=android MIN_ANDROID_API=23 		\
 	    srcs.java="$(SRCDIR)/XMT/Xhist.java  			\
 			$(SRCDIR)/XMT/android/IntentReceiver.java 	\
 			$(SRCDIR)/XMT/android/Intents.java" lib

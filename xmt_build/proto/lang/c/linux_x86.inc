@@ -24,11 +24,6 @@
 #*  limitations under the License. 
 #************************************************************************
 
-ifdef do_vars
-#************************************************************************
-# DO ALL VARIABLE ASSIGNMENTS HERE
-#************************************************************************
-
 
 #**********************************************************************
 # define program paths...
@@ -54,36 +49,30 @@ LINTFLAGS.c.linux_x86	+= $(CFLAGS.c.linux_x86)
 DOCFLAGS.c.linux_x86	+= 
 
 
-endif
-ifdef do_rules
-#************************************************************************
-# DO TARGET RULE OVERRIDES HERE
-#************************************************************************
-
 
 $(OBJDIR)/%.o	: %.S
 	@echo $(CFLAGS) $(CFLAGS.c) $(CFLAGS.c.$(ARCH)) > $@.cflags ; 
-	$(COMPILE.c.$(ARCH)) @$@.cflags $^ 
+	$(COMPILE.c.$(ARCH)) @$@.cflags $< 
 
 $(OBJDIR)/%.o	: %.s
 	@echo $(CFLAGS) $(CFLAGS.c) $(CFLAGS.c.$(ARCH)) > $@.cflags ; 
-	$(COMPILE.c.$(ARCH)) @$@.cflags $^ 
+	$(COMPILE.c.$(ARCH)) @$@.cflags $< 
 
 $(OBJDIR)/%.o	: %.c
 	@echo $(CFLAGS) $(CFLAGS.c) $(CFLAGS.c.$(ARCH)) > $@.cflags ; 
-	$(COMPILE.c.$(ARCH)) @$@.cflags $^ 
+	$(COMPILE.c.$(ARCH)) @$@.cflags $< 
 
 $(OBJDIR)/%.i	: /%.c
 	@echo -E $(CFLAGS) $(CFLAGS.c) $(CFLAGS.c.$(ARCH)) > $@.cflags ; 
-	$(COMPILE.c.$(ARCH)) @$@.cflags $^ 
+	$(COMPILE.c.$(ARCH)) @$@.cflags $< 
 
 $(OBJDIR)/%.ln	: %.c
 	@echo $(LINTFLAGS) $(LINTFLAGS.c) $(LINTFLAGS.c.$(ARCH)) > $@.lintflags ; 
-	$(LINT.c.$(ARCH)) @$@.lintflags $^ 
+	$(LINT.c.$(ARCH)) @$@.lintflags $< 
 
 $(DOCDIR)/%.html: $(SRCDIR)/%.c
 	@echo $(DOCFLAGS) $(DOCFLAGS.c) $(DOCFLAGS.c.$(ARCH)) > $@.docflags ; 
-	$(DOC.c.$(ARCH)) @$@.docflags $^ 
+	$(DOC.c.$(ARCH)) @$@.docflags $< 
 
 .lib.$(LANGUAGE):	$(TGTDIR)/$(LIB_NM)
 $(LIB_NM): $(TGTDIR)/$(LIB_NM)
@@ -96,10 +85,7 @@ $(EXE_NM): $(TGTDIR)/$(EXE_NM)
 $(TGTDIR)/$(EXE_NM): $(objs.$(LANGUAGE)) $(EXTRA_OBJS) 
 	@echo $(LDFLAGS) $(LDFLAGS.$(LANGUAGE)) $(LDFLAGS.$(LANGUAGE).$(ARCH)) > $@.ldflags;
 	$(LD.$(LANGUAGE).$(ARCH)) @$@.ldflags $^ \
-	    $(LIBS) $(LIBS.$(LANGUAGE)) $(LIBS.$(LANGUAGE).$(ARCH)) $(LD.append)
+	    $(LIBS) $(LIBS.$(LANGUAGE)) $(LIBS.$(LANGUAGE).$(ARCH)) 
 
 
 
-
-#************************************************************************
-endif

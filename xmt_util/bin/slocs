@@ -1,4 +1,4 @@
-#!/usr/bin/env perl
+#!/usr/bin/perl -w
 #************************************************************************
 #*   $Version:$
 #*   Package	: xmt_util
@@ -83,5 +83,4 @@ foreach $f ( @srcs )
 
 close(CMD);
 exit 0;
-
 

@@ -1,36 +1,25 @@
-#!/usr/bin/env perl
+#!/bin/perl -w
 use strict;
 use Getopt::Long;
 use Env;
 
 (my $pgmname = $0) =~ s{.*/}{};
-my $usage	= "usage: $pgmname [--help] [--noiut] --lang=[c|java]\n";
+my $usage	= "usage: $pgmname [--help] --language=[c|java]\n";
 my %opt = ();
-GetOptions( \%opt, "help", "noiut", "lang=s" ) or die "$usage";
-die "$usage" if defined $opt{'help'} or !defined $opt{'lang'};
+GetOptions( \%opt, "help", "language=s" ) or die "$usage";
+die "$usage" if defined $opt{'help'} or !defined $opt{'language'};
 
-my $pgm = ($opt{'lang'} eq "c" ?  "$XMTXHIST/test/mesh/$T/mesh" : 
+my $pgm = ($opt{'language'} eq "c" ?  "$XMTXHIST/test/mesh/$T/mesh" : 
 	    "java -cp $XMTXHIST/test/mesh/$T/Mesh.jar:$XMTXHIST/libxhist/$T/Xhist.jar Mesh" );
-my $baseport = 10000;
-my $numnodes = 8;
+my @ports = (10000, 10001, 10002, 10003, 10004, 10005);
 my @children;
 
-# cleanup files from past tests
-unlink glob('./*.out');
-unlink glob('./*.xhist');
-
-# start new test
-foreach my $nodenum (0 .. $numnodes)	
+foreach my $i (1 .. 5)	# do not spawn node 0; only all others.
 {
-    next if ($nodenum == 0 && defined $opt{noiut});	# do not spawn iut; only all others.
-
     my $pid = fork();
-
-    my $p = $baseport + $nodenum;
-    print "forked node $p\n";
     if ($pid == 0)	# child
     {
-	my $cmd = "$pgm $nodenum $baseport $numnodes" . " > " . $nodenum . ".out";
+	my $cmd = "$pgm $i " . join( ' ', @ports) . " > " . $ports[$i] . ".out";
 	exec($cmd);
     }
     else		# parent
@@ -38,8 +27,3 @@ foreach my $nodenum (0 .. $numnodes)
         push @children, $pid;
     }
 }
-
-# prompt user, wait for input then reap children
-printf("press enter to terminate $numnodes child processes...");
-my $s = <STDIN>;
-kill 'INT', @children;

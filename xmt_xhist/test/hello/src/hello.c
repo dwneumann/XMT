@@ -1,6 +1,9 @@
+#ifdef XHIST 
+#include "xhist.h" 
+#endif  
 /************************************************************************ 
 *   Package	: libxhist 
-*   $Version:$ 
+*   $Version: meshtest-1.0-44 [develop] $ 
 *    Copyright 2018 Visionary Research Inc.   All rights reserved. 
 *    			legal@visionary-research.com 
 *    Licensed under the Apache License, Version 2.0 (the "License");
@@ -19,56 +22,49 @@
 #define __hello_c 
  
 #ifdef EMBED_REVISION_STRINGS 
-static const char hello_c_id[] = "@(#) libxhist::hello.c	$Version:$";
+static const char hello_c_id[] = "@(#) libxhist::hello.c	$Version: meshtest-1.0-44 [develop] $";
 #endif 
  
+#ifdef XHIST 
+#include <sys/types.h> 
 #include <stdlib.h> 
 #include <stdio.h> 
+#include <fcntl.h> 
+#include <signal.h> 
 #include <unistd.h> 
-#include <sys/syscall.h>
-#include <pthread.h>
-
-#ifdef XHIST 
 #include "xhist.h" 
 #endif  
-
-#define NUM_THREADS	10
+ 
 void foo();
-void *thread_main(void *arg);
-
-/* xhist instrument FALSE */
+ 
 int main(int argc, char *argv[]) 
 {
-    int i = 0;
-    pthread_t thr[NUM_THREADS];
-
-    for (i = 0; i < NUM_THREADS; i++)	// thread loop
-    {
-        pthread_create(&thr[i], NULL, thread_main, NULL);
-    }
-
-    for (i = 0; i < NUM_THREADS; i++)	// thread loop
-    {
-	pthread_join(thr[i], NULL); // wait for all threads to complete
-    }
-}
-/* xhist instrument TRUE */
-
-void *thread_main(void *arg) 
-{
-    int	i;
  
-    /* <xhist init> */
+#ifdef XHIST 
+/* xhist instrument FALSE */
+    int i, fd;
  
-    for (i = 0; i < 5; i++)
+    if ((fd=open("hello.trace", O_RDWR|O_CREAT, 0644)) < 0) 
     { 
-	sleep(1);	
-	foo();	
+        perror(XHIST_LOGFILE);
+	exit(1);
     } 
-    return( 0 );
+    xhist_logdev(fd);
+    xhist_mapfile("$XhistMap: /home/dean/Documents/XMT/xmt_xhist/test/hello/src/../test/cHello.map $");
+    xhist_version("$Version: meshtest-1.0-44 [develop] $");
+    signal(SIGUSR1, xhist_write);
+/* xhist instrument TRUE */
+#endif 
+ 
+    for (i = 0; i < 10; i++)
+    { 
+	sleep(1);	_XH_ADD( 65024, 61 );
+	foo();	_XH_ADD( 65024, 62 );
+    } 
+    xhist_write();	_XH_ADD( 65024, 64 );
 }
 
 void foo()
 {
-    printf("hello from thread %d\n", (int) syscall(SYS_gettid));
+    printf("hello foo (C version)\n");_XH_ADD( 65024, 69 );
 }

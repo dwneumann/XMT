@@ -22,7 +22,7 @@
 $copyright =~ s/\n*$//;
 $copyright =~ s/\n/\n#   /g; 
 print 
-qq{#!/bin/perl -w
+qq{#!/usr/bin/env perl 
 #************************************************************************
 #   $cm->{rev}
 #   Package	: $module->{pkg}
@@ -34,6 +34,7 @@ qq{#!/bin/perl -w
 };
 
 print q{
+use strict;
 use Getopt::Long;
 use Env;
 

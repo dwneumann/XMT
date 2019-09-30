@@ -22,7 +22,7 @@ set nohlsearch
 auto BufEnter * let &titlestring = expand("%")
 let $FQN = expand("%")
 let &titleold=getcwd()
-let $TMP="c:/Temp"
+let $TMP="/tmp"
 set magic
 
 " shell escapes should run bash open in the working directory
@@ -37,17 +37,17 @@ set shellslash
 " for gvim, set fontsize
 set guifont=consolas:h9
 
-" make cursor blinking cyan block (vertical bar in insert mode) in gui and xterm
-set guicursor=n-v-c:block-blinkon400-blinkoff400-CursorColor
-set guicursor+=i-r:ver25-blinkon400-blinkoff400-iCursorColor
+" make cursor blinking block (vertical bar in insert mode) in gui and xterm
+set guicursor=n-v-c:block-blinkon400-blinkoff200-CursorColor
+set guicursor+=i-r:ver25-blinkon400-blinkoff200-iCursorColor
 if &term =~ "xterm"
-  " insert mode ...
-  let &t_SI = "\<Esc>]12;DarkCyan\x7"
+ " insert mode ...
+  let &t_SI = "\<Esc>]12;Green\x7"
   let &t_SI .= "\<Esc>[5 q"
-  " normal mode ...
-  let &t_EI = "\<Esc>]12;DarkCyan\x7"
+ " normal mode ...
+  let &t_EI = "\<Esc>]12;Green\x7"
   let &t_EI .= "\<Esc>[1 q"
-  silent !echo -ne "\033]12;DarkCyan\007"
-  " reset cursor when vim exits
+  silent !echo -ne "\033]12;Green\007"
+ " reset cursor when vim exits
   autocmd VimLeave * silent !echo -ne "\033]112\007"
 endif

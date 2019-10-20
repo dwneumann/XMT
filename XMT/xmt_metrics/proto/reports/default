@@ -1,0 +1,65 @@
+{
+#************************************************************************
+#*  $Version:$
+#*  Package	: xmt_timesht
+#*  Synopsis	:
+#*  Purpose	: Perl block which, when eval'ed, 
+#*                formats an HTML page containing the TimeshtDB records
+#*                of the query results array @::query_results
+#*
+#*   Copyright (c) 1998	Neumann & Associates Information Systems Inc.
+#*   			legal.info@neumann-associates.com
+#*   Licensed under the Apache License, Version 2.0 (the "License");
+#*   you may not use this file except in compliance with the License.
+#*   You may obtain a copy of the License at http://www.apache.org/licenses/LICENSE-2.0
+#*   
+#*   Unless required by applicable law or agreed to in writing, software
+#*   distributed under the License is distributed on an "AS IS" BASIS,
+#*   WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+#*   See the License for the specific language governing permissions and
+#*   limitations under the License. 
+#************************************************************************
+
+my ($row, $k);
+my $numrows = $#::query_results; # 0-based
+
+print "
+    <HTML>
+    <HEAD><TITLE>XMT Timesheet Database Search Results</TITLE></HEAD>
+    <BODY>
+    <H2>Search Results</H2>
+    Query returned ", $numrows +1, " records\n";
+
+if ( $#::query_results >= 0 )
+{
+    my @colnames = (keys %{$::query_results[0]});
+
+    print "
+    <HR>
+    <CENTER> <TABLE BORDER=1>
+    <TR ALIGN=CENTER>"; 
+    
+    foreach $k (@colnames)
+    {
+	print "<TD> <B>$k</B></TD>\n";
+    }
+
+    print "</TR>\n";
+
+    foreach $row ( 0 .. $numrows )
+    {
+	print "<TR>\n";
+	foreach $k (@colnames)
+	{
+	    print "<TD> " .
+		    $::query_results[$row]{$k} . " </TD>\n";
+	}
+	print "</TR>\n";
+    }
+
+    print "</TABLE></CENTER><P>";
+}
+print "
+    </BODY>
+    </HTML>\n";
+}

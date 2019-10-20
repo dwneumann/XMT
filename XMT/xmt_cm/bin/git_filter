@@ -1,0 +1,495 @@
+#!/usr/bin/env perl
+#************************************************************************
+#   $Version:$
+#   Package	: xmt_cm
+#   Purpose	: filter git blobs on checkout & commit:
+#		  1. expand (smudge) or unexpand (clean) keywords upon git checkout/commit.
+#		  2. instrument files for execution tracing upon git checkout.
+#		
+#		  1. expand (smudge) or unexpand (clean) keywords upon git checkout/commit
+#		  so that keywords of the form:	$keyword:$ 
+#		  are transformed into:		$keyword: value $
+#		  and vice-versa.
+#		  Keywords are as documented in "git log PRETTY FORMAT format:<string>"
+#		  The compound "Version" keyword expands to a fully qualified 
+#		  version identifier suitable for release identification.
+#		  	 $ Version: <Tag>-<BuildNum> [<Branch>] $ 
+#		  (see line 3 above for example).
+#   		  If a filename is specified, input is read from the named file,
+#		  otherwise input is read from stdin & written to stdout.
+#		  Alternatively, if the --process flag is specified, git_fiter operates 
+#		  as a long-running-process reading/writing Git Filter Protocol v2.
+#		  If the --list flag is specified, git_filter just prints keyword 
+#		  names & values to stdout, performing no substitution.
+#
+#		  2. instrument files for execution tracing upon git checkout.
+#		  instruments the files on checkout to capture execution history by xhist.
+#		  This is achieved by appending a write to a circular buffer after each
+#		  semicolon terminating an executable statment.
+#                 --xhist produces a map file at instrumentation time,
+#                 for use by xhist_report to reconstruct the collected
+#                 execution trace and present it in human-readable form.
+#                 The map file is specified by
+#		  --xhist_db=<pathname>
+#
+#   Synopsis	: git_filter [<options>] [file]
+#   	 --help		print help message & exit.
+#	 --expand=<branchspec> only if in a branch matching regex pattern <branchspec>,
+#	  	 	expand (i.e. smudge) all keywords of the form \$Keyword:\$ 
+#                       found in stdin and write substituted data stream to stdout.
+#                       (e.g.  git_filter --expand="release|test" )
+#	 --unexpand	unexpand (i.e. clean) all keyword values found in stdin, 
+#			and write cleaned data stream to stdout.
+#   	 --list		print expanded keyword values to stdout; do no substitution.
+#   	 --verbose	list keyword labels with their expanded values to stdout.
+#	 --binary      force substitutions in binary files; 
+#			by defualt substitution only occurs in ascii files.
+#	 --process      operate as a git long running process using Git filter protocol v2.
+#	 --fname=<pathspec>	read contents of file from STDIN but use <pathspec>
+#			as the file name for instrumentation purposes
+#	 --xhist=<branchspec> only if in a branch matching regex pattern <branchspec>,
+#	 		instrument files for execution history capture on checkout
+#	 --xhist_map=pathname	write execution history filename map to <pathname>.
+#	 --unxhist	unxhist (i.e. clean) xhist instrumentation found in stdin, 
+#			and write cleaned data stream to stdout.
+#	 --debug	write packet trace log to /tmp/git_filter.log
+#
+#  Copyright 2018 Visionary Research Inc.   All rights reserved.
+#  			legal@visionary-research.com
+#  Licensed under the Apache License, Version 2.0 (the "License");
+#  you may not use this file except in compliance with the License.
+#  You may obtain a copy of the License at http://www.apache.org/licenses/LICENSE-2.0
+#  
+#  Unless required by applicable law or agreed to in writing, software
+#  distributed under the License is distributed on an "AS IS" BASIS,
+#  WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+#  See the License for the specific language governing permissions and
+#  limitations under the License. 
+#************************************************************************
+
+use strict;
+
+# perl expects to find the required XMT modules installed into
+# the standard place that CPAN modules are installed:  
+# this is found by running perl -V:installsitelib
+# to instead use a develop version of the XMT::Xhist module
+# uncomment the following line.
+BEGIN {unshift(@INC, "$ENV{XMTXHIST}/bin");}
+use XMT::Xhist;
+
+use Getopt::Long;
+use Path::Tiny qw(path);
+use POSIX qw(strftime);
+
+(my $pgmname = $0) =~ s{.*/}{};	# rootname of executed script
+my %kw =  ( 
+	Branch		=> { code => '',	val => '' },
+	Tag		=> { code => '',	val => '' },
+	BuildNum	=> { code => '',	val => '' },
+	BuildDate	=> { code => '',	val => '' },
+	Version		=> { code => '',	val => '' },
+	XhistMap	=> { code => '',	val => '' },
+	CommitDate	=> { code => '%ci',	val => '' },
+	CommitSubject	=> { code => '%s',	val => '' },
+	Committer	=> { code => '%cn',	val => '' },
+	CommitId	=> { code => '%H',	val => '' },
+	AbbrevId	=> { code => '%h',	val => '' },
+	Signer		=> { code => '%GS',	val => '' },
+	SigStatus	=> { code => '%G?',	val => '' },
+	);
+my %kw_specified = ();
+
+# construct the help message
+my $help_msg = sprintf( <<__END__, join("\n                ", keys(%kw)) );
+$pgmname [<options>] [file]
+  --expand=<branchspec> only if in a branch matching regex pattern <branchspec>,
+                expand (i.e. smudge) all keywords of the form \$Keyword:\$ 
+                found in stdin and write substituted data stream to stdout.
+                (e.g.  git_filter --expand="release|test" )
+  --unexpand    unexpand (i.e. clean) all keyword values found in stdin, 
+                and write cleaned data stream to stdout
+  --list        print all recognized keyword values to stdout
+  --list [keyword,keyword, ...]  print specified keyword values to stdout
+                Recognized keywords include: 
+                %s
+  --verbose     list keyword labels with their expanded values to stdout
+  --binary     force substitutions in binary files; 
+                by defualt substitution only occurs in ascii files
+  --process     operate as a git long running process using Git filter protocol v2
+  --xhist=<branchspec> only if in a branch matching regex pattern <branchspec>,
+                instrument files for execution history capture on checkout
+  --xhist_map=pathname   write execution history filename map to <pathname>
+  --unxhist     unxhist (i.e. clean) xhist instrumentation found in stdin, 
+                and write cleaned data stream to stdout.
+  --fname=<pathspec>	read contents of file from STDIN but use <pathspec>
+                as the file name for instrumentation purposes
+  --debug       write packet trace log to /tmp/git_filter.log
+__END__
+
+# parse commandline options
+my %opt = ();
+GetOptions( \%opt, "help", "verbose", "expand=s", "unexpand", "list:s@", "binary", 
+	    "process", "debug", "xhist=s", "unxhist", "xhist_map=s", "fname=s") 
+	    or die $help_msg;
+
+# "expand", "unexpand" and "list" are mutually exclusive.
+# at least one of "expand", "unexpand", "list", "xhist" or "unxhist" must be present.
+# all other args are optional.
+die "$help_msg" if defined $opt{'help'};
+my @mutually_exclusive = map { /expand|unexpand|list/ ? $_ : () } keys %opt;
+die "$help_msg" if scalar(@mutually_exclusive) > 1;
+die "$help_msg" if (!defined $opt{'expand'} and !defined $opt{'unexpand'} 
+    and !defined $opt{'list'} and !defined $opt{'xhist'} and !defined $opt{'unxhist'});
+
+if (defined $opt{'debug'})
+{
+    my $f = "/tmp/$pgmname.log";
+    open( LOG, ">$f" ) or  die "$f: $!\n";
+}
+
+# the pgm will accept multiple --list options, each followed by one keyword,
+# or one --list option followed by one comma-separated list of keywords.
+# To handle both cases we merge all elements into one comma-separated list, 
+# then split the comma-separated list, populating a hash with the specified keywords.
+if (defined $opt{'list'})
+{
+    my @kws = split /,/, join(',', @{$opt{'list'}}); 
+    if (scalar(@kws) >= 1) # one or more specified keywords
+    {
+	%kw_specified = map { $_ => 1 } @kws;
+    }
+    else
+    {
+        %kw_specified = map { $_ => 1 } keys %kw;
+    }
+}
+
+## populate the keyword hash with values
+$kw{'Branch'}{val}	= `git symbolic-ref --short -q HEAD`;
+$kw{'Branch'}{val}	= 'detached' if $? != 0;
+chomp $kw{'Branch'}{val};
+
+my ($k, $s);
+$s = `git describe --always --long`;
+die "git describe failed \n" if $? != 0;
+if ($s =~ m/(.*)-(.*?)-(.*?)/) 	
+{
+    $kw{'Tag'}{val}	= $1;
+    $kw{'BuildNum'}{val}= $2;
+}
+else
+{
+    $kw{'Tag'}{val}	= 'notag';
+    $kw{'BuildNum'}{val}= '0';
+}
+
+foreach $k (keys %kw)
+{
+    next if ( $kw{$k}{code} eq ''); 
+    ($kw{$k}{val} = `git log -n 1 --format="$kw{$k}{code}"`) =~ s/\n.*//; 
+}
+
+## construct Version string of the form  "<Tag>-<BuildNum> [<Branch>]"
+$kw{'Version'}{val} = sprintf("%s-%d [%s]",
+			$kw{'Tag'}{val}, $kw{'BuildNum'}{val}, $kw{'Branch'}{val});
+## construct BuildDate string of the form  "yyyy-mm-dd-hh-mm-ss"
+$kw{'BuildDate'}{val} = strftime( "%Y-%m-%d.%H:%M", localtime );
+## construct default name for xhist_map file
+($kw{'XhistMap'}{val} = ( defined $opt{'xhist_map'} ?
+    $opt{'xhist_map'} : "/tmp/xhist.$kw{'Tag'}{val}-$kw{'BuildNum'}{val}-$kw{'Branch'}{val}.map" )) =~ s/[ :]/-/g;
+
+## list keyword values if any were requested
+if (defined $opt{'list'})
+{
+    foreach $k (sort keys %kw_specified)
+    {
+	printf STDOUT "%s%s\n", 
+		(defined $opt{'verbose'} ? sprintf("%-18s", "\$$k:\$") : ""), 
+		$kw{$k}{val};
+    }
+    exit 0;  # we're done.
+}
+
+## if --list was not specified, then we are in substitution mode,
+## operating either in standalone mode or process mode.
+if (defined $opt{'process'})
+{
+    process_main();
+}
+else
+{
+    standalone_main();
+}
+exit 0;  # we're done.
+
+
+#************************************************************************
+# standalone_main: main processing loop for standalone filter mode
+#************************************************************************
+sub standalone_main
+{
+    my $inbuf;
+    my $pathname;
+
+    # if a filename was given on the commandline, read its contents, 
+    # otherwise read from stdin & use the --fname option as the filename.
+    my $ext = "c";	# default file extension for lexer
+    if (scalar(@ARGV) >= 1)
+    {
+	$pathname = $ARGV[0];
+	($ext = $pathname) =~ s/.*\.//;			# get file extension
+	$inbuf = path($pathname)->slurp;		# slurp entire file
+    }
+    else
+    {
+	$pathname = $opt{'fname'} if defined $opt{'fname'};
+	$inbuf = do { local $/ = undef; <STDIN> };	# slurp stdin
+    }
+    my $is_ascii = ! ($inbuf =~ /[[:^ascii:]]/);	# check for non-ascii chars
+
+    ## perform substitutions & write the output.
+    if ($is_ascii || defined $opt{'binary'})
+    {
+	# only do keyword expansion if we are in a 
+	# branch specified for keyword expansion.
+	if ( defined $opt{'expand'}  and
+	     $kw{'Branch'}{val} =~ /$opt{'expand'}/ )
+	{
+	    kw_expand( \$inbuf );
+	}
+	elsif (defined $opt{'unexpand'})
+	{
+	    kw_unexpand( \$inbuf );
+	}
+	
+	# only do xhist instrumentation if we are in a 
+	# branch specified for xhist instrumentation.
+	if ( defined $opt{'xhist'} and
+	     $kw{'Branch'}{val} =~ /$opt{'xhist'}/ )
+	{
+	     my $xh = XMT::Xhist::new($pathname, \$inbuf);	
+	     $inbuf = $xh->instrument(); 
+	     XMT::Xhist::printmap($kw{'XhistMap'}{val});	
+	}
+	elsif ( defined $opt{'unxhist'} )
+	{
+	    my $xh = XMT::Xhist::new($pathname, \$inbuf);	
+	    $inbuf = $xh->uninstrument();
+	}
+    }
+    print STDOUT $inbuf;
+}
+
+#************************************************************************
+# kw_expand:  perform keyword expansion on buffer passed by reference 
+#************************************************************************
+sub kw_expand
+{
+    my $buf_ref = shift;
+    my $k;
+
+    foreach $k ( keys %kw )
+    {
+	$$buf_ref =~ s/\$$k:\$/\$$k: $kw{$k}{val} \$/g;
+    }
+}
+
+#************************************************************************
+# kw_unexpand:  perform keyword cleaning on buffer passed by reference 
+#************************************************************************
+sub kw_unexpand
+{
+    my $buf_ref = shift;
+    my $k;
+
+    foreach $k ( keys %kw )
+    {
+	$$buf_ref =~ s/\$$k:.*?\$/\$$k:\$/g;
+    }
+}
+
+#************************************************************************
+# the following code implementing the git filter protocol v2, is adapted from 
+# https://github.com/git/git/blob/master/contrib/long-running-filter/example.pl
+# See Documentation/gitattributes.txt, section "Filter Protocol"
+# Credit to the authors.
+#************************************************************************
+
+sub process_main
+{
+    my $MAX_PACKET_CONTENT_SIZE = 65516;
+    my ($rc, $str);
+    my ($inbuf, $outbuf, $buffer, $done);
+    my ($command, $pathname, $packet);
+
+    # receive handshake
+    ($rc, $str) = packet_read(); chomp($str);
+    die "error: expected 'git-filter-client', got $str" if ( $rc != 0 || $str ne "git-filter-client" );
+
+    ($rc, $str) = packet_read(); chomp($str);
+    die "error: expected 'version=2', got $str"	if ( $rc != 0 || $str ne "version=2" );         
+
+    while ( (($rc, $str) = packet_read()) && $rc == 0 ) { ; }	# ignore additional versions
+
+    # send response
+    packet_txt_write("git-filter-server");
+    packet_txt_write("version=2");
+    packet_flush();
+
+    #  receive capabilities
+    ($rc, $str) = packet_read(); chomp($str);
+    die "error: expected 'capability=clean', got $str"	if ( $rc != 0 || $str ne "capability=clean" );         
+    ($rc, $str) = packet_read(); chomp($str);
+    die "error: expected 'capability=smudge', got $str"	if ( $rc != 0 || $str ne "capability=smudge" );         
+    while ( (($rc, $str) = packet_read()) && $rc == 0 ) { ; }	# ignore additional capabilities
+
+    # send response
+    packet_txt_write("capability=clean");
+    packet_txt_write("capability=smudge");
+    packet_flush();
+
+    # receive command & data; perform filter & send response
+    while (1) 
+    {
+	($rc, $command)  = packet_read(); chomp($command);
+	$command  =~ s/command=(.+)/$1/;
+	($rc, $pathname) = packet_read(); chomp($pathname);
+	$pathname =~ s/pathname=(.+)/$1/;
+	die "bad pathname '$pathname'" if ( $pathname eq "" );
+
+	packet_read();	# "flush" packet 0000 follows command
+
+	$inbuf = "";
+	{
+	    binmode(STDIN);
+	    $done = 0;
+	    while ( !$done ) 
+	    {
+		($done, $buffer) = packet_read();
+		$inbuf .= $buffer;
+	    }
+	}
+
+	if ( $command =~ /clean/ ) 
+	{
+	    ### Perform clean here ###
+	    kw_unexpand( \$inbuf );
+
+	    if ( defined $opt{'unxhist'} )
+	    {
+		my $xh = XMT::Xhist::new($pathname, \$inbuf);	
+		$inbuf = $xh->uninstrument();
+	    }
+	    $outbuf = $inbuf;
+	}
+	elsif ( $command =~ /smudge/ ) 
+	{
+	    ### Perform smudge here ###
+	    # only do keyword expansion if we are in a 
+	    # branch specified for keyword expansion.
+	    if ( defined $opt{'expand'}  and
+		$kw{'Branch'}{val} =~ /$opt{'expand'}/ )
+	    {
+		kw_expand( \$inbuf );
+	    }
+
+	    # only do xhist instrumentation if we are in a 
+	    # branch specified for xhist instrumentation.
+	    if (defined $opt{'xhist'} and $kw{'Branch'}{val} =~ /$opt{'xhist'}/ )
+	    {
+		my $xh = XMT::Xhist::new($pathname, \$inbuf);	
+		$inbuf = $xh->instrument();
+	    }
+	    $outbuf = $inbuf;
+	}
+	else 
+	{
+	    die "bad command '$command'";
+	}
+
+	packet_txt_write("status=success");
+	packet_flush();
+	while ( length($outbuf) > 0 ) 
+	{
+	    $packet = substr( $outbuf, 0, $MAX_PACKET_CONTENT_SIZE );
+	    packet_bin_write($packet);
+	    if ( length($outbuf) > $MAX_PACKET_CONTENT_SIZE ) 
+	    {
+		$outbuf = substr( $outbuf, $MAX_PACKET_CONTENT_SIZE );
+	    }
+	    else 
+	    {
+		$outbuf = "";
+	    }
+	}
+	packet_flush();    # flush content
+	packet_flush();    # empty list, keep "status=success" unchanged
+    }
+    XMT::Xhist::printmap($kw{'XhistMap'}{val});	
+}
+
+sub packet_read 
+{
+   my ($buf, $pkt_size, $bytes_read);
+ 
+    $bytes_read = read STDIN, $buf, 4;
+    if ( $bytes_read == 0 ) 
+    {
+
+	# EOF - Git stopped talking to us!
+	exit();
+    }
+    elsif ( $bytes_read != 4 ) 
+    {
+	die "invalid packet: '$buf'";
+    }
+    $pkt_size = hex($buf);
+    if ( $pkt_size == 0 ) 
+    {
+	dbg_log("> 0000");
+	return ( 1, "" );
+    }
+    elsif ( $pkt_size > 4 ) 
+    {
+	my $content_size = $pkt_size - 4;
+	$bytes_read = read STDIN, $buf, $content_size;
+	if ( $bytes_read != $content_size ) 
+	{
+	    die "invalid packet ($content_size bytes expected; $bytes_read bytes read)";
+	}
+	dbg_log("> $buf");
+	return ( 0, $buf );
+    }
+    else 
+    {
+	die "invalid packet size: $pkt_size";
+    }
+}
+
+sub packet_bin_write 
+{
+    my $buf = shift;
+    print STDOUT sprintf( "%04x", length($buf) + 4 );
+    print STDOUT $buf;
+    STDOUT->flush();
+}
+
+sub packet_txt_write 
+{
+    packet_bin_write( $_[0] . "\n" );
+    dbg_log("< " . $_[0]);
+}
+
+sub packet_flush 
+{
+    print STDOUT sprintf( "%04x", 0 );
+    STDOUT->flush();
+    dbg_log("< 0000");
+}
+
+sub dbg_log
+{
+    my $str = shift;
+    print LOG "$str\n" if fileno LOG;
+}
+

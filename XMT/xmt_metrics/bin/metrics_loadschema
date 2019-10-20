@@ -1,0 +1,154 @@
+#!/usr/bin/env perl
+#************************************************************************
+#*   $Version:$
+#*   Package	: xmt_metrics
+#*   Synopsis	: metrics_loadschema
+#*   Purpose	: Create Metrics database tables
+#*
+#*  Copyright (c) 1998	Neumann & Associates Information Systems Inc.
+#*  			legal.info@neumann-associates.com
+#*  Licensed under the Apache License, Version 2.0 (the "License");
+#*  you may not use this file except in compliance with the License.
+#*  You may obtain a copy of the License at http://www.apache.org/licenses/LICENSE-2.0
+#*  
+#*  Unless required by applicable law or agreed to in writing, software
+#*  distributed under the License is distributed on an "AS IS" BASIS,
+#*  WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+#*  See the License for the specific language governing permissions and
+#*  limitations under the License. 
+#************************************************************************
+
+use Env;
+use DBI;
+($pgmname = $0) =~ s{.*/}{};
+$dba = 'xmt';
+$http_uname = 'httpd';
+&init_schema();
+
+#************************************************************************
+# connect to the Timesheet database & ensure that none of the tables
+# we will be creating already exist. If any do exist, force the user
+# to manually destroy & recreate the database before we will
+# overwrite any tables in it.  This may be cumbersome, but it's safe.
+#************************************************************************
+$dbname = "metrics";
+$dbh = DBI->connect( "dbi:Pg:$dbname", '', '', )		||
+    &dbdie( "connect $dbname : $DBI::errstr\n"
+	    . "If $dbname database does not exist,\n"
+	    . "have the dba ($dba) run 'createdb $dbname;'\n"
+	    . "from the UNIX commandline, then re-run $pgmname" );
+$sth = $dbh->prepare( 'select relname from pg_class' )		||
+    &dbdie( "query pg_class: $DBI::errstr" );
+$sth->execute;
+%pgclasses  = ();
+$pgclass    = '';
+$sth->bind_columns( undef, \$pgclass );
+while ( $sth->fetch )
+{
+    $pgclasses{ $pgclass } = "$pgclass";
+}
+$sth->finish;
+
+foreach $my_class ( keys %::my_classes )
+{
+    if ( exists $pgclasses{ lc "$my_class" } )
+    {
+	&dbdie( "Table '$my_class' already exists.\n"
+	    . "If you REALLY want to re-initialize the $dbname database,\n"
+	    . "have the dba ($dba) run 'destroydb $dbname; createdb $dbname;'\n"
+	    . "from the UNIX commandline, then re-run $pgmname" );
+    }
+}
+
+#************************************************************************
+# create all tables, then all indexes. 
+#************************************************************************
+foreach $my_class ( sort {$a =~ /Idx/ ? 1 : -1;} keys %::my_classes )
+{
+    ($stmt = $my_classes{$my_class}) =~ s/--.*//mg;
+    $dbh->do( $stmt ) || &dbdie( "$my_class : $DBI::errstr" );
+    if ( $my_classes{$my_class} =~ /CREATE\s+TABLE/i )
+    {
+	$stmt = "GRANT ALL ON $my_class TO $dba";
+	$dbh->do( $stmt ) || &dbdie( "$my_class : $DBI::errstr" );
+	$stmt = "GRANT SELECT,INSERT,UPDATE ON $my_class TO $http_uname";
+	$dbh->do( $stmt ) || &dbdie( "$my_class : $DBI::errstr" );
+    }
+}
+
+&dbdie( "$dbname tables have been created successfully.\n" );
+
+
+#************************************************************************
+# dbdie($msg): disconnect from the dbms, display msg, & exit
+#************************************************************************
+sub dbdie
+{
+    my $msg = $_[0];
+    $dbh->disconnect	if ( defined $dbh );
+    undef $dbh;
+    undef $sth;
+    die "$msg\n";
+}
+
+#************************************************************************
+# &init_schema(): initialize hash %::my_classes with DB table & index
+# creation commands.
+#************************************************************************
+sub init_schema
+{
+
+    %::my_classes = (
+    "Tasks"		=>
+    "CREATE TABLE	Tasks
+    (
+	wbs		text,	-- task WBS code
+	proj		text,	-- project name or number
+	name		text,	-- task name
+	est_effort	int4,	-- estimated effort (hrs)
+	act_effort	int4,	-- task actual effort (hrs)
+	est_size	int4,	-- estimated size
+	act_size	int4,	-- task actual size
+	size_units 	text,	-- units of size measurement
+	est_start	date,	-- estimated start date
+	act_start	date,	-- actual start date
+	est_end		date,	-- estimated end date
+	act_end		date,	-- actual end date
+	est_productivity	float4,	-- estimated productivity (size/effort)
+	act_productivity	float4,	-- actual productivity (size/effort)
+	remarks		text	-- any special remarks about this task
+    );",
+
+    "TaskWbsIdx"	=>
+    "CREATE INDEX TaskWBSIdx on Tasks (wbs);",
+    
+    "TaskDateIdx"	=>
+    "CREATE INDEX TaskDateIdx on Tasks (act_start);",
+
+    "Assignments"		=>
+    "CREATE TABLE	Assignments
+    (
+	wbs		text,	-- WBS code of associated Task object
+	uname		text, 	-- login username of assigned employee
+	est_effort	int4,	-- estimated effort (hrs)
+	act_effort	int4,	-- task actual effort (hrs)
+	est_size	int4,	-- estimated size
+	act_size	int4,	-- task actual size
+	est_start	date,	-- estimated start date
+	act_start	date,	-- actual start date
+	est_end		date,	-- estimated end date
+	act_end		date,	-- actual end date
+	est_productivity	float4,	-- estimated productivity (size/effort)
+	act_productivity	float4,	-- actual productivity (size/effort)
+	efficiency	float4,	-- resource efficiency factor (%)
+	remarks		text	-- any special remarks about this assignment
+    );",
+
+    "AsnWbsIdx"	=>
+    "CREATE INDEX AsnWbsIdx on Assignments (wbs);",
+    
+    "AsnUserIdx"	=>
+    "CREATE INDEX AsnUserIdx on Assignments (uname);",
+    );
+}
+

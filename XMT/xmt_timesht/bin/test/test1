@@ -1,0 +1,19 @@
+#!/usr/bin/env perl
+
+$oid1 = `timesht_cmd insertTimesht -v			\\
+			-start_date 2001/01/01		\\
+			-end_date 2001/01/03		\\
+			-wbs 011.11.22.33.1234		\\
+			-hrs 12				\\
+			-uname dean`;
+
+$oid2 = `timesht_cmd updateTimesht -v			\\
+			-oid $oid1			\\
+			-remarks "sick leave"`;
+die("oid1 != oid2") if ($oid1 != $oid2);
+
+`timesht_cmd report`;
+
+$oid3 = `timesht_cmd deleteTimesht -oid $oid1`;
+die("oid2 != oid3") if ($oid2 != $oid3);
+

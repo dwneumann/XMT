@@ -1,0 +1,198 @@
+#!/usr/bin/env perl
+#************************************************************************
+#*   $Version:$
+#*   Package	: xmt_defect
+#*   Synopsis	: defect_loadschema
+#*   Purpose	: Create Metrics database tables
+#*
+#*  Copyright (c) 1998	Neumann & Associates Information Systems Inc.
+#*  			legal.info@neumann-associates.com
+#*  Licensed under the Apache License, Version 2.0 (the "License");
+#*  you may not use this file except in compliance with the License.
+#*  You may obtain a copy of the License at http://www.apache.org/licenses/LICENSE-2.0
+#*  
+#*  Unless required by applicable law or agreed to in writing, software
+#*  distributed under the License is distributed on an "AS IS" BASIS,
+#*  WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+#*  See the License for the specific language governing permissions and
+#*  limitations under the License. 
+#************************************************************************
+
+use Env;
+use DBI;
+($pgmname = $0) =~ s{.*/}{};
+$dba = 'xmt';
+$http_uname = 'httpd';
+&init_schema();
+
+#************************************************************************
+# connect to the Timesheet database & ensure that none of the tables
+# we will be creating already exist. If any do exist, force the user
+# to manually destroy & recreate the database before we will
+# overwrite any tables in it.  This may be cumbersome, but it's safe.
+#************************************************************************
+$dbname = "defects";
+$dbh = DBI->connect( "dbi:Pg:$dbname", '', '', )		||
+    &dbdie( "connect $dbname : $DBI::errstr\n"
+	    . "If $dbname database does not exist,\n"
+	    . "have the dba ($dba) run 'createdb $dbname;'\n"
+	    . "from the UNIX commandline, then re-run $pgmname" );
+$sth = $dbh->prepare( 'select relname from pg_class' )		||
+    &dbdie( "query pg_class: $DBI::errstr" );
+$sth->execute;
+%pgclasses  = ();
+$pgclass    = '';
+$sth->bind_columns( undef, \$pgclass );
+while ( $sth->fetch )
+{
+    $pgclasses{ $pgclass } = "$pgclass";
+}
+$sth->finish;
+
+foreach $my_class ( keys %::my_classes )
+{
+    if ( exists $pgclasses{ lc "$my_class" } )
+    {
+	&dbdie( "Table '$my_class' already exists.\n"
+	    . "If you REALLY want to re-initialize the $dbname database,\n"
+	    . "have the dba ($dba) run 'destroydb $dbname; createdb $dbname;'\n"
+	    . "from the UNIX commandline, then re-run $pgmname" );
+    }
+}
+
+#************************************************************************
+# create all tables, then all indexes. 
+#************************************************************************
+foreach $my_class ( sort {$a =~ /Idx/ ? 1 : -1;} keys %::my_classes )
+{
+    ($stmt = $my_classes{$my_class}) =~ s/--.*//mg;
+    $dbh->do( $stmt ) || &dbdie( "$my_class : $DBI::errstr" );
+    if ( $my_classes{$my_class} =~ /CREATE\s+TABLE/i )
+    {
+	$stmt = "GRANT ALL ON $my_class TO $dba";
+	$dbh->do( $stmt ) || &dbdie( "$my_class : $DBI::errstr" );
+	$stmt = "GRANT SELECT,INSERT,UPDATE ON $my_class TO $http_uname";
+	$dbh->do( $stmt ) || &dbdie( "$my_class : $DBI::errstr" );
+    }
+}
+
+&dbdie( "$dbname tables have been created successfully.\n" );
+
+
+#************************************************************************
+# dbdie($msg): disconnect from the dbms, display msg, & exit
+#************************************************************************
+sub dbdie
+{
+    my $msg = $_[0];
+    $dbh->disconnect	if ( defined $dbh );
+    undef $dbh;
+    undef $sth;
+    die "$msg\n";
+}
+
+#************************************************************************
+# &init_schema(): initialize hash %::my_classes with DB table & index
+# creation commands.
+#************************************************************************
+sub init_schema
+{
+
+    %::my_classes = (
+
+    "Products"		=>
+    "CREATE TABLE	Products
+    (
+	name	text PRIMARY KEY, -- official product name
+	revision text,	-- official revision identifier
+	os	text,	-- OS/platform name
+	arch	text,	-- hardware architecture
+	config	text	-- any other product identifiers
+    );",
+
+    "Defects"		=>
+    "CREATE TABLE	Defects
+    (
+	id		text PRIMARY KEY, -- defect identifier
+	severity	char,	-- defect severity
+	fc		Oid,	-- associated FaultClassification object
+	product		Oid,	-- associated Product 
+	subject		text	-- defect subject line
+    );",
+
+    "DefectIdIdx"	=>
+    "CREATE INDEX DefectIdIdx on Defects (id);",
+
+    "StateMachine"	=>
+    "CREATE TABLE	StateMachine
+    (
+	from		text,	  -- name of state being left
+	to		text,	  -- name of state being entered
+	prefunc		text,	  -- name of pre-transition function
+	postfunc	text,	  -- name of post-transition function
+	email		text	  -- Email address to notify of transition
+    );",
+
+    "StateMachineFromIdx"	=>
+    "CREATE INDEX StateMachineFromToIdx on StateMachine (from, to);",
+
+    "StateTransitions"	=>
+    "CREATE TABLE	StateTransitions
+    (
+	defect		text,	  -- ID of associated Defect object
+	time		datetime,-- date/time of transition 
+	from		text,	  -- name of state being left
+	to		text,	  -- name of state being entered
+	uname		text,	  -- unique id of person initiating transition
+	remarks		text	  -- remarks regarding transition
+    );",
+
+    "TransitionOidsIdx"	=>
+    "CREATE INDEX TransitionOidsIdx on StateTransitions (oid);",
+
+    "CM_Entities"	=>
+    "CREATE TABLE	CM_Entities
+    (
+	defect		text,	  -- ID of associated Defect object
+	filename	text,	  -- pathname of file implementing fix 
+	revision	text	  -- revision of file implementing fix
+    );",
+
+    "Severities"   	=>
+    "CREATE TABLE	Severities
+    (
+	sev	char		  -- defect severity classification
+    );",
+
+    "FaultClassifications"	=>
+    "CREATE TABLE	FaultClassifications
+    (
+	phase		text,	  -- development phase fault occurred in
+	type		text,	  -- what type of fault occurred
+	reason		text	  -- reason fault occurred
+    );",
+
+    "Persons"		=>
+    "CREATE TABLE	Persons
+    (
+	uname		text PRIMARY KEY,  -- DDB login username 
+	name		text,		-- full name of person
+	passwd		text,		-- DDB password (stored encrypted)
+	tel		text,		-- local or full telno of person
+	email		text		-- Email address 
+    );",
+
+    "Groups"		=>
+    "CREATE TABLE	Groups
+    (
+	name		text PRIMARY KEY, -- name of group
+	member		text		-- uname of group member
+    );",
+
+    "GroupMembersIdx"	=>
+    "CREATE INDEX GroupMembersIdx on Groups (member);"
+
+    );
+}
+
+

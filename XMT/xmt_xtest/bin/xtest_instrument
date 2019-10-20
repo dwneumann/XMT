@@ -1,0 +1,87 @@
+#!/usr/bin/env perl
+#************************************************************************
+#   $Version:$
+#   Package	: xmt_xtest
+#   Purpose	: instrument files for whiteebox testing.  
+#		  This adds breakointable points to if() statements and to try/catch blocks
+#		  to allow forced failure of if tests and forced throwing of
+#		  exceptions from try blocks.
+#		  Xtest test scripts can then be written which set breakpoints
+#		  at if and catch statements, change internal variable state to force
+#		  failure of the if/try, and then allow program execution to continue.
+#
+#   Synopsis	: xtest_instrument [<options>] [file]
+#   	 --help		print help message & exit.
+#        --fname=<pathspec>     read contents of file from STDIN but use <pathspec>
+#                       as the file name for instrumentation purposes
+#	 --unxtest	unxtest (i.e. clean) xtest instrumentation found in stdin, 
+#			and write cleaned data stream to stdout.
+#
+#  Copyright 2018 Visionary Research Inc.   All rights reserved.
+#  			legal@visionary-research.com
+#  Licensed under the Apache License, Version 2.0 (the "License");
+#  you may not use this file except in compliance with the License.
+#  You may obtain a copy of the License at http://www.apache.org/licenses/LICENSE-2.0
+#  
+#  Unless required by applicable law or agreed to in writing, software
+#  distributed under the License is distributed on an "AS IS" BASIS,
+#  WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+#  See the License for the specific language governing permissions and
+#  limitations under the License. 
+#************************************************************************
+
+use strict;
+
+# perl expects to find the required XMT modules installed into
+# the standard place that CPAN modules are installed:  
+# this is found by running perl -V:installsitelib
+# to instead use a develop version of the XMT::Xhist module
+# uncomment the following line.
+BEGIN {unshift(@INC, "$ENV{XMTXTEST}/bin");}
+use XMT::Xtest;
+
+use Getopt::Long;
+use Path::Tiny qw(path);
+
+(my $pgmname = $0) =~ s{.*/}{};	# rootname of executed script
+# construct the help message
+my $help_msg = sprintf( <<__END__ );
+$pgmname [<options>] [file]
+  --help        print help message & exit.
+  --fname=<pathspec>     read contents of file from STDIN but use <pathspec>
+                as the file name for instrumentation purposes
+  --unxtest     unxtest (i.e. clean) xtest instrumentation found in stdin, 
+                and write cleaned data stream to stdout.
+__END__
+
+# parse commandline options
+my %opt = ();
+GetOptions( \%opt, "help", "fname=s", "unxtest" ) or die $help_msg;
+die "$help_msg" if defined $opt{'help'};
+    
+my $inbuf;
+
+# if a filename was given on the commandline, read its contents, 
+# otherwise read from stdin 
+if (scalar(@ARGV) >= 1)
+{
+    $opt{fname} = $ARGV[0];
+    $opt{srcbuf} = path($opt{fname})->slurp;		# slurp entire file
+}
+else
+{
+    $opt{srcbuf} = do { local $/ = undef; <STDIN> };	# slurp stdin
+}
+
+my $xt = XMT::Xtest::new(\%opt)	or die "XMT::Xtest failed\n";	
+if ( ! defined $opt{'unxtest'} )
+{
+    $inbuf = $xt->instrument(); 
+}
+else
+{
+    $inbuf = $xt->uninstrument();
+}
+print STDOUT $inbuf;
+
+

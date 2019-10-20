@@ -42,7 +42,7 @@ EXE_SFX.c.linux_x86	:=
 # This is the place to define default flags that are specific to THIS 
 # platform and THIS language.
 #**********************************************************************
-CFLAGS.c.linux_x86 += -Wall -Wno-unused-const-variable -m32 
+CFLAGS.c.linux_x86 += -Wall -Wno-unused-const-variable -isystem /usr/include/x86_64-linux-gnu
 LDFLAGS.c.linux_x86	+= $(CFLAGS.c.linux_x86) 
 ARFLAGS.c.linux_x86	+= -r
 LINTFLAGS.c.linux_x86	+= $(CFLAGS.c.linux_x86)

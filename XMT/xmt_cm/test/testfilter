@@ -1,1 +1,0 @@
-perl -d git_filter --xhist test.c --xhist_map test.xmap

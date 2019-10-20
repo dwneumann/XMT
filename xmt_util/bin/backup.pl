@@ -1,5 +1,6 @@
 #!/usr/bin/env perl 
 #************************************************************************
+#   Package	: xmt_util
 # usage: backup.pl --level=n --src=path --dest=path
 # backup the specified directory tree to a zipped tar file in the specified directory 
 # & log output to /var/logs/backup.log
@@ -8,6 +9,15 @@
 #
 #    Copyright 2018 Visionary Research Inc.   All rights reserved.
 #    			legal@visionary-research.com
+#*  Licensed under the Apache License, Version 2.0 (the "License");
+#*  you may not use this file except in compliance with the License.
+#*  You may obtain a copy of the License at http://www.apache.org/licenses/LICENSE-2.0
+#*  
+#*  Unless required by applicable law or agreed to in writing, software
+#*  distributed under the License is distributed on an "AS IS" BASIS,
+#*  WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+#*  See the License for the specific language governing permissions and
+#*  limitations under the License. 
 #************************************************************************
 
 use strict;
@@ -66,7 +76,7 @@ print $LOG " \n";
 print $LOG "level $level tar of $archive started at $timenow \n";
 print $LOG "/bin/tar $tarargs \n";
 
-system("/bin/tar $tarargs >>$logfile 2>&1");
+system("/bin/tar $tarargs >>$logfile 2&>1");
 
 my $timenow = strftime("%X", localtime);
 print $LOG "level $level tar of $archive   ended at $timenow \n";

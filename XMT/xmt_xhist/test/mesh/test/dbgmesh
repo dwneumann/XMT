@@ -1,7 +1,0 @@
-#!/usr/bin/env perl
-use strict;
-use Getopt::Long;
-use Env;
-
-my $cmd = "jdb -classpath $XMTXHIST/test/mesh/$T/Mesh.jar:$XMTXHIST/libxhist/$T/Xhist.jar -sourcepath $XMTXHIST/test/mesh/src:$XMTXHIST/libxhist/src Mesh";
-system($cmd);

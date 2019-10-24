@@ -1,2 +1,0 @@
-select oid,* from Defects where def_severity = 'A' and def_id IN 
-(select distinct st_defect from StateTransitions where st_to = 'Open')

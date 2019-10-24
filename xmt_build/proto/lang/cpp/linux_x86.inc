@@ -37,8 +37,8 @@ DOC.cpp.linux_x86	:= $(XMTBUILD)/bin/srcdoc
 # This is the place to define default flags that are specific to THIS 
 # platform and THIS language.
 #**********************************************************************
-CFLAGS.cpp.linux_x86	= -Wall -m32 
-LDFLAGS.cpp.linux_x86	= -Wall  -m32
+CFLAGS.cpp.linux_x86	= -Wall -isystem /usr/include/x86_64-linux-gnu
+LDFLAGS.cpp.linux_x86	= -Wall  
 ARFLAGS.cpp.linux_x86	= -r
 LINTFLAGS.cpp.linux_x86	= $(CFLAGS.cpp.linux_x86)
 DOCFLAGS.cpp.linux_x86	= 

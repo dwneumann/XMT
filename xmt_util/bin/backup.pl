@@ -4,7 +4,7 @@
 # usage: backup.pl --level=n --src=path --dest=path
 # backup the specified directory tree to a zipped tar file in the specified directory 
 # & log output to /var/logs/backup.log
-# eg:   backup.pl  --level=0 --src=/cygdrive/c/CentralRepos --dest=/cygdrive/d/Backups
+# eg:   backup.pl  --level=0 --src=/home --dest=/HDD/Backups
 # Note: compressing on the fly, expect performance over 1Gbps network ~ 15GB/hr 
 #
 #    Copyright 2018 Visionary Research Inc.   All rights reserved.
@@ -34,16 +34,17 @@ GetOptions( "u" => \$opt_u, "src=s" => \$src, "dest=s" => \$dest, "level=s" => \
 	or die $usage;
 my $logfile = "/var/log/backup.log";
 open(my $LOG, ">>", $logfile) or die "$logfile: $!";
-# explicitly set timezone otherwise Winodws task scheduler uses UTC
 $ENV{'TZ'}	= "America/Vancouver";
 tzset();
+my $HDD = "/mnt/HDD";
 
 ##   there's nothing configurable below this line. Leave it alone.
 die "$usage" if defined $opt_u || !defined $src;
 my $level	= defined $level ? $level : 0;
-my $dest	= defined $dest ? $dest : "/d/Backups";
+my $dest	= defined $dest ? $dest : "$HDD/Backups";
 my ($basename, $path, $sfx)	= fileparse($src);
-my $label	=strftime("%F", localtime) . ".$basename";
+my $hostname =`hostname`; chomp($hostname);
+my $label	=strftime("%F", localtime) . ".$hostname.$basename";
 my $last_level0 =`ls -t $dest/*$basename.0.tgz | sed '1q'`; chomp($last_level0);
 if ( "$last_level0" eq "" )
 {
@@ -55,20 +56,13 @@ my $manifest="$dest/$label.$level.manifest";
 my $archive="$dest/$label.$level.tgz";
 # output a checkpoint statement to the log every 10GB
 # 512 bytes/block * 512 blocks/record * 40000 records/checkpoint = 10GB checkpoints
-my $tarargs="--create --file=$archive --blocking-factor=512 --gzip --checkpoint=40000 --checkpoint-action=exec=/bin/date --totals ";
-
-# use a find command to generate the manifest of files to be backed up 
-# because it is WAY faster than using --incremental
-# with the bonus of producing an easily grep'd manifest of what's in the backup.
-if ( $level eq 0 )
+my $tarargs=" --create --file=$archive --directory=$src ";
+$tarargs .= " --gzip --seek --totals --one-file-system ";
+$tarargs .= " --blocking-factor=512 --checkpoint=40000 --checkpoint-action='echo=checkpoint: %u x 10GB: %{%Y-%m-%d %H:%M:%S}t' ";
+$tarargs .= " --exclude-backups --exclude-caches-all --exclude-from=$HDD/backup.excludes ";
+if ( $level ne 0 )
 {
-	system("find $src -type f -print > $manifest");
-	$tarargs="$tarargs $src";
-}
-else
-{
-	system("find $src -type f -newer $last_level0 -print > $manifest");
-	$tarargs="$tarargs --files-from $manifest ";
+	$tarargs="$tarargs --newer=$last_level0 ";
 }
 
 my $timenow = strftime("%X", localtime);
@@ -76,9 +70,16 @@ print $LOG " \n";
 print $LOG "level $level tar of $archive started at $timenow \n";
 print $LOG "/bin/tar $tarargs \n";
 
-system("/bin/tar $tarargs >>$logfile 2&>1");
+system("/bin/tar $tarargs . >>$logfile 2>&1");
 
 my $timenow = strftime("%X", localtime);
 print $LOG "level $level tar of $archive   ended at $timenow \n";
 
+# now verify the backup by reading it & creating a manifest of what's in it.
+# if there's a read error a message will appear at the tail of the manifest file.
+# Pipe output through sed to delete directory entries, thus listing only actual files.
+print $LOG "creating $manifest \n";
+system("/bin/tar tvf $archive | sed '/^d/d' >$manifest 2>&1");
+my $timenow = strftime("%X", localtime);
+print $LOG "manifest completed at $timenow \n";
 

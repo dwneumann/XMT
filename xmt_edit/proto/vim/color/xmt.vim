@@ -120,7 +120,7 @@ hi SneakScope term=NONE cterm=NONE ctermfg=Black ctermbg=183 gui=NONE guifg=Blac
 " Helper Functions
 function! XMTDimCode()
     hi Comment term=NONE cterm=NONE ctermfg=White ctermbg=Black gui=NONE guifg=White guibg=Black
-    hi Normal term=NONE cterm=NONE ctermfg=DarkGrey ctermbg=Black gui=NONE guifg=DarkGrey guibg=Black
+    hi Normal term=NONE cterm=NONE ctermfg=DarkCyan ctermbg=Black gui=NONE guifg=DarkCyan guibg=Black
     hi LineNr term=NONE cterm=NONE ctermfg=DarkCyan ctermbg=bg gui=NONE guifg=DarkCyan guibg=bg
     hi Character term=NONE cterm=NONE ctermfg=NONE ctermbg=NONE gui=NONE guifg=NONE guibg=NONE
     hi String term=NONE cterm=NONE ctermfg=NONE ctermbg=NONE gui=NONE guifg=NONE guibg=NONE

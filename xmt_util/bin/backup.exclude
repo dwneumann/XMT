@@ -1,0 +1,56 @@
+# exclude all files that match these patterns
+.android/
+.cache/
+.cpan/
+.dbus/
+.gimp*/
+.gnupg/
+.matplotlib/
+.openshot*/
+.p2/
+.p4*/
+.Trash*/
+AppData/
+Application\ Data/
+AutoSave/
+cache/
+crashes/
+Cookies/
+Crash/
+Crash\ Reports/
+Google\ Drive/
+google-chrome/
+minidump*/
+tmp/
+Temporary\ Internet\ Files/
+webCache/
+Windows/
+*~
+__pycache__
+*.cflags
+.DS_Store
+*.ERRS
+*.gcda
+*.gcno
+*.la
+*.ldflags
+.libs
+*.log
+*.o
+*.pyc
+*.pyo
+*.rej
+*.rel
+*.swp
+.*.swp
+*.tmp
+*.trace
+*.recently-used*
+*.thumbnails
+*.xsession-errors
+*.adobe
+*.macromedia
+*.aptitude
+cscope.*
+ntuser.dat*
+NTUSER.DAT*

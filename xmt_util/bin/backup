@@ -79,14 +79,20 @@ print $LOG (defined $opt_full ? "full " : "") . "backup of $srcpath started at $
 if (!defined $opt_full)
 {
     (my $last1 = $last0) =~ s/\.0\./.1./;
-    my $cmd = "cp -al $destroot/$last0 $destroot/$last1"; 
-    print $LOG "$cmd\n";
-    system($cmd);
-    print $LOG "mv $destroot/$last0 $destpath\n";
-    rename "$destroot/$last0", $destpath;
-    $cmd ="touch $destpath";
-    print $LOG "$cmd\n";
-    system($cmd);					
+    if ($last0 != '' && $last1 != '')
+    {
+	my $cmd = "cp -al $destroot/$last0 $destroot/$last1"; 
+	print $LOG "$cmd\n";
+	system($cmd);
+    }
+    if ($last0 != '')
+    {
+	print $LOG "mv $destroot/$last0 $destpath\n";
+	rename "$destroot/$last0", $destpath;
+	my $cmd ="touch $destpath";
+	print $LOG "$cmd\n";
+	system($cmd);					
+    }
 }
 
 # # WINDOWS HACK:  cygwin rsync doesn't recognize symlinks, 

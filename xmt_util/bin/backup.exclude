@@ -1,4 +1,5 @@
-# exclude all files that match these patterns
+# exclude all files that match these patterns:
+# "hidden" & ephemeral directories
 .android/
 .cache/
 .cpan/
@@ -10,6 +11,9 @@
 .p2/
 .p4*/
 .Trash*/
+.vagrant/machines/
+
+# explicitly excluded non-hidden directories
 AppData/
 Application\ Data/
 AutoSave/
@@ -25,6 +29,8 @@ tmp/
 Temporary\ Internet\ Files/
 webCache/
 Windows/
+
+#  junk & regeneratable files
 *~
 __pycache__
 *.cflags

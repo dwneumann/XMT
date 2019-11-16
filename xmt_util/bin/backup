@@ -24,7 +24,8 @@
 #	@daily		backup 	/home
 #
 #  Deleting of old backups is easily done with a find command:
-#	@monthly  find /Backups -maxdepth 1 -ctime 365 -delete   # delete backups over 1yr old
+# 	#delete backups over 1yr old
+#	@monthly  find /Backups -maxdepth 1 -ctime 365 -exec echo /bin/rm -rf {} \;   
 #
 #    Copyright 2019 Visionary Research Inc.   All rights reserved.
 #    			legal@visionary-research.com
@@ -50,7 +51,7 @@ use IO::Handle;
 my $usage	= "usage: $pgmname [-u] [--full] [--dest=<path>] <path>\n";
 my $logfile	= "/var/log/backup.log";
 my $excludes	= "$0.exclude";				# search in same directory as pgm
-my $destroot	= "/mnt/HDD/Backups";			# default unless overridden
+my $destroot	= "/mnt/HDD4/Backups";			# default unless overridden
 $ENV{'TZ'}	= "America/Vancouver"; tzset();		# necessary for Windows OS
 
 ##   there's nothing configurable below this line.  Leave it alone.

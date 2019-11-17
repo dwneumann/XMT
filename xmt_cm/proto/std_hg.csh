@@ -2,7 +2,7 @@
 #   $Version:$
 #   Package	: xmt_cm
 #   Synopsis	:
-#   Purpose	: git wrappers & convenience aliases for shells with csh syntax.
+#   Purpose	: mercurial wrappers & convenience aliases for shells with csh syntax.
 #		Go ahead and customize them to your heart's content.
 #
 #  Copyright (c) 2018	Visionary Research Inc.

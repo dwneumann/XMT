@@ -60,7 +60,7 @@ GetOptions( "u" => \$opt_u, "dest=s" => \$destroot, "full" => \$opt_full ) or di
 die "$usage" if defined $opt_u;
 my $srcpath = $ARGV[$#ARGV]	or die $usage;
 $srcpath =~ s:/$::;		# strip trailing slash
-my $hostname =`hostname`; chomp($hostname);
+my $hostname =`/bin/hostname`; chomp($hostname);
 open(my $LOG, ">>", $logfile) or die "$logfile: $!";
 $LOG->autoflush(1); 
 
@@ -68,7 +68,7 @@ $LOG->autoflush(1);
 my ($basename, $path, $sfx)	= fileparse($srcpath);
 my $today = strftime("%F", localtime);
 my $destpath = "$destroot/$hostname.$basename.0." . $today;
-my $last0 = `ls -ltd $destroot/$hostname.$basename.0.*`; 
+my $last0 = `/bin/ls -ltd $destroot/$hostname.$basename.0.*`; 
 $last0  =~ s/.*?([\S]*?)\n.*/$1/s;	# discard everything but the first filename
 
 # log the start of the backup with a timestamp
@@ -84,7 +84,7 @@ if (!defined $opt_full)
     (my $last1 = $last0) =~ s/\.0\./.1./;
     if (($last0 ne '') && (-r $last0) && ($last1 ne '') && ($last1 ne $last0))
     {
-	my $cmd = "cp -al $destroot/$last0 $destroot/$last1"; 
+	my $cmd = "cp -al $last0 $last1"; 
 	print $LOG "$cmd\n";
 	system($cmd);
     }
@@ -95,8 +95,8 @@ if (!defined $opt_full)
 
     if ((-r $last0) && ($last0 ne $destpath))
     {
-	print $LOG "mv $destroot/$last0 $destpath\n";
-	rename "$destroot/$last0", $destpath;
+	print $LOG "mv $last0 $destpath\n";
+	rename "$last0", $destpath;
 	my $cmd ="touch $destpath";
 	print $LOG "$cmd\n";
 	system($cmd);					
@@ -106,7 +106,7 @@ if (!defined $opt_full)
 ###  WINDOWS HACK:  cygwin rsync doesn't recognize symlinks, 
 ###  so manually find all symlinks under $srcpath and add to $excludes.
 ###  rsync --no-links won't work because it doesn't recognize the links as links.
-my $os  = `uname`;
+my $os  = `/bin/uname`;
 if ($os =~ /CYGWIN/) 
 {
     my $tmpexcludes = "/tmp/backup.exclude";

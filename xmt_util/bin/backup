@@ -66,13 +66,15 @@ $LOG->autoflush(1);
 
 # today's backup is always a .0   but it might not be the ONLY .0
 my ($basename, $path, $sfx)	= fileparse($srcpath);
-my $destpath = "$destroot/$hostname.$basename.0." . strftime("%F", localtime);
-(my $last0 = `ls -lt $destroot|grep $hostname.$basename.0.*|head -1`) =~ s/.* //; chomp $last0;
+my $today = strftime("%F", localtime);
+my $destpath = "$destroot/$hostname.$basename.0." . $today;
+my $last0 = `ls -ltd $destroot/$hostname.$basename.0.*`; 
+$last0  =~ s/.*?([\S]*?)\n.*/$1/s;	# discard everything but the first filename
 
 # log the start of the backup with a timestamp
 my $timenow = strftime("%X", localtime);
 print $LOG "\n\n______________________________________________________________\n";
-print $LOG (defined $opt_full ? "full " : "") . "backup of $srcpath started at $timenow \n";
+print $LOG (defined $opt_full ? "full " : "") . "backup of $srcpath started $today at $timenow \n";
 
 # if this is not a "forced full" backup, 
 # perform a skinny copy of the last .0 to .1 of the same date, 
@@ -80,13 +82,18 @@ print $LOG (defined $opt_full ? "full " : "") . "backup of $srcpath started at $
 if (!defined $opt_full)
 {
     (my $last1 = $last0) =~ s/\.0\./.1./;
-    if ($last0 != '' && $last1 != '')
+    if (($last0 ne '') && (-r $last0) && ($last1 ne '') && ($last1 ne $last0))
     {
 	my $cmd = "cp -al $destroot/$last0 $destroot/$last1"; 
 	print $LOG "$cmd\n";
 	system($cmd);
     }
-    if ($last0 != '')
+    else
+    {
+        print $LOG "no previous full backup found\n";
+    }
+
+    if ((-r $last0) && ($last0 ne $destpath))
     {
 	print $LOG "mv $destroot/$last0 $destpath\n";
 	rename "$destroot/$last0", $destpath;
@@ -96,9 +103,9 @@ if (!defined $opt_full)
     }
 }
 
-# # WINDOWS HACK:  cygwin rsync doesn't recognize symlinks, 
-# # so manually find all symlinks under $srcpath and add to $excludes.
-# # --no-links won't work because it doesn't recognize the links.
+###  WINDOWS HACK:  cygwin rsync doesn't recognize symlinks, 
+###  so manually find all symlinks under $srcpath and add to $excludes.
+###  rsync --no-links won't work because it doesn't recognize the links as links.
 my $os  = `uname`;
 if ($os =~ /CYGWIN/) 
 {

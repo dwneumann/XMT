@@ -7,11 +7,14 @@
 .gimp*/
 .gnupg/
 .matplotlib/
+.mozilla/
 .openshot*/
 .p2/
 .p4*/
 .Trash*/
 .vagrant/machines/
+.vagrant.d/gems/
+.vagrant.d/boxes/
 
 # explicitly excluded non-hidden directories
 AppData/
@@ -39,6 +42,7 @@ __pycache__
 *.gcda
 *.gcno
 *.la
+*.lck
 *.ldflags
 .libs
 *.log

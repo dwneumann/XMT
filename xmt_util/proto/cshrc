@@ -27,7 +27,7 @@ if ( $?prompt ) then
     a vi        vim
     a c		clear
     a hi 	history
-    a ls	ls -F
+    a ls	ls -uF
     a so	source
     a f		find . -name \"\!:1\"
     a fsrc 	'find . -name "*.[ch]" | xargs  grep '

@@ -35,6 +35,7 @@
     source $XMT/xmt_cm/proto/cshrc
     source $XMT/xmt_xhist/proto/cshrc
     source $XMT/xmt_xtest/proto/cshrc
+    source $XMT/xmt_cicd/proto/cshrc
    # source $XMT/xmt_doc/proto/cshrc
    # source $XMT/xmt_defect/proto/cshrc
    # source $XMT/xmt_metrics/proto/cshrc

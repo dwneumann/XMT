@@ -1,0 +1,71 @@
+#!/usr/bin/env perl 
+#************************************************************************
+#   
+#   Package	: xmt_cicd
+#   Synopsis	: cluster-destroy [-u] [--force]
+#   Purpose	: destroy all vagrant machines on all physical hosts
+#	defined in environment variable XMT_K8S_HOSTS.
+#	If XMT_K8S_HOSTS is undefined use the local machine.
+#
+#    Copyright 2019 Visionary Research Inc.   All rights reserved. 
+# 			legal@visionary-research.com
+#    Licensed under the Apache License, Version 2.0 (the "License"); may not
+#    use this file except in compliance with the License. may obtain a copy
+#    of the License at http://www.apache.org/licenses/LICENSE-2.0 required by
+#    applicable law or agreed to in writing, software under the License is
+#    distributed on an "AS IS" BASIS, WARRANTIES OR CONDITIONS OF ANY KIND,
+#    either express or implied. the License for the specific language governing
+#    permissions and under the License.
+#************************************************************************
+
+use strict;
+use Getopt::Long;
+use Env;
+my $localhost = `/usr/bin/hostname`; chomp $localhost;
+my $projdir	= "/tmp/$ENV{'USER'}";		# exclude this dir from snapshots & backups!
+my @k8s_hosts = (defined $ENV{'XMT_K8S_HOSTS'} ? 	# servers to destroy vagrant VMs on
+		 split / /, $ENV{'XMT_K8S_HOSTS'} : $localhost );	
+
+(my $pgmname = $0) =~ s{.*/}{};
+my $usage		= "usage: $pgmname [-u|--usage] [-f|--force]\n";
+undef my $opt_usage;	# unnecessary, but it shuts up -w
+undef my $opt_force;	# unnecessary, but it shuts up -w
+GetOptions( "usage", "force" ) || die $usage;
+die "$usage" if defined $opt_usage;		# print usage and exit if -u given
+
+foreach my $host ( @k8s_hosts )
+{
+    #  vagrant only works if it finds a .vagrant directory in its project directory or above.
+    #  cluster-up and cluster-destroy must agree on the project directory 
+    my $vms = `ssh $host "cd $projdir && vagrant global-status --prune"`;
+    my @vmnames;
+    open(my $fh, "<", \$vms); 			# read the cmd output as though it was a file
+    while (<$fh>)				# foreach line of output ...
+    {
+	m/^([\S]+) +([\S]+).*$/;# extract the first 2 fields 
+	my $fld1 = $1;
+	my $fld2 = $2;
+	push(@vmnames, $fld2) if ($fld2 =~ m/^$host/i);# running VMs have VM name as 2nd field
+	push(@vmnames, $fld1) if ($fld1 =~ m/^$host/i);# non-running VMs have VM name as 1st field
+    }
+
+    # if we found vagrant VMs, ask for confirmation before destroying them.
+    if ($#vmnames >= 0)
+    {
+	my $response = (defined $opt_force ?  'y' : 'N');
+	if (!defined $opt_force)
+	{
+	    print "confirm deletion of " . join( ', ', @vmnames) . " :  [y/N] ";
+	    $response = <STDIN>;
+	}
+	if ($response =~ /y/i)
+	{
+	    my $cmd = "ssh $host 'cd $projdir && vagrant destroy -f " . join( ' ', @vmnames) . "'";
+	    system( $cmd );	# confirmation received.  Destroy the VMs.
+	}
+    }
+    else
+    {
+        print "no VMs found on $host\n";
+    }
+}

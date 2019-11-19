@@ -45,6 +45,6 @@ foreach my $host ( @k8s_hosts )
     my $cmd = "ssh $host 'mkdir -p $projdir'";
     system( $cmd );	# create the project directory
     system( "scp $ARGV[0] $host:$projdir/Vagrantfile" );	# copy & rename Vagrantfile
-    my $cmd = "ssh $host 'cd $projdir && vagrant up'";
+    my $cmd = "ssh $host 'cd $projdir && vagrant up --parallel'";
     system( $cmd );	# launch the remote vagrant up cmd
 }

@@ -19,4 +19,4 @@
 
 setenv XMTCICD	"$XMT/xmt_cicd"
 setenv PATH	"${PATH}:$XMTCICD/bin"
-setenv XMT_K8S_HOSTS	`hostname`		# hosts to launch Kubernetes nodes on
+#setenv XMT_K8S_HOSTS	`hostname`		# hosts to launch Kubernetes nodes on

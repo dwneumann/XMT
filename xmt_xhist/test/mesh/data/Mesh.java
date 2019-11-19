@@ -13,40 +13,77 @@
  */
 
 import java.lang.Runtime;
+import java.io.DataOutputStream;
+import java.io.FileOutputStream;
+import java.lang.ProcessHandle;
 
-import java.lang.*;	// need everything
-import java.io.*;	// need FileStreams
-import java.net.*;	// need sockets
+import java.lang.*;
+import java.io.*;
+import java.net.*;
+import XMT.Xhist;
 
 /**
  * The Mesh class implements a toy mesh network to demonstrate execution history tracing
  * and whitebox testing.
  * <p>
- *  main() implements one node (node i) of an N node mesh.  
+ *  main() implements one myNode (myNode i) of an N myNode mesh.  
  *  Multiple instances should be run to create the N nodes.
- *  Each node then initiates, forwards and receives packets
+ *  Each myNode then initiates, forwards, & receives packets
  *  to/from the other nodes.  
- *  Prints statistics on packet loss and latency.
+ *  Prints statistics on packet loss & latency.
  * <p>
  * @version	$Version:$
  */
 public	class	Mesh {
     public static final String id = "@(#) mesh.Mesh $Version:$";
-    public static final int MAX_NODES	= 100;			// max # nodes in mesh
-    public static MeshNode	myNode	= new MeshNode();	// this Node
+    public static final int MAX_NODES	= 100;		/* max # nodes in mesh		*/
+    public static MeshNode	myNode	= new MeshNode();	/* this Node		*/
 
 
     public static void main(String []args) throws NumberFormatException {
-	Packet 		pkt		= null;		// packet to be sent
-	int		nodes[] = new int[MAX_NODES];	// port #'s of all nodes
-	int		numNodes	= 0;		// # nodes in mesh
-	int		myNodeIndex	= 0;		// index of my port#
-	int		nextPort	= 0;		// value of nodes[myNodeIndex+1]
-	int		dfltPktsToSend	= 10;		// # pkts to initiate
-	int		dfltHops	= 10;		// # hops before ack
+	Packet 		pkt		= null;		/* packet to be sent		*/
+	int		nodes[] = new int[MAX_NODES];	/* port #'s of all nodes	*/
+	int		numNodes	= 0;		/* # nodes in mesh		*/
+	int		myNodeIndex	= 0;		/* index of my port#		*/
+	int		nextPort	= 0;		/* value of nodes[myNodeIndex+1]*/
+	int		dfltPktsToSend	= 10;		/* # pkts to initiate		*/
+	int		dfltHops	= 10;		/* # hops before ack		*/
 	int		i		= 0;
 
-	/* <XHIST INIT> */
+	/* xhist instrument FALSE */
+	DataOutputStream	fd	= null;
+    
+	try 
+	{
+	    fd = new DataOutputStream(new FileOutputStream(
+		"Mesh." + ProcessHandle.current().pid() + ".trace")); 
+	    Xhist.logdev(fd);
+	    Xhist.mapfile("$XhistMap:$");
+	    Xhist.version("$Version:$");
+
+	    Runtime.getRuntime().addShutdownHook( new Thread() 
+	    {
+		@Override
+		public void run() 
+		{
+		    try 
+		    {
+			Xhist.write();
+			myNode.reportResults();
+		    }
+		    catch (IOException e) 
+		    {
+			; /* we're in the process of shutting down anyway. do nothing */
+		    }
+		}
+	    });
+	} 
+	catch (java.io.FileNotFoundException e) 
+	{
+	    System.out.println("cannot open DataOutputStream");
+	    /* keep executing without the ability to write the trace log */
+	}
+	/* xhist instrument TRUE */
 
 	/* usage: mesh <my (0-based) myNode index> <port#> <port#> <port#> ... */
 	numNodes = -1;
@@ -75,7 +112,7 @@ public	class	Mesh {
 	    System.exit(1);
 	}
 
-	/* @TestPoint_116 : configure the test  */
+	/* configure the test  */
 	myNode.setPktsToSend( dfltPktsToSend );	
 	myNode.setNumHops( dfltHops );
 
@@ -181,3 +218,4 @@ public	class	Mesh {
 	}
     }
 }
+

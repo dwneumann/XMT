@@ -1,54 +1,59 @@
-Xhist (for "execution history") is a package which assists in the diagnosis
-of defects in C-language software as it executes in its target environment.
-The xhist package is made up of an instrumentation program, a postprocessing program,
-and a function library which is linked into the program being testd.
+Xhist (for "execution history") is a package which
+assists in the diagnosis of defects in C-language
+software as it executes in its target environment.
+Xhist is made up of an instrumentation program, a
+postprocessing program, and a function library.
 
-The Perl script $XMT/xmt_xhist/bin/xhist_instrument instruments the source
-code of the software under test, and produces modified source code that is
-then compiled and linked using the same compiler, linker, and flags as the
-uninstrumented source. "xhist_instrument" applies C syntax, C++ syntax or
-Java syntax according to the file extension of the source file specified.
-(xmt_cm/bin/git_filter can also do this on complete branches as a smudge/clean filter).
+The instrumentation program "xhist_instrument"
+instruments the source code of the software under
+test, and produces modified source code that is then
+compiled and linked using the same compiler, linker,
+and flags as the uninstrumented source.
 
-The instrumented software, when compiled and executed, records into a
-circular buffer the filename and line number of each source statement as
-it is executed.  When the problem that is being diagnosed is encountered,
-the circular buffer can be examined directly in memory or the circular buffer
-can be exported to a file, socket, or serial device for offline interpretation by
-the developer of the software under test.
+The instrumented software, when compiled and executed,
+records into a circular buffer the filename and line
+number of each source statement as it is executed.
+After the problem that is being diagnosed is
+encountered, the circular buffer can be examined
+directly (if on an embedded target) or the
+circular buffer can be exported to a file, socket, or
+serial device for interpretation by the developer of
+the software under test.
 
-For efficiency on memory-constrained embedded targets, the filename is not
-stored in the circular buffer in ASCII format but rather as a 2-byte hash
-value that refers to a "map" file produced by xhist_instrument.  The name of
-the mapfile and the version tag of the source code are stored in the buffer
-so that the developer can refer to that mapfile and the correct codebase
-even months or years later.
+The function library "libxhist" contains functions
+which perform the writing of the circular buffer to a
+file or socket descriptor.  The xhist_write() function
+can be installed as a signal handler, as a termination
+handler, or it can be invoked unconditionally, so that
+the buffer can be exported using a number of means.
+Use of the library is optional.  The developer may examine the
+circular buffer directly in memory (if that is supported in
+the target environment), or may choose to export the circular
+buffer in another manner.
 
-The function library "libxhist" (or equivalent Xhist.jar fir java)contains
-functions which perform the writing of the circular buffer to a file or
-socket descriptor.  The xhist_write() function can be installed as a signal
-handler, as a termination handler, or it can be invoked unconditionally,
-so that the buffer can be exported using a number of means.  Use of the
-library is optional.  The developer may examine the circular buffer directly
-in memory (if that is supported in the target environment), or may choose
-to export the circular buffer in another manner.
+The postprocessing program "xhist_report" reads a
+previously written circular buffer from file or stdin,
+and presents a formatted listing of the last N source
+statements executed by the software under test
+immediately prior to being written.  The program
+performs byteswapping if it detects that the
+architecture in which the software under test executes
+is different than the environment in which the
+xhist_report program executes.  Use of the xhist_report
+program is optional.  The developer may examine the exported
+circular buffer in any manner he/she chooses.
 
-The Perl script $XMT/xmt_xhist/binxhist_report reads a previously written
-circular buffer (which is a binary file) from file or stdin, and presents a
-formatted listing of the last N source statements executed by the software
-under test immediately prior to being written.  The program performs
-byteswapping if it detects that the architecture in which the software under
-test executed is different than the environment in which the xhist_report
-script executes.  Use of the xhist_report program is optional.  The developer
-may examine the exported circular buffer in any manner he/she chooses.
+The XMT framework and the xmt_xhist package are
+copyright Neumann & Associates Information Systems Inc.  
+The software is offered to the public under the
+terms of the  Apache License, Version 2.0.
+See the file `COPYING' for details.
 
-The XMT framework and the xmt_xhist package are copyright Neumann & Associates
-Information Systems Inc.  The software is offered to the public under the
-terms of the  Apache License, Version 2.0.  See the file `COPYING' for details.
+See the file `INSTALL' for compilation and
+installation instructions.
 
-See the file `INSTALL' for compilation and installation instructions.
-
-Send bug reports to `xmt@neumann-associates.com'.  Please include an adequate
-description of the defect and the platform, OS, and development environment
-on which the defect was uncovered.
+Send bug reports to `xmt@neumann-associates.com'.  
+Please include an adequate description of the defect
+and the platform, OS, and development environment on
+which the defect was uncovered.
 

@@ -18,5 +18,5 @@
 #************************************************************************
 
 setenv XMTDEFECT "$XMT/xmt_defect"
-setenv PATH	"$XMTDEFECT/bin:${PATH}"
+setenv PATH	"${PATH}:$XMTDEFECT/bin"
 

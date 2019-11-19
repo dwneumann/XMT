@@ -18,7 +18,7 @@
 #************************************************************************
 
 setenv XMTUTIL "$XMT/xmt_util"
-setenv PATH	"$XMTUTIL/bin:${PATH}"
+setenv PATH	"${PATH}:$XMTUTIL/bin"
 
 if ( $?prompt ) then
     alias a alias
@@ -27,7 +27,7 @@ if ( $?prompt ) then
     a vi        vim
     a c		clear
     a hi 	history
-    a ls	ls -cF
+    a ls	ls -uF
     a so	source
     a f		find . -name \"\!:1\"
     a fsrc 	'find . -name "*.[ch]" | xargs  grep '

@@ -22,7 +22,7 @@
 $copyright =~ s/\n*$//;
 $copyright =~ s/\n/\n#   /g; 
 print 
-qq{#!/usr/bin/env perl
+qq{#!/usr/bin/env perl 
 #************************************************************************
 #   $cm->{rev}
 #   Package	: $module->{pkg}
@@ -34,12 +34,13 @@ qq{#!/usr/bin/env perl
 };
 
 print q{
+use strict;
 use Getopt::Long;
 use Env;
 
-($pgmname = $0) =~ s{.*/}{};
-$usage		= "usage: $pgmname [-u]\n";
-undef $opt_u;	# unnecessary, but it shuts up -w
+(my $pgmname = $0) =~ s{.*/}{};
+my $usage		= "usage: $pgmname [-u]\n";
+undef my $opt_u;	# unnecessary, but it shuts up -w
 GetOptions( "u" ) || die $usage;
 die "$usage" if defined $opt_u;
 

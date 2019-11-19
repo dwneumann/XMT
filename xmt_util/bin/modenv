@@ -1,6 +1,6 @@
 #!/usr/bin/env perl
 #************************************************************************
-#*   $Version:$
+#*   $Version: rc5.1.0-28 [stable] $
 #*   Package	: xmt_util
 #*   Synopsis	: modenv [options]
 #*   Purpose	: 

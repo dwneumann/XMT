@@ -18,7 +18,7 @@
 #************************************************************************
 
 setenv XMTBUILD "$XMT/xmt_build"
-setenv PATH	"$XMTBUILD/bin:${PATH}"
+setenv PATH	"${PATH}:$XMTBUILD/bin"
 
 #************************************************************************
 # Set XMTBUILD_SUPP_ARCHS to the list of target architectures we will

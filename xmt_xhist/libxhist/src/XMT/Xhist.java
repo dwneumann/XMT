@@ -61,10 +61,7 @@
 /* xhist instrument FALSE */	/* do not instrument this file.  ever. */
 package XMT;
 import java.io.*;
-import java.lang.Runtime;
 import java.io.DataOutputStream;
-import java.io.FileOutputStream;
-/* import java.lang.ProcessHandle;  not available in jdk-8 */
 
 public	class		Xhist 
 { 
@@ -72,11 +69,9 @@ public	class		Xhist
     private static final int	XhistTableSize		= 1000;
     public static String buildTag;	// buildTag of instrumented source
     public static String mapFn;		// mapping file used during instrumentation
-    public static volatile int[] tbl		= new  int[XhistTableSize];
-    public static volatile int[] threadId	= new  int[XhistTableSize];
-    public static volatile int tail		= 0;
-    public static volatile DataOutputStream logStream	= null;
-    public static boolean forceFail	= false;
+    public static int[] tbl		= new  int[XhistTableSize];
+    public static int tail		= 0;
+    public static DataOutputStream logStream		= null;
 
 
     /**
@@ -86,48 +81,7 @@ public	class		Xhist
     */
     public	static void add( int fnum,  int lnum ) { 
 	tbl[tail] = (((short) fnum << 16) | (short) lnum);
-	threadId[tail] = (int) Thread.currentThread().getId();
 	tail = (short) ((tail+1) % XhistTableSize);
-    }
-
-    /**
-    * initializes xhist execution history logging.	
-    * @param	logNm		filename root for trace log
-    * @param	mapFn		hash filename to store in trace log
-    * @param	version		source build tag to store in trace log
-    */
-    public static void init( String logNm, String mapFn, String version ) {
-	DataOutputStream	fd	= null;
-    
-	try 
-	{
-	    /* ProcessHandle not available in jdk-8
-	    fd = new DataOutputStream(new FileOutputStream(
-		logNm + '.' + ".xhist")); 
-	    Xhist.logdev(fd);
-	    Xhist.mapfile(mapFn);
-	    Xhist.version(version);
-
-	    Runtime.getRuntime().addShutdownHook( new Thread() 
-	    {
-		@Override
-		public void run() 
-		{
-		    try 
-		    {
-			Xhist.write();
-		    }
-		    catch (IOException e) 
-		    {
-			; /* we're in the process of shutting down anyway. do nothing */
-		    }
-		}
-	    } );
-	} 
-	catch (java.io.FileNotFoundException e) 
-	{
-	    ; /* keep executing without the ability to write the trace log */
-	}
     }
 
     /**
@@ -148,7 +102,7 @@ public	class		Xhist
     }
 
     /**
-    * Sets the stream to export the execution history to. 
+    * Sets the strea to export the execution history to. 
     * @param	fd	DatOutputStream to write output to
     */
     public	static void logdev( DataOutputStream fd ) { 
@@ -188,9 +142,6 @@ public	class		Xhist
 	{
 	    logStream.writeInt(tbl[i]);
 	}
-	for (i = 0; i < tbl.length; i++)
-	{
-	    logStream.writeInt(threadId[i]);
-	}
     }
 }
+

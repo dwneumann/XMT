@@ -18,4 +18,4 @@
 #************************************************************************
 
 setenv XMTTIMESHT $XMT/xmt_timesht
-setenv PATH	 "$XMTTIMESHT/bin:${PATH}"
+setenv PATH	 "${PATH}:$XMTTIMESHT/bin"

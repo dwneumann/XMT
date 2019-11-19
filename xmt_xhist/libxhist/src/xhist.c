@@ -23,7 +23,6 @@
 *   Copyright (c) 1998	Neumann & Associates Information Systems Inc.
 *   All Rights reserved.	legal.info@neumann-associates.com
 ************************************************************************/
-/* xhist instrument FALSE */	/* do not instrument this file.  ever. */
 #define __xhist_c
 #ifndef lint
 static const char xhist_c_id[] = "@(#) xhist::xhist.c	$Version:$";

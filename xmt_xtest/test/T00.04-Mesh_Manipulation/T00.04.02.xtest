@@ -1,25 +1,19 @@
 
-# precondition:  iut is stopped in intermediate state
 # set breakpoint, run to there, change state variables.
-# postcondition: iut is stopped in intermediate state
+{ SEND( "stop in Mesh.main\n" );  }	
+{ EXPECT( "Deferring breakpoint" ); }
 
-{ SEND( "stop in Mesh.main\n" );	}	
-{ EXPECT( "Deferring breakpoint" );	}
+{ SEND( "run\n" );  }	
+{ EXPECT( "Breakpoint hit:" ); }
 
-{ SEND( "run\n" );			}
-{ EXPECT( "Breakpoint hit:" );		}
+{ SEND( "stop at Mesh:116\n" );  }	
+{ EXPECT( "Set breakpoint" ); }
 
-{
-    my $line = XMT::Xtest::resolve('Mesh.java', '@TestPoint_116') + 1;
-    SEND( "stop at Mesh:$line\n" );
-}
-{ EXPECT( "Set breakpoint" );		}
+{ SEND( "cont\n" );  }	
+{ EXPECT( "Breakpoint hit:.* line=116" ); }
 
-{ SEND( "cont\n" );			}	
-{ EXPECT( "Breakpoint hit" );		}
-
-#{ SEND( "set dfltPktsToSend = 2\n" );	}	
-#{ EXPECT( "dfltPktsToSend = 2" );	}	
-{ SEND( "set dfltHops = 5\n" );		}	
-{ EXPECT( "dfltHops = 5" );		}	
+{ SEND( "set dfltPktsToSend=2\n" );  }	
+{ EXPECT( "dfltPktsToSend=2\n" );  }	
+{ SEND( "set dfltHops=5\n" );  }	
+{ EXPECT( "dfltHops=5\n" );  }	
 

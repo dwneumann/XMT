@@ -1,8 +1,4 @@
-
-# precondition:  jdb launched
-# expect the jdb "initializing" string then a prompt.
+# this file expects the jdb "initializing" string then a prompt.
 # If we fail this, jdb is not ready to receive commands.
-# postcondition: iut is stopped in initial state
-
 { EXPECT( "Initializing jdb" );  }	# first output of jdb
 

@@ -14,7 +14,7 @@ hi Normal term=NONE cterm=NONE ctermfg=White ctermbg=Black gui=NONE guifg=White 
 
 " Faded
 hi ColorColumn term=NONE cterm=NONE ctermfg=NONE ctermbg=236 gui=NONE guifg=NONE guibg=#303030
-hi Comment term=NONE cterm=NONE ctermfg=LightGrey ctermbg=NONE gui=NONE guifg=LightGrey guibg=NONE
+hi Comment term=NONE cterm=NONE ctermfg=DarkCyan ctermbg=NONE gui=NONE guifg=DarkCyan guibg=NONE
 hi FoldColumn term=NONE cterm=NONE ctermfg=LightGrey ctermbg=NONE gui=NONE guifg=LightGrey guibg=NONE
 hi Folded term=NONE cterm=NONE ctermfg=LightGrey ctermbg=NONE gui=NONE guifg=LightGrey guibg=NONE
 hi LineNr term=NONE cterm=NONE ctermfg=DarkCyan ctermbg=bg gui=NONE guifg=DarkCyan guibg=bg
@@ -25,8 +25,11 @@ hi StatusLineNC term=NONE cterm=NONE ctermfg=fg ctermbg=LightGrey gui=NONE guifg
 hi VertSplit term=NONE cterm=NONE ctermfg=Black ctermbg=LightGrey gui=NONE guifg=Black guibg=LightGrey
 
 " Highlighted
-hi CursorColor term=NONE cterm=NONE ctermfg=NONE ctermbg=236 gui=NONE guifg=white guibg=DarkCyan
-hi iCursorColor term=NONE cterm=NONE ctermfg=NONE ctermbg=236 gui=NONE guifg=white guibg=Cyan
+hi CursorColumn term=NONE cterm=NONE ctermfg=NONE ctermbg=236 gui=NONE guifg=NONE guibg=#303030
+hi CursorIM term=NONE cterm=NONE ctermfg=Black ctermbg=4 gui=NONE guifg=Black guibg=#00FFFF
+hi CursorLineNr term=NONE cterm=NONE ctermfg=NONE ctermbg=Black gui=NONE guifg=NONE guibg=Black
+hi CursorLine term=NONE cterm=NONE ctermfg=NONE ctermbg=236 gui=NONE guifg=NONE guibg=#303030
+hi Cursor term=NONE cterm=NONE ctermfg=Black ctermbg=4 gui=NONE guifg=Black guibg=#00FFFF
 hi Directory term=NONE cterm=NONE ctermfg=69 ctermbg=NONE gui=NONE guifg=#5F87FF guibg=NONE
 hi ErrorMsg term=NONE cterm=NONE ctermfg=fg ctermbg=52 gui=NONE guifg=fg guibg=#5F0000
 hi Error term=NONE cterm=NONE ctermfg=fg ctermbg=52 gui=NONE guifg=fg guibg=#5F0000
@@ -38,7 +41,7 @@ hi PmenuSel term=NONE cterm=NONE ctermfg=Black ctermbg=13 gui=NONE guifg=Black g
 hi Question term=NONE cterm=NONE ctermfg=69 ctermbg=NONE gui=NONE guifg=#5F87FF guibg=NONE
 hi Search term=NONE cterm=NONE ctermfg=Black ctermbg=6 gui=NONE guifg=Black guibg=#00CDCD
 hi StatusLine term=NONE cterm=NONE ctermfg=Black ctermbg=fg gui=NONE guifg=Black guibg=fg
-hi Todo term=NONE cterm=NONE ctermfg=Yellow ctermbg=NONE gui=NONE guifg=Yellow guibg=Black
+hi Todo term=NONE cterm=NONE ctermfg=Cyan ctermbg=NONE gui=NONE guifg=Cyan guibg=Black
 hi UserCode term=NONE cterm=NONE ctermfg=Cyan ctermbg=NONE gui=NONE guifg=Cyan guibg=Black
 hi WarningMsg term=NONE cterm=NONE ctermfg=fg ctermbg=52 gui=NONE guifg=fg guibg=#5F0000
 hi WildMenu term=NONE cterm=NONE ctermfg=fg ctermbg=Black gui=NONE guifg=fg guibg=Black
@@ -132,7 +135,7 @@ function! XMTDimComments()
 endfunction
 
 function! XMTNoDim()
-    hi Comment term=NONE cterm=NONE ctermfg=LightGrey ctermbg=Black gui=NONE guifg=LightGrey guibg=Black
+    hi Comment term=NONE cterm=NONE ctermfg=DarkCyan ctermbg=Black gui=NONE guifg=DarkCyan guibg=Black
     hi Normal term=NONE cterm=NONE ctermfg=White ctermbg=Black gui=NONE guifg=White guibg=Black
     hi LineNr term=NONE cterm=NONE ctermfg=DarkCyan ctermbg=bg gui=NONE guifg=DarkCyan guibg=bg
     hi Character term=NONE cterm=NONE ctermfg=NONE ctermbg=NONE gui=NONE guifg=NONE guibg=NONE
@@ -146,6 +149,5 @@ command! XMTDimComments :call XMTDimComments()
 command! XMTDimCode :call XMTDimCode()
 
 " Setup normal settings
-call XMTDimComments()
-syn match	Todo		".*TO *DO.*\|.*FIX *ME\|.*GOT TO HERE.*"
+call XMTNoDim()
 

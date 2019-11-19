@@ -24,7 +24,7 @@
 #************************************************************************
 #* standard stuff ...
 #************************************************************************
-if ( $?prompt ) then
+#if ( $?prompt ) then
 
     #********************************************************************
     #* include cshrc from individual XMT packages we want to enable
@@ -35,6 +35,7 @@ if ( $?prompt ) then
     source $XMT/xmt_cm/proto/cshrc
     source $XMT/xmt_xhist/proto/cshrc
     source $XMT/xmt_xtest/proto/cshrc
+    source $XMT/xmt_cicd/proto/cshrc
    # source $XMT/xmt_doc/proto/cshrc
    # source $XMT/xmt_defect/proto/cshrc
    # source $XMT/xmt_metrics/proto/cshrc
@@ -43,9 +44,9 @@ if ( $?prompt ) then
     #********************************************************************
     # remove duplicate entries from PATH & MANPATH
     #********************************************************************
-    setenv  PATH    `echo $PATH | modenv -s`; 
+    #setenv  PATH    `echo $PATH | $XMTUTIL/bin/modenv -s`; 
     #setenv  MANPATH `echo $MANPATH | modenv` 
-endif
+#endif
 
 #************************************************************************
 #* local user stuff ...

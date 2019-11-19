@@ -15,7 +15,7 @@ The following packages are included in the collection:
 
 - xmt_cm :
    utilities to automate configuration management functions.     
-   sccs, rcs, cvs, subversion and git are supported.
+   sccs, rcs, cvs, subversion, git and mercurialt are supported.
 
 - xmt_defect :
    a database and utilities to automate defect tracking.

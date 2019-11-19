@@ -8,7 +8,6 @@
 *  All Rights reserved.	legal.info@neumann-associates.com
 *************************************************************************/
 
-/* xhist instrument FALSE */	/* do not instrument this file.  ever. */
 #ifndef __xhist_h
 #define __xhist_h
 
@@ -37,3 +36,4 @@ extern  void	xhist_version(char *s);		/* store version tag of instrumented sourc
 extern  void	xhist_write();
 
 #endif /* __xhist_h	*/
+

@@ -1,6 +1,6 @@
 #!/usr/bin/env perl
 #************************************************************************
-#*   $Version:$
+#*   $Version: rc5.1.0-32 [stable] $
 #*   Package	: xmt_edit
 #*   Synopsis	: hdr [-m<ext>] [-d] <file_name>
 #*   Purpose	: 

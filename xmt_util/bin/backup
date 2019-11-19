@@ -1,6 +1,7 @@
 #!/usr/bin/env perl 
 #************************************************************************
-#   Package	: xmt_util
+#  $Version:$
+#  Package	: xmt_util
 #  usage: backup [--full] [--dest=<destpath>] srcpath 
 #  rsync the specified <srcpath> to <destpath>,
 #  performing a normal (incremental) backup unless --full is specified, 

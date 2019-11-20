@@ -24,11 +24,6 @@
 #*  limitations under the License. 
 #************************************************************************
 
-ifdef do_vars
-#************************************************************************
-# DO ALL VARIABLE ASSIGNMENTS HERE
-#************************************************************************
-
 
 #   := assignements are evaluated during lexical scan;
 #    = assignemtns are recursively evaluated during rule parsing
@@ -69,12 +64,5 @@ LDFLAGS.c	+= -o $@
 LINTFLAGS.c	+= $(CFLAGS.c)
 DOCFLAGS.c	+= -o $@
 
-endif
-ifdef do_rules
-#************************************************************************
-# DO TARGET RULE OVERRIDES HERE
-#************************************************************************
-
-
-#************************************************************************
-endif
+## Define recipes in $(XMTBUILD)/proto/lang/$(LANGUAGE)/$(ARCH)
+## after variables are further defined there 

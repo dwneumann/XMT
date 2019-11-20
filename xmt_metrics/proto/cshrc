@@ -18,5 +18,5 @@
 #************************************************************************
 
 setenv XMTMETRICS 	$XMT/xmt_metrics
-setenv PATH		"$XMTMETRICS/bin:${PATH}"
+setenv PATH		"${PATH}:$XMTMETRICS/bin"
 

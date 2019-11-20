@@ -25,12 +25,6 @@
 #************************************************************************
 
 
-ifdef do_vars
-#************************************************************************
-# DO ALL VARIABLE ASSIGNMENTS HERE
-#************************************************************************
-
-
 #**********************************************************************
 # define program paths...
 #**********************************************************************
@@ -43,8 +37,8 @@ DOC.cpp.linux_x86	:= $(XMTBUILD)/bin/srcdoc
 # This is the place to define default flags that are specific to THIS 
 # platform and THIS language.
 #**********************************************************************
-CFLAGS.cpp.linux_x86	= -Wall -m32 
-LDFLAGS.cpp.linux_x86	= -Wall  -m32
+CFLAGS.cpp.linux_x86	= -Wall -isystem /usr/include/x86_64-linux-gnu
+LDFLAGS.cpp.linux_x86	= -Wall  
 ARFLAGS.cpp.linux_x86	= -r
 LINTFLAGS.cpp.linux_x86	= $(CFLAGS.cpp.linux_x86)
 DOCFLAGS.cpp.linux_x86	= 
@@ -53,12 +47,6 @@ LIB_SFX.cpp.linux_x86	= .a
 EXE_PFX.cpp.linux_x86	= 
 EXE_SFX.cpp.linux_x86	= 
 
-
-endif
-ifdef do_rules
-#************************************************************************
-# DO TARGET RULE OVERRIDES HERE
-#************************************************************************
 
 
 
@@ -100,6 +88,3 @@ $(TGTDIR)/$(EXE_NM): $(objs.$(LANGUAGE)) $(EXTRA_OBJS)
 	    $(LIBS) $(LIBS.$(LANGUAGE)) $(LIBS.$(LANGUAGE).$(ARCH)) 
 
 
-
-#************************************************************************
-endif

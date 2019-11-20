@@ -37,7 +37,7 @@ git config alias.gstatus	'git status -s'		# list what's modified & staged
 git config alias.gstash	'git stash '			# shelf everything in the working dir for later 
 git config alias.grls	'git ls-remote origin'		# list differences from origin
 git config alias.gpull	'git pull'			# pull & merge updates from origin
-git config alias.gpush	'git push origin --follow-tags'		# push updates to named branch on origin
+git config alias.gpush	'git push origin '		# push updates to named branch on origin
 git config alias.gtag	'git tag -a '			# create named release tag for next commit
 git config alias.gstag	'git tag -s '			# create GPG-signed release tag for next commit
 git config alias.gvtag	'git tag -v '			# verify GPG-signed release tag 

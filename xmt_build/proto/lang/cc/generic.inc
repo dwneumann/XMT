@@ -25,12 +25,6 @@
 #************************************************************************
 
 
-ifdef do_vars
-#************************************************************************
-# DO ALL VARIABLE ASSIGNMENTS HERE
-#************************************************************************
-
-
 srcs.cc	= $(wildcard $(SRCDIR)/*.cc)
 hdrs.cc	= $(wildcard $(SRCDIR)/*.h)
 objs.cc	= $(patsubst $(SRCDIR)/%.cc,$(OBJDIR)/%.o,$(srcs.cc))
@@ -68,12 +62,5 @@ LDFLAGS.cc	+= -o $@
 LINTFLAGS.cc	+= $(CFLAGS.cc)
 DOCFLAGS.cc	+= -o $@
 
-endif
-ifdef do_rules
-#************************************************************************
-# DO TARGET RULE OVERRIDES HERE
-#************************************************************************
-
-
-#************************************************************************
-endif
+## Define recipes in $(XMTBUILD)/proto/lang/$(LANGUAGE)/$(ARCH)
+## after variables are further defined there 

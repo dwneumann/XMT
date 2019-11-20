@@ -1,4 +1,4 @@
-#!/usr/bin/env perl
+#!/usr/local/bin/perl -w 
 #
 #  a handy little snippet which generates subroutines out of all the
 #  files in the current directory, and generates the file vhtml.pl

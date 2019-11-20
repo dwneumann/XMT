@@ -25,19 +25,14 @@
 #*  limitations under the License. 
 #************************************************************************
 
-ifdef do_vars
-#************************************************************************
-# DO ALL VARIABLE ASSIGNMENTS HERE
-#************************************************************************
 
-srcs.java	?= $(shell find $(SRCDIR)/ -type f -name '*.java')
-objs.java	= $(patsubst $(SRCDIR)/%.java,$(OBJDIR)/%.class,$(srcs.java))
-docs.java	= $(patsubst $(SRCDIR)/%.java,$(DOCDIR)/%.html,$(srcs.java))
-#   MacOS bash leaves a leading slash so we need to strip it
-#objs.java	= $(patsubst /%,%,$(objs.java))
-#docs.java	= $(patsubst /%,%,$(docs.java))
-
+#   := assignements are evaluated during lexical scan;
+#    = assignments are recursively expanded during rule parsing
+srcs.java	:= $(wildcard $(SRCDIR)/$(JAVA_PKGROOT)/*.java)
 hdrs.java	:= 
+#srcs.java	:= $(shell find $(SRCDIR)/ -type f -name '*.java')
+objs.java	:= $(patsubst $(SRCDIR)/$(JAVA_PKGROOT)/%.java,$(JAVA_PKGROOT)/%.class,$(srcs.java))
+docs.java	:= $(patsubst $(SRCDIR)/$(JAVA_PKGROOT)/%.java,$(DOCDIR)/%.html,$(srcs.java))
 lnts.java	:= 
 
 #**********************************************************************
@@ -50,35 +45,5 @@ ARFLAGS.java	= cf
 LINTFLAGS.java	= 
 DOCFLAGS.java	= 
 
-endif
-ifdef do_rules
-#************************************************************************
-# DO TARGET RULE OVERRIDES HERE
-#************************************************************************
-
-#**********************************************************************
-# rule for compiling java files with or without namespace heirarchy
-#**********************************************************************
-$(OBJDIR)/%.class: $(SRCDIR)/%.java
-	mkdir -p $(dir $@);
-	@echo	$(CFLAGS) $(CFLAGS.java) $(CFLAGS.java.$(ARCH)) > $@.cflags ;
-	$(COMPILE.java.$(ARCH))	@$@.cflags $^ 
-
-$(DOCDIR)/%.html: $(SRCDIR)/%.java
-	cd $(DOCDIR); $(DOC.java.$(ARCH)) $(DOCFLAGS) $(DOCFLAGS.java) $(DOCFLAGS.java.$(ARCH)) $^
-
-.lib.$(LANGUAGE):	$(TGTDIR)/$(LIB_NM)
-.exe.$(LANGUAGE):	$(TGTDIR)/$(LIB_NM)
-
-#**********************************************************************
-# rule for creating jar archive 
-#**********************************************************************
-$(TGTDIR)/$(LIB_NM): $(objs.java) 
-	( cd $(OBJDIR);  \
-	  echo $(ARFLAGS) $(ARFLAGS.$(LANGUAGE)) $(ARFLAGS.$(LANGUAGE).$(ARCH)) > $(LIB_NM).arflags;\
-	  $(AR.$(LANGUAGE).$(ARCH)) @$(LIB_NM).arflags $(LIB_NM) `find . -name '*.class'`;)
-	  -/bin/mv $(OBJDIR)/$(LIB_NM) $(TGTDIR)/$(LIB_NM)
-
-
-#************************************************************************
-endif
+## Define recipes in $(XMTBUILD)/proto/lang/$(LANGUAGE)/$(ARCH)
+## after variables are further defined there 

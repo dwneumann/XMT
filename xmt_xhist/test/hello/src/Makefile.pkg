@@ -1,5 +1,5 @@
 #************************************************************************
-#   Package	: xhist
+#   Package	: libxhist
 #   $Version:$
 #    Copyright 2018 Visionary Research Inc.   All rights reserved.
 #*   			legal@visionary-research.com
@@ -17,44 +17,32 @@
 #   Purpose	: Customize make environment for the current package.
 #************************************************************************
 
-ifdef do_vars
-#************************************************************************
-# DO ALL VARIABLE ASSIGNMENTS HERE
-#************************************************************************
-
+PKG_NM		= Xhist
+ARCH		= linux_x86
+BUILD_TGT	= exe
+CFLAGS.c	+= -I$(XMT)/xmt_xhist/libxhist/src -g -DXHIST
 CFLAGS.java	+= -cp .:$(OBJDIR):$(XMTXHIST)/libxhist/tgt/$(ARCH)/Xhist.jar
-CFLAGS.c	+= -g -DXHIST -I$(XMTXHIST)/libxhist/src 
-LIBS.c		+= $(XMTXHIST)/libxhist/tgt/$(ARCH)/libXhist.a	
-# gcc requires the -lpthread flag to be at the end of the commandline
-LD.append	= -lpthread
+LIBS.c		= $(XMT)/xmt_xhist/libxhist/tgt/$(ARCH)/libXhist.a 
 
+java:	
+	$(MAKE) LANGUAGE=java JAVA_PKGROOT=. \
+	EXTRA_OBJS='Hello$$$$1.class' PKG_NM=Hello EXE_NM=Hello  exe
 
-endif
-ifdef do_rules
-#************************************************************************
-# DO TARGET RULE OVERRIDES HERE
-#************************************************************************
+c:	
+	$(MAKE) LANGUAGE=c PKG_NM=Xhist EXE_NM=hello LIBS=$(LIBS.c) exe
+
 
 # instrument sources for xhist:
 #  cd to $(DATADIR) (where the uninstrumented src resides)
-#  write all instrumented sources to $(SRCDIR) for compilation
-#  write all xhist_map files to $(TESTDIR) directory 
+#  write instrumented sources to $(SRCDIR) for compilation
+#  write xhist_map file to $(TESTDIR) directory 
 instrument:
 	(cd $(DATADIR) ;				\
-	    for f in *.orig ; do			\
-		s=$${f%.orig};				\
-		m=$(CURDIR)/$(TESTDIR)/$$s.xmap; 	\
-		$(XMTCM)/bin/git_filter --expand=. --xhist=. --xhist_map=$$m \
-			--fname=$$s  < $$f > $(SRCDIR)/$$s ;	\
+	for x in c java ; do				\
+	    m=$(CURDIR)/$(TESTDIR)/$${x}Hello.map; 	\
+	    for f in *.$$x ; do				\
+		$(XMTCM)/bin/git_filter --expand=. --xhist=. --xhist_map=$$m $$f  \
+				> $(SRCDIR)/$$f ;	\
 	    done					\
-	)
+	done)
 
-c: instrument
-	$(MAKE) LANGUAGE=c ARCH=linux_x86 exe
-
-java: instrument
-	$(MAKE) LANGUAGE=java ARCH=jre lib
-
-
-#************************************************************************
-endif

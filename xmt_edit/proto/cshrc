@@ -1,5 +1,5 @@
 #************************************************************************
-#*   $Version:$
+#*   $Version: rc5.1.0-32 [stable] $
 #*   Package	: xmt_edit
 #*   Synopsis	:
 #*   Purpose	: edit package .cshrc additions
@@ -18,7 +18,7 @@
 #************************************************************************
 
 setenv XMTEDIT		"$XMT/xmt_edit"
-setenv PATH		"$XMTEDIT/bin:${PATH}"
+setenv PATH		"${PATH}:$XMTEDIT/bin"
 setenv EDITOR 		gvim
 setenv VISUAL		"$EDITOR"
 setenv XEDITOR		"$EDITOR"

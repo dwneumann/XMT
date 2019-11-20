@@ -1,0 +1,41 @@
+[core]
+	repositoryformatversion = 0
+	filemode = true
+	bare = false
+	logallrefupdates = true
+	ignorecase = true
+[remote "origin"]
+	url = https://github.com/dwneumann/XMT.git
+	fetch = +refs/heads/*:refs/remotes/origin/*
+[credential]
+	helper = store --file ~/.git-credentials
+[branch "master"]
+	remote = origin
+	merge = refs/heads/master
+[branch "stable"]
+	remote = origin
+	merge = refs/heads/stable
+[branch "experimental"]
+	remote = origin
+	merge = refs/heads/experimental
+[branch "develop"]
+	remote = origin
+	merge = refs/heads/develop
+
+#  per the documentation for .gitattributes, Whenever the clean filter is
+#  changed, the repo should be renormalized: $ git add --renormalize 
+
+#  The following filter expands keywords (smudges) upon checkout into any
+#  branch whose name includes "stable" or "experimental", and unexpands
+#  (cleans) upon cleckin.
+#  [ The --debug flag writes packet trace log to /tmp/git_filter.log ]
+#  [ Also see the documentation for .gitattributes for info on the
+#    GIT_TRACE_PACKET environment variable ]
+[filter "keywords"]
+	process = git_filter --expand='stable|experimental' --process
+
+#  The following filter expands keywords (smudges) and instruments code
+#  for Xhist upon checkout into any branch whose name includes "stable" or
+#  "experimental", and unexpands and uninstruments (cleans) upon cleckin.
+[filter "instrumentation"]
+	process = git_filter --expand='stable|experimental' --process 

@@ -2,10 +2,9 @@
 
 ## About the Project
 
-The Extensible Management Toolkit (XMT) is a collection of independent packages
+The Extensible Management Toolkit (XMT) is a collection of packages
 (mostly written in Perl and intended for use in a bash or csh commandline environment)
 to automate or enhance software development and project management functions.
-It has been in use and has evolved since the mid-1990's.
 
 The following packages are included in the collection:
 - xmt_build :
@@ -13,9 +12,13 @@ The following packages are included in the collection:
    C, C++, and Java languages are supported.     
    linux_x86, Sparc, Linux-x86, AX8052, and STM32 platforms are supported.
 
+- xmt_cicd :
+   utilities functions for automating various CI/CD pipeline functions
+   and integrating various FOSS software used in integration, test and deployment.
+
 - xmt_cm :
    utilities to automate configuration management functions.     
-   sccs, rcs, cvs, subversion, git and mercurialt are supported.
+   sccs, rcs, cvs, subversion, git and mercurial are supported.
 
 - xmt_defect :
    a database and utilities to automate defect tracking.

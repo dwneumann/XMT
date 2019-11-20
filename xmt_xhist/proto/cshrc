@@ -18,5 +18,5 @@
 #************************************************************************
 
 setenv XMTXHIST "$XMT/xmt_xhist"
-setenv PATH	"$XMTXHIST/bin:${PATH}"
+setenv PATH	"${PATH}:$XMTXHIST/bin"
 

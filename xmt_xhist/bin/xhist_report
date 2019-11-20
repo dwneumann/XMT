@@ -7,8 +7,6 @@
 #   	  --help	print help message & exit.
 #	  --trace=pathspec	execution history trace output
 #	  --map=pathspec	execution history filename map 
-#	  --thread=i		output only lines from thread i
-#	  --fmt=[vi|]		output as replayable script for vi or ...
 #
 #  Copyright 2018 Visionary Research Inc.   All rights reserved.
 #  			legal@visionary-research.com
@@ -23,10 +21,9 @@
 #  limitations under the License. 
 #************************************************************************
 
-use strict;
 use Getopt::Long;
 use autodie;
-(my $pgmname = $0) =~ s{.*/}{};	# rootname of executed script
+($pgmname = $0) =~ s{.*/}{};	# rootname of executed script
 
 # construct the help message
 my $help_msg = sprintf( <<__END__ );
@@ -34,18 +31,15 @@ $pgmname [<options>]
           --help 
           --trace=<pathspec>	
           --map=<pathspec>
-          --thread=<i>       output only lines from thread i
-          --fmt=vim          output as replayable vim commands
 __END__
 
 my %opt = ();
 my %filemap = ();
-my ($fh, $mapfile, $srcversion, $numstmts, $intfmt, $bytes, $strlen, $filenum, $linenum);
+my ($fh, $mapfile, $srcversion, $numstmts, $tailindex, $intfmt, $bytes, $strlen);
 
 # parse commandline options
-GetOptions( \%opt, "help", "trace=s", "map=s", "thread=i", "fmt=s" ) or die $help_msg;
-die "$help_msg" if (!defined $opt{trace});
-die "$help_msg" if (defined $opt{fmt} && $opt{fmt} ne 'vim');
+GetOptions( \%opt, "help", "trace=s", "map=s" ) or die $help_msg;
+die "$help_msg" if (!defined $opt{'trace'});
 
 ## read the mapfile & populate the filename hash with values
 if (defined $opt{'map'})
@@ -61,100 +55,56 @@ if (defined $opt{'map'})
     close $fh;
 }
 
-# Read the first 4 bytes from the file to determine file format magic number and 
-# byteorder of writer.
-# For this version of xhist_report the number must be 5.
+# Read the first 4 bytes from the file to determine byteorder of writer.
+# This should be the size of the writer's 32-bit int (i.e. the number 4).
 # This tells us whether to read MSB first or LSB first for all subsequent data.
 open $fh, '<:raw', $opt{'trace'};
-die "$opt{'trace'}: read error"		unless read($fh, $bytes, 4) == 4; 
+die "$opt{'trace'}: read error"		unless read($fh, $bytes, 4) == 4;
 $intfmt = 'x';
 foreach my $i ( qw( N V ) )
 {
-    if (unpack($i, $bytes) == 5) # check against magic number
+    if (unpack($i, $bytes) == 4)
     {
         $intfmt = $i;
     }
 }
-die "$opt{'trace'}: incorrect file format"	if $intfmt eq 'x';
+die "$opt{'trace'}: number format error"	if $intfmt eq 'x';
 
-# now read the number of statements per thread
-die "$opt{'trace'}: read error"		unless read( $fh, $bytes, 4) == 4;
-$numstmts = unpack "$intfmt", $bytes;
+# now read the table length & index of last statement executed
+die "$opt{'trace'}: read error"		unless read( $fh, $bytes, 2*4) == 2*4;
+($numstmts, $tailindex) = unpack "$intfmt $intfmt", $bytes;
 
-# now read the length & path of the map file created during instrumentation
+#  read the length & name of the map file created during instrumentation
 die "$opt{'trace'}: read error"		unless read( $fh, $bytes, 2) == 2;
 $strlen = unpack lc $intfmt, $bytes;
 die "$opt{'trace'}: read error"		unless read( $fh, $bytes, $strlen) == $strlen;
 $mapfile = unpack "a$strlen", $bytes;
-# now read the length & version tag of the instrumented source
+#  read the length & version tag of the instrumented source
 die "$opt{'trace'}: read error"		unless read( $fh, $bytes, 2) == 2;
 $strlen = unpack lc $intfmt, $bytes;
 die "$opt{'trace'}: read error"		unless read( $fh, $bytes, $strlen) == $strlen;
 $srcversion = unpack "a$strlen", $bytes;
 
-# print the header info ...
-printf("%s execution history of source build %s\n", 
-    ($opt{fmt} eq 'vim' ? '"' : ''), $srcversion );
-printf("%s encoded with mapfile %s\n", 
-    ($opt{fmt} eq 'vim' ? '"' : ''), $mapfile );
+# print some identifying info ...
+printf("execution history of source build %s\n", $srcversion );
+printf("encoded with mapfile %s\n", $mapfile );
 
+# now read the entire execution history log
+die "$opt{'trace'}: read error"	unless read( $fh, $bytes, $numstmts*4) == $numstmts*4;
+push @xhist_tbl, unpack "($intfmt)*", $bytes;
 
-# now read the history table one thread at a time until EOF.
-# Each thread is a 4-byte tail index followed by 4-byte threadId 
-# followed by numstmts*4-byte entries.
-my %historyTbl;
-my %tailIndexes;
-my $threadId;
-while ( read( $fh, $bytes, 4) == 4 )  # we read the next threadId
-{
-    $threadId = unpack "$intfmt", $bytes;
-    die "$opt{'trace'}: read error"	unless read( $fh, $bytes, 4) == 4;
-    $tailIndexes{$threadId} = unpack "$intfmt", $bytes;
-
-    die "$opt{'trace'}: read error"	unless read( $fh, $bytes, $numstmts*4) == $numstmts*4;
-    push @{$historyTbl{$threadId}}, unpack "($intfmt)*", $bytes;
-}
-
-# The last statement executed in each thread is at index $tailIndexes{$threadId}.
+# The last statement executed is at index $tailindex.
 # We want to list the instructions in the order executed,
-# so for each thread we start at tailIndexes{$threadId}+1 and wrap around.
-my $prev_filenum = 0; 
-foreach $threadId ( keys %tailIndexes )
+# so we start at tailindex+1 and wrap around.
+for (my $i = $tailindex+1; $i != $tailindex; $i++)
 {
-    next if ($opt{thread} != $threadId && $opt{thread} != 0); # skip if not the specified thread
-    next if ($threadId <= 0); # skip if an unused table column
-
-    # print threadID if outputting in human readable form
-    if ($opt{fmt} ne 'vim' ) 	
+    $filenum = $xhist_tbl[$i] >> 16;
+    $linenum = $xhist_tbl[$i] & 0x00FF;
+    if ($linenum > 0)
     {
-	printf("Thread %d:\n", $threadId );
+	printf("%s: %d\n", 
+	    (defined $filemap{$filenum} ? $filemap{$filenum} : "unknown"), $linenum);
     }
-
-    # now output all the idividual history enties for the thread in execution order.
-    for (my $i = $tailIndexes{$threadId}+1; $i != $tailIndexes{$threadId}; $i++)
-    {
-	$i = -1 if ($i >= $numstmts - 1); # wrap-around so next index is 0
-	$filenum = $historyTbl{$threadId}[$i] >> 16;
-	$linenum = $historyTbl{$threadId}[$i] & 0xFFFF;
-
-	next if ($linenum <= 0);	# skip if this element of the table was never populated
-	
-	if ($opt{fmt} eq 'vim' ) 	# output as replayable vimscript output
-	{
-	    printf(":set cursorline\n:set number\n") if ($prev_filenum == 0);
-	    printf("%s\n%s\n%s\n", 
-		($filenum == $prev_filenum ? ":" . $linenum 
-		    : ":e +" . $linenum . 
-		    (defined $filemap{$filenum} ? " " . $filemap{$filenum} : " unknown")),
-		":redraw!",
-		":call input('Press any key to continue')" );
-	    $prev_filenum = $filenum; 
-	}
-	else	# output as human-readable tabular format 
-	{
-	    printf("%s:\t line  %d\n", 
-		(defined $filemap{$filenum} ? $filemap{$filenum} : "unknown"), $linenum);
-	}
-    }
+    $i = -1 if ($i >= $numstmts - 1); # wrap-around so next index is 0
 }
 # we're done.

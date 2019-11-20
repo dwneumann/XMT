@@ -18,5 +18,5 @@
 #************************************************************************
 
 setenv XMTXTEST	"$XMT/xmt_xtest"
-setenv PATH	"$XMTXTEST/bin:${PATH}"
+setenv PATH	"${PATH}:$XMTXTEST/bin"
 

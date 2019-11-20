@@ -25,11 +25,6 @@
 #*  limitations under the License. 
 #************************************************************************
 
-ifdef do_vars
-#************************************************************************
-# DO ALL VARIABLE ASSIGNMENTS HERE
-#************************************************************************
-
 
 #**********************************************************************
 # define program paths...
@@ -54,12 +49,20 @@ LIB_SFX.java.linux_x86	:= .jar
 EXE_PFX.java.linux_x86	:= 
 EXE_SFX.java.linux_x86	:= 
 
-endif
-ifdef do_rules
-#************************************************************************
-# DO TARGET RULE OVERRIDES HERE
-#************************************************************************
+$(JAVA_PKGROOT)/%.class: $(SRCDIR)/$(JAVA_PKGROOT)/%.java
+	@mkdir -p $(OBJDIR)/$(JAVA_PKGROOT);
+	@echo	$(CFLAGS) $(CFLAGS.java) $(CFLAGS.java.$(ARCH)) > $(OBJDIR)/$@.cflags ;
+	$(COMPILE.java.$(ARCH))	@$(OBJDIR)/$@.cflags $<
+
+$(DOCDIR)/%.html: $(SRCDIR)/$(JAVA_PKGROOT)/%.java
+	cd $(DOCDIR); $(DOC.java.$(ARCH)) $(DOCFLAGS) $(DOCFLAGS.java) $(DOCFLAGS.java.$(ARCH)) $<
+
+.lib.$(LANGUAGE):	$(TGTDIR)/$(LIB_NM)
+.exe.$(LANGUAGE):	$(TGTDIR)/$(LIB_NM)
+$(TGTDIR)/$(LIB_NM): $(objs.$(LANGUAGE)) 
+	(cd $(OBJDIR);  \
+	echo $(ARFLAGS) $(ARFLAGS.$(LANGUAGE)) $(ARFLAGS.$(LANGUAGE).$(ARCH)) > $(LIB_NM).arflags;\
+	$(AR.$(LANGUAGE).$(ARCH)) @$(LIB_NM).arflags $(LIB_NM) *.class;)
+	-/bin/mv $(OBJDIR)/$(LIB_NM) $(TGTDIR)/$(LIB_NM)
 
 
-#************************************************************************
-endif

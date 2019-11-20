@@ -1,0 +1,51 @@
+#!/usr/bin/env perl 
+#************************************************************************
+#   $Version:$
+#   Package	: xmt_cicd
+#   Synopsis	: cluster-up <Vagrantfile>
+#   Purpose	: launch multiple vagrant VMs as defined by <Vagrantfile>
+#	on each physical host named in environment variable XMT_K8S_HOSTS
+#   	to create a kubernetes cluster for microservice app testing
+#	e.g. :  setenv XMT_K8S_HOSTS "charlie lucy linus"
+#		cluster-up Vagrantfile.apline39_x10
+#	will invoke vagrant-up to instantiate all the VMs defined in 
+#	Vagrantfile.apline39_x10 on each of the servers in teh XMT_K8S_HOSTS list.
+#	Assuming the Vagrantfile defined 10 nodes,  you'd have a 30 node cluster
+#	(10 per machine x 3 machines).
+#		cluster-destroy will destroy all 30 VMs on all hosts.
+#
+#    Copyright 2019 Visionary Research Inc.   All rights reserved. 
+# 			legal@visionary-research.com
+#    Licensed under the Apache License, Version 2.0 (the "License"); may not
+#    use this file except in compliance with the License. may obtain a copy
+#    of the License at http://www.apache.org/licenses/LICENSE-2.0 required by
+#    applicable law or agreed to in writing, software under the License is
+#    distributed on an "AS IS" BASIS, WARRANTIES OR CONDITIONS OF ANY KIND,
+#    either express or implied. the License for the specific language governing
+#    permissions and under the License.
+#************************************************************************
+
+use strict;
+use Getopt::Long;
+use Env;
+my $localhost = `/usr/bin/hostname`; chomp $localhost;
+my $projdir	= "/tmp/$ENV{'USER'}";		# exclude this dir from snapshots & backups!
+my @k8s_hosts = (defined $ENV{'XMT_K8S_HOSTS'} ? 	# servers to destroy vagrant VMs on
+		 split / /, $ENV{'XMT_K8S_HOSTS'} : $localhost );	
+
+(my $pgmname = $0) =~ s{.*/}{};
+my $usage		= "usage: $pgmname [-u] <Vagrantfile>\n";
+undef my $opt_usage;	# unnecessary, but it shuts up -w
+GetOptions( "u" ) || die $usage;
+die "$usage" if defined $opt_usage;	# print usage and exit if --usage specified
+die "$usage" if $#ARGV != 0;		# print usage and exit if no Vagrantfile specified
+die "$ARGV[0] : $!\n" if (! -r $ARGV[0]); 	# print error and exit if file not readable
+
+foreach my $host ( @k8s_hosts )
+{
+    my $cmd = "ssh $host 'mkdir -p $projdir'";
+    system( $cmd );	# create the project directory
+    system( "scp $ARGV[0] $host:$projdir/Vagrantfile" );	# copy & rename Vagrantfile
+    my $cmd = "ssh $host 'cd $projdir && vagrant up --parallel'";
+    system( $cmd );	# launch the remote vagrant up cmd
+}

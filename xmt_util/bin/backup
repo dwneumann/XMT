@@ -1,0 +1,128 @@
+#!/usr/bin/env perl 
+#************************************************************************
+#  $Version:$
+#  Package	: xmt_util
+#  usage: backup [--full] [--dest=<destpath>] srcpath 
+#  rsync the specified <srcpath> to <destpath>,
+#  performing a normal (incremental) backup unless --full is specified, 
+#  indicating *another* full backup is to be made.
+#  Exclude junk files specified in ./backup.exclude
+#  Log output to /var/logs/backup.log
+#
+#  Backups are date-stamped, rather than just being level-stamped
+#  (i.e.  /Backups/home.0.2019-11-01   rather than just Backups/home.0)
+#  This allows us to keep *multiple* full backups (not just the most recent) 
+#  and multiple hard linked copies from *each* of the full backups.
+#  eg:   backup  --full /home 	
+#  creates *another* full backup of /home, dated today. Does not touch any previous backups.
+#  eg:   backup  /home 	
+#  incrementally updates the last full backup of /home, redating it to today, and 
+#  creating a hard-link copy of the previous home.0 as home.1
+#  The result is that raather than a *rotation* of backups from backup.0 to backup.n,
+#  we get an unbounded number of incremental backups from an unlimited number of full backups.
+#  Here is an example crontab:
+#	@weekly		backup --full /home
+#	@daily		backup 	/home
+#
+#  Deleting of old backups is easily done with a find command:
+# 	#delete backups over 1yr old
+#	@monthly  find /Backups -maxdepth 1 -ctime 365 -exec echo /bin/rm -rf {} \;   
+#
+#    Copyright 2019 Visionary Research Inc.   All rights reserved.
+#    			legal@visionary-research.com
+#*  Licensed under the Apache License, Version 2.0 (the "License");
+#*  you may not use this file except in compliance with the License.
+#*  You may obtain a copy of the License at http://www.apache.org/licenses/LICENSE-2.0
+#*  
+#*  Unless required by applicable law or agreed to in writing, software
+#*  distributed under the License is distributed on an "AS IS" BASIS,
+#*  WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+#*  See the License for the specific language governing permissions and
+#*  limitations under the License. 
+#************************************************************************
+
+use strict;
+use Getopt::Long;
+use File::Basename;
+use POSIX qw(strftime tzset);
+use Env;
+use IO::Handle; 
+
+(my $pgmname = $0) =~ s{.*/}{};
+my $usage	= "usage: $pgmname [-u] [--full] [--dest=<path>] <path>\n";
+my $logfile	= "/var/log/backup.log";
+my $excludes	= "$0.exclude";				# search in same directory as pgm
+my $destroot	= "/mnt/HDD4/Backups";			# default unless overridden
+$ENV{'TZ'}	= "America/Vancouver"; tzset();		# necessary for Windows OS
+
+##   there's nothing configurable below this line.  Leave it alone.
+our ($opt_u,  $opt_full);
+GetOptions( "u" => \$opt_u, "dest=s" => \$destroot, "full" => \$opt_full ) or die $usage;
+die "$usage" if defined $opt_u;
+my $srcpath = $ARGV[$#ARGV]	or die $usage;
+$srcpath =~ s:/$::;		# strip trailing slash
+my $hostname =`/bin/hostname`; chomp($hostname);
+open(my $LOG, ">>", $logfile) or die "$logfile: $!";
+$LOG->autoflush(1); 
+
+# today's backup is always a .0   but it might not be the ONLY .0
+my ($basename, $path, $sfx)	= fileparse($srcpath);
+my $today = strftime("%F", localtime);
+my $destpath = "$destroot/$hostname.$basename.0." . $today;
+my $last0 = `/bin/ls -ltd $destroot/$hostname.$basename.0.*`; 
+$last0  =~ s/.*?([\S]*?)\n.*/$1/s;	# discard everything but the first filename
+
+# log the start of the backup with a timestamp
+my $timenow = strftime("%X", localtime);
+print $LOG "\n\n______________________________________________________________\n";
+print $LOG (defined $opt_full ? "full " : "") . "backup of $srcpath started $today at $timenow \n";
+
+# if this is not a "forced full" backup, 
+# perform a skinny copy of the last .0 to .1 of the same date, 
+# then give the .0 today's date.
+if (!defined $opt_full)
+{
+    (my $last1 = $last0) =~ s/\.0\./.1./;
+    if (($last0 ne '') && (-r $last0) && ($last1 ne '') && ($last1 ne $last0))
+    {
+	my $cmd = "cp -al $last0 $last1"; 
+	print $LOG "$cmd\n";
+	system($cmd);
+    }
+    else
+    {
+        print $LOG "no previous full backup found\n";
+    }
+
+    if ((-r $last0) && ($last0 ne $destpath))
+    {
+	print $LOG "mv $last0 $destpath\n";
+	rename "$last0", $destpath;
+	my $cmd ="touch $destpath";
+	print $LOG "$cmd\n";
+	system($cmd);					
+    }
+}
+
+###  WINDOWS HACK:  cygwin rsync doesn't recognize symlinks, 
+###  so manually find all symlinks under $srcpath and add to $excludes.
+###  rsync --no-links won't work because it doesn't recognize the links as links.
+my $os  = `/bin/uname`;
+if ($os =~ /CYGWIN/) 
+{
+    my $tmpexcludes = "/tmp/backup.exclude";
+    print $LOG "create $tmpexcludes\n";
+    system("cp $excludes $tmpexcludes");
+    system("cd $srcpath && find . -type l -print | sed -e 's:^\.::' -e 's: :\\ :' >>$tmpexcludes");
+    $excludes = $tmpexcludes;
+}
+
+# start the new backup, logging progress and stats.
+my $cmd = "rsync --archive --delete --one-file-system  --stats --human-readable";
+   $cmd .= " --exclude-from=$excludes" if (-e $excludes);
+   $cmd .= " $srcpath/ $destpath";
+print $LOG "$cmd \n";
+system("$cmd >>$logfile 2>&1");
+my $timenow = strftime("%X", localtime);
+print $LOG "backup ended at $timenow \n";
+

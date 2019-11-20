@@ -1,0 +1,33 @@
+#************************************************************************
+#   Package	: xmt_cicd
+#   Purpose	: sample Vagrantfile for bringing up multiple cluster nodes.
+# 	to bring up & tear down multiple VMs across multiple servers
+#   	to create a kubernetes cluster for microservice app testing.
+#
+#    Copyright 2019 Visionary Research Inc.   All rights reserved. 
+# 			legal@visionary-research.com
+#    Licensed under the Apache License, Version 2.0 (the "License"); may not
+#    use this file except in compliance with the License. may obtain a copy
+#    of the License at http://www.apache.org/licenses/LICENSE-2.0 required by
+#    applicable law or agreed to in writing, software under the License is
+#    distributed on an "AS IS" BASIS, WARRANTIES OR CONDITIONS OF ANY KIND,
+#    either express or implied. the License for the specific language governing
+#    permissions and under the License.
+#************************************************************************
+
+Vagrant.configure("2") do |config|
+    config.vm.network "private_network", type: "dhcp"	# use 10.0.0.x
+    config.vm.usable_port_range = 8900..8999
+    config.vm.provider "vmware_desktop" do |v|
+      v.unmount_default_hgfs = true			# we don't want shared folders
+    end
+    (1..10).each do |i|
+	nodename = ENV['HOST'] + "-k8s-" + "#{i}"	# disambiguate name nodes by server
+	config.vm.define nodename do |node|
+	    node.vm.box = "hashicorp/bionic64"
+	    node.vm.network "forwarded_port", guest: 80, host: 8900, auto_correct: true
+	    node.vm.hostname = nodename
+	    node.vm.provision "shell", inline: 'echo `hostname` is ready at `hostname -I`'
+	end
+    end
+end

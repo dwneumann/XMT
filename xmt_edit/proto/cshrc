@@ -18,7 +18,7 @@
 #************************************************************************
 
 setenv XMTEDIT		"$XMT/xmt_edit"
-setenv PATH		"$XMTEDIT/bin:${PATH}"
+setenv PATH		"${PATH}:$XMTEDIT/bin"
 setenv EDITOR 		gvim
 setenv VISUAL		"$EDITOR"
 setenv XEDITOR		"$EDITOR"

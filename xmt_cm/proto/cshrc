@@ -21,7 +21,7 @@
 #************************************************************************
 
 setenv XMTCM 	"$XMT/xmt_cm"
-setenv PATH	"$XMTCM/bin:${PATH}"
+setenv PATH	"${PATH}:$XMTCM/bin"
 
 #************************************************************************
 # define your CM package here...

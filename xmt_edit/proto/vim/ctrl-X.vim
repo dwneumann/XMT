@@ -37,9 +37,9 @@ map <C-T>	:ta
 map <C-X><C-B>	:<C-U>'s,'e
 map <C-X><C-P>	:put z<CR>
 map <C-X><C-P>	:put z<CR>
-map <C-X><C-X>	:'s,'ed z<CR>
-map <C-X><C-Y>	:'s,'ey z<CR>
-map <C-X>=	:'s,'e !$XMTEDIT/bin/hdr -d -m comment<CR>
+map <C-X><C-X>	:<C-U>'s,'ed z<CR>
+map <C-X><C-Y>	:<C-U>'s,'ey z<CR>
+map <C-X>=	:<C-U>'s,'e !$XMTEDIT/bin/hdr -d -m comment<CR>
 map <C-X>f	:doautocmd BufRead %.
 map <C-X>i	:'s,'e !indent - \|unexpand --all<CR>
 map <C-X>S	Go<ESC>!!spell -b %<CR>
@@ -72,6 +72,3 @@ menu XMT.Syntax\ On				:color xmt<CR>:syntax on<CR>
 menu XMT.Syntax\ Dim\ Code			:XMTDimCode<CR>
 menu XMT.Syntax\ Dim\ Comments			:XMTDimComments<CR>
 menu XMT.Syntax\ No\ Dim			:XMTNoDim<CR>
-
-
-syn match	Todo		".*TO *DO.*\|.*FIX *ME\|.*GOT TO HERE.*"

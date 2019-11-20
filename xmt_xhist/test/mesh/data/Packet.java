@@ -117,7 +117,6 @@ public	class		Packet {
 	dg	= new DatagramPacket(payload, payload.length);
 	try
 	{
-	    /* @TestPoint_116 : force exception */
 	    n.socket.receive(dg);
 	}
 	catch (IOException e)
@@ -131,3 +130,4 @@ public	class		Packet {
     }
 
 }
+

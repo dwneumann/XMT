@@ -1,3 +1,6 @@
+#ifdef XHIST 
+#include "xhist.h" 
+#endif  
 /************************************************************************ 
 *   Package	: libxhist 
 *   $Version:$ 
@@ -22,53 +25,46 @@
 static const char hello_c_id[] = "@(#) libxhist::hello.c	$Version:$";
 #endif 
  
+#ifdef XHIST 
+#include <sys/types.h> 
 #include <stdlib.h> 
 #include <stdio.h> 
+#include <fcntl.h> 
+#include <signal.h> 
 #include <unistd.h> 
-#include <sys/syscall.h>
-#include <pthread.h>
-
-#ifdef XHIST 
 #include "xhist.h" 
 #endif  
-
-#define NUM_THREADS	10
+ 
 void foo();
-void *thread_main(void *arg);
-
-/* xhist instrument FALSE */
+ 
 int main(int argc, char *argv[]) 
 {
-    int i = 0;
-    pthread_t thr[NUM_THREADS];
-
-    for (i = 0; i < NUM_THREADS; i++)	// thread loop
-    {
-        pthread_create(&thr[i], NULL, thread_main, NULL);
-    }
-
-    for (i = 0; i < NUM_THREADS; i++)	// thread loop
-    {
-	pthread_join(thr[i], NULL); // wait for all threads to complete
-    }
-}
+ 
+#ifdef XHIST 
+/* xhist instrument FALSE */
+    int i, fd;
+ 
+    if ((fd=open("hello.trace", O_RDWR|O_CREAT, 0644)) < 0) 
+    { 
+        perror(XHIST_LOGFILE);
+	exit(1);
+    } 
+    xhist_logdev(fd);
+    xhist_mapfile("$XhistMap:$");
+    xhist_version("$Version:$");
+    signal(SIGUSR1, xhist_write);
 /* xhist instrument TRUE */
-
-void *thread_main(void *arg) 
-{
-    int	i;
+#endif 
  
-    /* <xhist init> */
- 
-    for (i = 0; i < 5; i++)
+    for (i = 0; i < 10; i++)
     { 
 	sleep(1);	
 	foo();	
     } 
-    return( 0 );
+    xhist_write();	
 }
 
 void foo()
 {
-    printf("hello from thread %d\n", (int) syscall(SYS_gettid));
+    printf("hello foo (C version)\n");
 }

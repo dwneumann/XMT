@@ -1,5 +1,6 @@
 #!/usr/bin/env perl 
 #************************************************************************
+#   $Version:$
 #   Package	: xmt_cicd
 #   Synopsis	: cluster-up <Vagrantfile>
 #   Purpose	: launch multiple vagrant VMs as defined by <Vagrantfile>

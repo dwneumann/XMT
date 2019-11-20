@@ -1,6 +1,6 @@
 #!/usr/bin/env perl 
 #************************************************************************
-#   
+#   $Version:$
 #   Package	: xmt_cicd
 #   Synopsis	: cluster-destroy [-u] [--force]
 #   Purpose	: destroy all vagrant machines on all physical hosts

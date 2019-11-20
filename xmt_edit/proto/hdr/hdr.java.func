@@ -1,6 +1,6 @@
 {
 #************************************************************************
-#   $Version: rc5.1.0-32 [stable] $
+#   $Version:$
 #   Package	: xmt_edit
 #   Synopsis	:
 #   Purpose	: Perl block which, when eval'ed, prints the desired

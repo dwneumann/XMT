@@ -1,0 +1,33 @@
+{
+    "name": "XMT",
+    "displayName": "XMT",
+    "description": "XMT color scheme for Visual Studio Code",
+    "version": "1.0.0",
+    "publisher": "dwneumann",
+    "license": "CC0-1.0",
+    "author": {
+        "name": "dwneumann",
+        "url": "http://github.com/dwneumann/XMT"
+    },
+    "keywords": [
+        "visual studio code",
+        "themes",
+        "color theme",
+        "extension"
+    ],
+    "engines": {
+        "vscode": "^1.0.0"
+    },
+    "categories": [
+        "Themes"
+    ],
+    "contributes": {
+        "themes": [
+            {
+                "label": "XMT",
+                "uiTheme": "vs-dark",
+                "path": "./XMT.json"
+            }
+        ]
+    }
+}

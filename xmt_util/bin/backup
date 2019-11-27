@@ -1,7 +1,6 @@
 #!/usr/bin/env perl 
 #************************************************************************
-#  $Version:$
-#  Package	: xmt_util
+#   Package	: xmt_util
 #  usage: backup [--full] [--dest=<destpath>] srcpath 
 #  rsync the specified <srcpath> to <destpath>,
 #  performing a normal (incremental) backup unless --full is specified, 
@@ -69,7 +68,7 @@ $LOG->autoflush(1);
 my ($basename, $path, $sfx)	= fileparse($srcpath);
 my $today = strftime("%F", localtime);
 my $destpath = "$destroot/$hostname.$basename.0." . $today;
-my $last0 = `/bin/ls -ltd $destroot/$hostname.$basename.0.*`; 
+my $last0 = `/bin/ls -d $destroot/$hostname.$basename.0.* | sort -r`; 	# can't rely on ls -t
 $last0  =~ s/.*?([\S]*?)\n.*/$1/s;	# discard everything but the first filename
 
 # log the start of the backup with a timestamp

@@ -36,8 +36,7 @@ set noshelltemp
 set shellslash
 
 " for gvim, set fontsize
-set guifont=consolas:h9
-set guifont=Monospace\ 8
+set guifont=Monospace\ 9
 
 " make cursor blinking block (vertical bar in insert mode) in gui and xterm
 "set guicursor=n-v-c:block-blinkon400-blinkoff200-CursorColor

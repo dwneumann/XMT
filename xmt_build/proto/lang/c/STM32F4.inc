@@ -44,8 +44,9 @@ EXE_SFX.c.STM32F4	:= .elf
 # This is the place to define default flags and recipes
 # that are specific to THIS target platform for THIS language.
 #**********************************************************************
-CFLAGS.c.STM32F4 += -Wall -Wno-unused-const-variable -mlittle-endian -mthumb \
-		 -mcpu=cortex-m4 -mthumb-interwork -mfloat-abi=hard -mfpu=fpv4-sp-d16 	
+CFLAGS.c.STM32F4 += -Wall -Wno-unused-const-variable -mlittle-endian -mthumb 		\
+		 -mcpu=cortex-m4 -mthumb-interwork -mfloat-abi=hard -mfpu=fpv4-sp-d16 	\
+		 -fstack-usage
 
 LDFLAGS.c.STM32F4	+= $(CFLAGS.c.STM32F4) 
 ARFLAGS.c.STM32F4	+= -rscDv

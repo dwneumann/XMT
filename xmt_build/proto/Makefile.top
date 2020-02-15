@@ -38,9 +38,9 @@
 #**********************************************************************
 shell		= /bin/bash
 SHELL		= $(shell)
-pkg_dir		= $(shell cd ..;pwd)
 supp_langs	= $(notdir $(wildcard $(XMTBUILD)/proto/lang/*))
 allsrcs		= $(sort $(foreach e,$(supp_langs),$(srcs.$(e))))
+pkg_dir		= $(CURDIR)
 
 #**********************************************************************
 # Upper-case variables may be specified on the commandline or these
@@ -50,17 +50,17 @@ allsrcs		= $(sort $(foreach e,$(supp_langs),$(srcs.$(e))))
 MAKE		= make
 MAKEDEPEND	= makedepend
 ARCH		= $(XMTBUILD_DFLT_ARCH)
-SRCDIR		= ../src
-TESTDIR		= ../test
-DOCDIR		= ../doc
-DATADIR		= ../data
+SRCDIR		= src
+TESTDIR		= test
+DOCDIR		= doc
+DATADIR		= data
 CMSOURCES	= co -u SVN/*
-CMCLEAN		= svn update -P -d *
+CMCLEAN		= 
 JAVA_PKGTREE	= .
 PKG_NM		= $(notdir $(pkg_dir))
 PKG_TGT         = lib
-OBJDIR		= ../obj/$(ARCH)
-TGTDIR		= ../tgt/$(ARCH)
+OBJDIR		= obj/$(ARCH)
+TGTDIR		= tgt/$(ARCH)
 LIB_NM          = $(LIB_PFX.$(LANGUAGE).$(ARCH))$(PKG_NM)$(LIB_SFX.$(LANGUAGE).$(ARCH))
 EXE_NM          = $(EXE_PFX.$(LANGUAGE).$(ARCH))$(PKG_NM)$(EXE_SFX.$(LANGUAGE).$(ARCH))
 LANGUAGE	= c

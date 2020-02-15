@@ -46,7 +46,7 @@ EXE_SFX.c.STM32L4	:= .elf
 #**********************************************************************
 CFLAGS.c.STM32L4 += -Wall -Wno-unused-const-variable -mlittle-endian -mthumb	\
 	-mcpu=cortex-m4 -mthumb-interwork -mfloat-abi=hard -mfpu=fpv4-sp-d16	\
-	-fdata-sections -ffunction-sections 					\
+	-fstack-usage -fdata-sections -ffunction-sections 			\
 	-DUSE_HAL_DRIVER -DSTM32L476xx -DARM_MATH_CM4 -D__FPU_PRESENT=1 	
 
 LDFLAGS.c.STM32L4	+= $(CFLAGS.c.STM32L4) -Wl,-Map=$(TGTDIR)/$(PKG_NM).map \

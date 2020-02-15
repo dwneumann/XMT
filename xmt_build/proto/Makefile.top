@@ -66,6 +66,7 @@ EXE_NM          = $(EXE_PFX.$(LANGUAGE).$(ARCH))$(PKG_NM)$(EXE_SFX.$(LANGUAGE).$
 LANGUAGE	= c
 BUILD_TGT	= all
 .DEFAULT	= build
+default:	build
 
 #**********************************************************************
 # This is the place to define flags that are common to ALL 

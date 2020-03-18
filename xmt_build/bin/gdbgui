@@ -21,8 +21,8 @@ $SIG{INT} 	= \&cleanup;
 $SIG{TERM}	= \&cleanup;
 use Env;
 
-# note: gdbgui needs a Windows-style path to gdb
-my $gdb		= "c:/Programs/gcc/bin/arm-none-eabi-gdb.exe";
+# note: when executing on Windows gdbgui needs a Windows-style path to gdb
+my $gdb		= `which gdb`;
 my $gdb_args	= "--quiet " 
 		. "-ex 'target remote :3333' "	# oopocd's gdbserver port
 		. "-ex 'monitor reset halt' "	# halt ARM's execution
@@ -31,7 +31,7 @@ my $gdb_args	= "--quiet "
 		. "-ex 'load' "			# force reflash to board
 		. "-ex 'continue' ";		# run to break at main
 
-my $gdbgui	= "/cygdrive/c/Users/dean/Documents/Software/misc/gdbgui_0.13.0.0.exe";
+my $gdbgui	= "$ENV{'HOME'}/.local/bin/gdbgui";
 my $gdbgui_args	= "--hide_gdbgui_upgrades -g $gdb --gdb-args=\"$gdb_args\"";
 
 # note: openocd needs a Windows-style path to its config file

@@ -26,7 +26,7 @@ if [[ $- == *i* ]]; then
     alias vi=vim
     alias c=clear
     alias hi=history
-    alias ls='ls -cF'
+    alias ls='ls -F'
     alias so=source
     alias f='find . -name \"\!$1\"'
     alias fsrc='find . -name "*.[ch]" | xargs  grep '

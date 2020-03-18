@@ -1,0 +1,30 @@
+#!/usr/bin/env perl 
+#************************************************************************
+#   
+#   Package	: xmt_util
+#   Synopsis	: findup <filespec>
+#   Purpose	: find closest ancestor containing <filespec>
+#
+#    Copyright 2019 Visionary Research Inc.   All rights reserved.
+#    			legal@visionary-research.com
+#************************************************************************
+
+use strict;
+use Getopt::Long;
+
+(my $pgmname = $0) =~ s{.*/}{};
+my $usage		= "usage: $pgmname [-l] <filespec>\n";
+our ($u, $l);
+GetOptions( "u" => \$u, "l" => \$l ) || die $usage;
+die "$usage" if defined $u;
+$l = "-l" if defined $l;
+my $filespec = $ARGV[$#ARGV]	or die $usage;
+my $d = `pwd`; chomp $d;
+while ($d ne "")
+{
+    if (-e "$d/$filespec")
+    {
+        system("ls $l -d $d/$filespec");
+    }
+    $d =~ s:/[^/]*$::;
+}

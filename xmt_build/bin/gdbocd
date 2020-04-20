@@ -2,8 +2,8 @@
 #************************************************************************
 #   $Version:$
 #   Package	: 
-#   Synopsis	: gdbocd <pgm.elf>
-#   Purpose	: launch gdb, spawn openocd, connect to target, debug <pgm.elf>.
+#   Synopsis	: gdbgui <pgm.elf>
+#   Purpose	: spawn openocd, launch gdbgui, connect to target, debug <pgm.elf>.
 #
 #   Copyright 2018 Visionary Research Inc.  
 #   Licensed under the Apache License, Version 2.0 (the "License");
@@ -19,26 +19,32 @@
 
 $SIG{INT} 	= \&cleanup;
 $SIG{TERM}	= \&cleanup;
+use Env;
 
-my $gdb		= "/cygdrive/c/Programs/gcc/bin/arm-none-eabi-gdb.exe";
+# note: when executing on Windows gdbgui needs a Windows-style path to gdb
+my $gdb		= "$GCCROOT/bin/arm-none-eabi-gdb";
 my $gdb_args	= "--quiet " 
-		. "-ex 'target remote :3333' "	# oopocd's gdbserver port
+		. "-ex 'target remote :3333' "	# openocd's gdbserver port
 		. "-ex 'monitor reset halt' "	# halt ARM's execution
 		. "-ex 'monitor reset init' "	# reset pgm counter to start
+		. "-ex 'monitor arm semihosting enable' " # enable semihosting
 		. "-ex 'break main' "		# break at first instruction of main
 		. "-ex 'load' "			# force reflash to board
 		. "-ex 'continue' ";		# run to break at main
 
-# note: openocd needs a Windows path to its config file
-my $openocd	= "/cygdrive/c/Programs/GNU_MCU_Eclipse_OpenOCD/bin/openocd.exe";
-my $ocd_args	= "-d0 -f C:/Programs/GNU_MCU_Eclipse_OpenOCD/scripts/board/st_nucleo_l4.cfg";
+my $gdbgui	= "$ENV{'HOME'}/.local/bin/gdbgui";
+my $gdbgui_args	= "-g $gdb --gdb-args=\"$gdb_args\"";
+
+# note: openocd needs a Windows-style path to its config file
+my $openocd	= `which openocd`; chomp $openocd;
+my $ocd_args	= "/usr/share/openocd/scripts/board/st_nucleo_l476rg.cfg";
 
 # launch openocd & leave running as a background process
-system( "$openocd $ocd_args 1>/dev/null 2>&1 &" );
+system( "$openocd -f $ocd_args 1>/dev/null 2>&1 &" );
 
-# launch gdb, connect to openocd, and load the executable to be debugged
-# the system() call will retrun when we quit gdb.
-system( "$gdb $gdb_args $ARGV[0]") or die "$gdb: $!\n";
+# launch gdbgui, it spawns gdb, gdb connects to openocd ...
+# then gdb reads its startup commands.
+system( "$gdbgui $gdbgui_args --args $ARGV[0]") or die "$gdbgui: $!\n";
 
 END {
     cleanup();
@@ -47,5 +53,7 @@ END {
 sub cleanup
 {
     print "killing child processes...\n";
-    system('taskkill /IM openocd* /F > /dev/null 2>&1');
+    system("pkill --echo --full $openocd	> /dev/null 2>&1");
+    system("pkill --echo --full $gdb		> /dev/null 2>&1");
+    system("pkill --echo --full $gdbgui		> /dev/null 2>&1");
 }

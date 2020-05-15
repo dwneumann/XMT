@@ -32,18 +32,18 @@ docs.cpp	= $(patsubst $(SRCDIR)/%.cpp,$(DOCDIR)/%.html,$(srcs.cpp))
 lnts.cpp	= $(patsubst $(SRCDIR)/%.cpp,$(OBJDIR)/%.ln,$(srcs.cpp))
 
 #**********************************************************************
-# pull in sources from vendor tree rooted at VENDOR_ROOT
+# pull in 3rd party sources from subtree rooted at EXTERNAL_SRCS
 #**********************************************************************
-VENDOR_ROOT	= $(SRCDIR)/vendor
-vendor_srcdirs	= $(sort $(dir $(shell find $(VENDOR_ROOT) -name "*.$(LANGUAGE)")))
-vendor_srcfiles	= $(sort $(notdir $(shell find $(VENDOR_ROOT) -name "*.$(LANGUAGE)")))
-vendor_sdirs	= $(sort $(dir $(shell find $(VENDOR_ROOT) -name "*.[sS]")))
-vendor_sfiles	= $(sort $(notdir $(shell find $(VENDOR_ROOT) -name "*.[sS]")))
-vendor_objfiles	= $(patsubst %,$(OBJDIR)/%,$(vendor_srcfiles:.$(LANGUAGE)=.o) $(vendor_sfiles:.s=.o))
-vendor_hdirs	= $(sort $(dir $(shell find $(VENDOR_ROOT) -name "*.h")))
-vendor_hfiles	= $(sort $(notdir $(shell find $(VENDOR_ROOT) -name "*.h")))
-vendor_incs	= $(patsubst %,-I%,$(vendor_hdirs))
-
+EXTERNAL_SRCS	:= $(SRCDIR)/vendor
+_vendors	:= $(shell [ -d "$(EXTERNAL_SRCS)" ] && echo "$(EXTERNAL_SRCS)" || echo "/dev/null")
+vendor_srcdirs	:= $(dir $(shell find -L $(_vendors) -name "*.$(LANGUAGE)"))
+vendor_srcfiles	:= $(notdir $(shell find -L $(_vendors) -name "*.$(LANGUAGE)"))
+vendor_sdirs	:= $(dir $(shell find -L $(_vendors) -name "*.[sS]"))
+vendor_sfiles	:= $(notdir $(shell find -L $(_vendors) -name "*.[sS]"))
+vendor_objfiles	:= $(patsubst %,$(OBJDIR)/%,$(vendor_srcfiles:.$(LANGUAGE)=.o) $(vendor_sfiles:.s=.o))
+vendor_hdirs	:= $(dir $(shell find -L $(_vendors) -name "*.h"))
+vendor_hfiles	:= $(notdir $(shell find -L $(_vendors) -name "*.h"))
+vendor_incs	:= $(patsubst %,-I%,$(vendor_hdirs))
 vpath %.cpp $(SRCDIR) $(vendor_srcdirs)
 vpath %.i $(SRCDIR) $(vendor_srcdirs)
 vpath %.ln $(SRCDIR) $(vendor_srcdirs)

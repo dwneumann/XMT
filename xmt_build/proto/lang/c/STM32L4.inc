@@ -35,6 +35,7 @@ AR.c.STM32L4		:= $(GNUROOT)-ar
 DOC.c.STM32L4		:= $(XMTBUILD)/bin/srcdoc 
 LINT.c.STM32L4		:= echo lint not installed
 OBJCOPY.c.STM32L4	:= $(GNUROOT)-objcopy
+FLASH.c.STM32L4		:= /usr/bin/st-flash
 LIB_PFX.c.STM32L4	:= lib
 LIB_SFX.c.STM32L4	:= .a
 EXE_PFX.c.STM32L4	:= 
@@ -47,23 +48,23 @@ EXE_SFX.c.STM32L4	:= .elf
 CFLAGS.c.STM32L4 += -Wall -Wno-unused-const-variable -mlittle-endian -mthumb	\
 	-mcpu=cortex-m4 -mthumb-interwork -mfloat-abi=hard -mfpu=fpv4-sp-d16	\
 	-fstack-usage -fdata-sections -ffunction-sections 			\
-	-DUSE_HAL_DRIVER -DSTM32L476xx -DARM_MATH_CM4 -D__FPU_PRESENT=1 	
+	-DARM_MATH_CM4 
 
 LDFLAGS.c.STM32L4	+= $(CFLAGS.c.STM32L4) -Wl,-Map=$(TGTDIR)/$(PKG_NM).map \
-	-Wl,--cref -Wl,--gc-sections --specs=nano.specs -lc -lm 
+	-Wl,--cref -Wl,--gc-sections 
 
 ARFLAGS.c.STM32L4	+= -rscDv
 LINTFLAGS.c.STM32L4	+= $(CFLAGS.c.STM32L4)
 DOCFLAGS.c.STM32L4	+= 
 
+flash: bin
+	$(FLASH.c.STM32L4)  write $(TGTDIR)/$(PKG_NM).bin 0x8000000
 
 bin: exe
 	$(OBJCOPY.c.STM32L4) -O binary $(TGTDIR)/$(EXE_NM) $(TGTDIR)/$(PKG_NM).bin
 
 hex: exe
 	$(OBJCOPY.c.STM32L4) -O ihex $(TGTDIR)/$(EXE_NM) $(TGTDIR)/$(PKG_NM).hex
-
-
 
 $(OBJDIR)/%.o	: %.S
 	@echo $(CFLAGS) $(CFLAGS.c) $(CFLAGS.c.$(ARCH)) > $@.cflags ; 

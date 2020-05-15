@@ -50,15 +50,15 @@ pkg_dir		= $(CURDIR)
 MAKE		= make
 MAKEDEPEND	= makedepend
 ARCH		= $(XMTBUILD_DFLT_ARCH)
-SRCDIR		= src
-TESTDIR		= test
-DOCDIR		= doc
-DATADIR		= data
-CMSOURCES	= co -u SVN/*
+CMSOURCES	= git checkout .
 CMCLEAN		= 
 JAVA_PKGTREE	= .
 PKG_NM		= $(notdir $(pkg_dir))
 PKG_TGT         = lib
+SRCDIR		= src
+TESTDIR		= test
+DOCDIR		= doc
+DATADIR		= data
 OBJDIR		= obj/$(ARCH)
 TGTDIR		= tgt/$(ARCH)
 LIB_NM          = $(LIB_PFX.$(LANGUAGE).$(ARCH))$(PKG_NM)$(LIB_SFX.$(LANGUAGE).$(ARCH))
@@ -100,7 +100,7 @@ depend:
 	>/dev/null 2>&1 )
 
 clean:
-	-/bin/rm $(OBJDIR)/* $(TGTDIR)/*
+	-/bin/rm -f $(OBJDIR)/* $(TGTDIR)/*
 
 sources:	
 	(cd $(SRCDIR); $(CMSOURCES))
@@ -128,9 +128,10 @@ endif
 ifneq "$(strip $(BUILD_PKGS))" ""
 reqd_pkgs := $(BUILD_PKGS)
 $(reqd_pkgs):
-	$(MAKE) -w -C $@/src PWD=$@/src build;
+	$(MAKE) -w --always-make  -C $@ PWD=$@ build;
 endif
-build: $(reqd_pkgs) $(BUILD_TGT)
+build: $(reqd_pkgs)
+	$(MAKE) -w --always-make $(BUILD_TGT)
 
 #**********************************************************************
 # "showflags" (or "show") simply echoes the value of the programs

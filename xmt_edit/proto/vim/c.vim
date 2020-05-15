@@ -42,12 +42,13 @@ map  <C-X><C-A>	:'s,'e !sort -b +1 -u<CR>
 map  <C-X><C-L>	:1,$ !$XMTEDIT/bin/hdr -d -m c.synopsis<CR>
 map  <C-X>e	:'s,'e s/..\(.*\)/extern \1;/<CR>
 map  <C-X>f	ma]]mb:'a,'b !$XMTEDIT/bin/hdr -d -m c.func.ansi<CR>
-map  <C-X>F	:0r !$XMTEDIT/bin/hdr %<CR>
+map  <C-X>H	:0r !$XMTEDIT/bin/hdr %<CR>
 
-imap <C-X>c	<CR>/*<CR> *  <CR>*/<CR><ESC>2-A
+imap <C-X>c	<CR>/*<CR> *  <CR>*/<ESC>2-A
+imap <C-X>/	<C-X>c
 imap {<CR>	{<CR>}<ESC>O    
 
-menu XMT.File\ Header<TAB><C-X>F			<C-X>F
+menu XMT.File\ Header<TAB><C-X>F			<C-X>H
 menu XMT.Renumber\ Constants<TAB><C-X>#			<C-X>#
 menu XMT.Alphebetize\ Declarations<TAB><C-X><C-A>	<C-X><C-A>
 menu XMT.Function.Generate\ List<TAB><C-X><C-L>		<C-X><C-L>
@@ -65,14 +66,12 @@ function! AddCscopePath(dir)
     endif
 endfunction
 
-let pkg = substitute( expand('%:p'), expand("$PROJECT") . '/', "", "" )
-let pkg = substitute( pkg, '/.*$', "", "" )
-" cscope kill -1
-call AddCscopePath( "." )
-call AddCscopePath( $PROJECT . '/' . pkg . '/src' )
+" add cscope connection for project dir
+cscope kill -1
 call AddCscopePath( $PROJECT )
 
 menu XMT.Cscope.Add\ cscope\ Path	:<C-U>call AddCscopePath( 
+menu XMT.Cscope.Show\ Connections	:<C-U>cs show<CR>
 menu XMT.Cscope.Find\ Symbol\ Uses	:<C-U>cs find s <C-R>*<CR>
 menu XMT.Cscope.Find\ Symbol\ Defn	:<C-U>cs find g <C-R>*<CR>
 menu XMT.Cscope.Find\ Pattern		:<C-U>cs find e <C-R>*<CR>

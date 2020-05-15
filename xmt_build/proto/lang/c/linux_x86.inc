@@ -28,25 +28,25 @@
 #**********************************************************************
 # define program paths...
 #**********************************************************************
-COMPILE.c.linux_x86	:= gcc
-LD.c.linux_x86		:= gcc
-AR.c.linux_x86		:= ar
-DOC.c.linux_x86		:= $(XMTBUILD)/bin/srcdoc 
-LINT.c.linux_x86	:= echo lint not installed
-LIB_PFX.c.linux_x86	:= lib
-LIB_SFX.c.linux_x86	:= .a
-EXE_PFX.c.linux_x86	:= 
-EXE_SFX.c.linux_x86	:= 
+COMPILE.c.$(ARCH)	= g++
+LD.c.$(ARCH)		= g++
+AR.c.$(ARCH)		= ar
+DOC.c.$(ARCH)		= $(XMTBUILD)/bin/srcdoc 
+LINT.c.$(ARCH)		= echo lint not installed
+LIB_PFX.c.$(ARCH)	= lib
+LIB_SFX.c.$(ARCH)	= .a
+EXE_PFX.c.$(ARCH)	= 
+EXE_SFX.c.$(ARCH)	= 
 
 #**********************************************************************
 # This is the place to define default flags that are specific to THIS 
 # platform and THIS language.
 #**********************************************************************
-CFLAGS.c.linux_x86 += -Wall -Wno-unused-const-variable -isystem /usr/include/x86_64-linux-gnu
-LDFLAGS.c.linux_x86	+= $(CFLAGS.c.linux_x86) 
-ARFLAGS.c.linux_x86	+= -r
-LINTFLAGS.c.linux_x86	+= $(CFLAGS.c.linux_x86)
-DOCFLAGS.c.linux_x86	+= 
+CFLAGS.c.$(ARCH) 	+= -Wall -Wno-attributes -Wno-unused-function -Wno-unused-const-variable -isystem /usr/include/x86_64-linux-gnu
+LDFLAGS.c.$(ARCH)	+= $(CFLAGS.c.$(ARCH)) 
+ARFLAGS.c.$(ARCH)	+= -r
+LINTFLAGS.c.$(ARCH)	+= $(CFLAGS.c.$(ARCH))
+DOCFLAGS.c.$(ARCH)	+= 
 
 
 
@@ -62,7 +62,7 @@ $(OBJDIR)/%.o	: %.c
 	@echo $(CFLAGS) $(CFLAGS.c) $(CFLAGS.c.$(ARCH)) > $@.cflags ; 
 	$(COMPILE.c.$(ARCH)) @$@.cflags $< 
 
-$(OBJDIR)/%.i	: /%.c
+$(OBJDIR)/%.i	: %.c
 	@echo -E $(CFLAGS) $(CFLAGS.c) $(CFLAGS.c.$(ARCH)) > $@.cflags ; 
 	$(COMPILE.c.$(ARCH)) @$@.cflags $< 
 

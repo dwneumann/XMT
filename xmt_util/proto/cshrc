@@ -29,10 +29,10 @@ if ( $?prompt ) then
     a hi 	history
     a ls	ls -F
     a so	source
-    a f		find . -name \"\!:1\"
-    a fsrc 	'find . -name "*.[ch]" | xargs  grep '
-    a fstr 	'find . -type f | xargs  grep '
-    a vstr	'vi `fgrep -l \!:1 \!:2*`'
+    a f		find -L . -name \"\!:1\"
+    a fsrc 	'find -L . -name "*.[ch]" -o -name "*.cpp" | xargs  grep '
+    a fstr 	'find -L . -type f | xargs  grep '
+    a vstr	'vi `grep -r -l \!:1 \!:2*`'
 
     set nonomatch
     set history = 100

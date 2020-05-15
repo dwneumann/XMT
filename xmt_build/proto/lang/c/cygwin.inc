@@ -42,7 +42,7 @@ EXE_SFX.c.cygwin	:=
 # This is the place to define default flags that are specific to THIS 
 # platform and THIS language.
 #**********************************************************************
-CFLAGS.c.cygwin += -Wall -Wno-unused-const-variable
+CFLAGS.c.cygwin += -Wall -Wno-attributes -Wno-unused-function -Wno-unused-const-variable
 LDFLAGS.c.cygwin	+= $(CFLAGS.c.cygwin) 
 ARFLAGS.c.cygwin	+= -r
 LINTFLAGS.c.cygwin	+= $(CFLAGS.c.cygwin)

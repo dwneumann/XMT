@@ -44,23 +44,25 @@ EXE_SFX.c.STM32F4	:= .elf
 # This is the place to define default flags and recipes
 # that are specific to THIS target platform for THIS language.
 #**********************************************************************
-CFLAGS.c.STM32F4 += -Wall -Wno-unused-const-variable -mlittle-endian -mthumb 		\
-		 -mcpu=cortex-m4 -mthumb-interwork -mfloat-abi=hard -mfpu=fpv4-sp-d16 	\
-		 -fstack-usage
 
-LDFLAGS.c.STM32F4	+= $(CFLAGS.c.STM32F4) 
+CFLAGS.c.STM32F4 += -Wall -Wno-attributes -Wno-unused-function -Wno-unused-const-variable -mlittle-endian -mthumb	\
+	-mcpu=cortex-m4 -mthumb-interwork -mfloat-abi=hard -mfpu=fpv4-sp-d16	\
+	-fstack-usage -fdata-sections -ffunction-sections 			\
+	-DARM_MATH_CM4 
+
 ARFLAGS.c.STM32F4	+= -rscDv
 LINTFLAGS.c.STM32F4	+= $(CFLAGS.c.STM32F4)
 DOCFLAGS.c.STM32F4	+= 
 
+
+LDFLAGS.c.STM32F4	+= $(CFLAGS.c.STM32F4) -Wl,-Map=$(TGTDIR)/$(PKG_NM).map \
+	-Wl,--cref -Wl,--gc-sections --specs=nano.specs -lc -lm 
 
 bin: exe
 	$(OBJCOPY.c.STM32F4) -O binary $(TGTDIR)/$(EXE_NM) $(TGTDIR)/$(PKG_NM).bin
 
 hex: exe
 	$(OBJCOPY.c.STM32F4) -O ihex $(TGTDIR)/$(EXE_NM) $(TGTDIR)/$(PKG_NM).hex
-
-
 
 $(OBJDIR)/%.o	: %.S
 	@echo $(CFLAGS) $(CFLAGS.c) $(CFLAGS.c.$(ARCH)) > $@.cflags ; 

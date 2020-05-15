@@ -43,7 +43,7 @@ au BufNewFile,BufRead *.java		so $XMTEDIT/proto/vim/java.vim
 
 " map derived filetypes to base file types
 au BufNewFile,BufRead *.l,*.y			doautocmd BufRead %.c
-au BufNewFile,BufRead *.csh,*.ksh		doautocmd BufRead %.sh
+au BufNewFile,BufRead *.csh,*.ksh,*.pkg,*.md	doautocmd BufRead %.sh
 au BufNewFile,BufRead *.pl,*.pm			doautocmd BufRead %.perl
 au BufNewFile,BufRead *.cc,*.cxx,*.c++		doautocmd BufRead %.cpp
 au BufNewFile,BufRead *.hh,*.hxx,*.h++		doautocmd BufRead %.cpp

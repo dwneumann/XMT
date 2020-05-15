@@ -24,9 +24,9 @@
 "  ^X^Y	Yank block
 "  ^X=  format comment block		^X+ goto named line of named file
 "  ^Xx	Execute this line		^XE goto the source of this compiler error
-"  ^P	Pop tagstack			^X< shift block left
-"  ^T	Tag to				^X> shift block right
-"  #	Alternate file
+"  ^P	Pop tagstack			^X< remove braces & shift left
+"  ^T	Tag to				>< shift block contents left
+"  #	Alternate file			<> shift block contents right
 "  F	Format paragraph
 "  ^XS	Spellcheck document
 "  g	Global do
@@ -40,19 +40,17 @@ map <C-X><C-P>	:put z<CR>
 map <C-X><C-X>	:<C-U>'s,'ed z<CR>
 map <C-X><C-Y>	:<C-U>'s,'ey z<CR>
 map <C-X>=	:<C-U>'s,'e !$XMTEDIT/bin/hdr -d -m comment<CR>
-map <C-X>f	:doautocmd BufRead %.
+map <C-X>T	:doautocmd BufRead %.
 map <C-X>i	:'s,'e !indent - \|unexpand --all<CR>
 map <C-X>S	Go<ESC>!!spell -b %<CR>
 map <C-X>+	c0:e! <ESC>f:s +<ESC>;C 0WdW$p<C-X>x
 map <C-X>E	0f:s :e! +<ESC>f:C <ESC>0dW$p<C-X>x
 map <C-X>x	:.y x<CR>@x
-map <C-X><	mh%<%dd'hdd
-map <C-X><	>%<<%<<%
+map <C-X><	<%mh%dd'hdd
 map <> 		<%>>%>>%
 map >< 		>%<<%<<%
 map F		!} fmt -80 -c<CR>
 map g		:%
-map , 		:'s,'e
 imap {}		{}<ESC>i
 imap {<CR>	{<CR>}<ESC>O    
 imap []		[]<ESC>i
@@ -61,7 +59,7 @@ imap ()		()<ESC>i
 " we must ensure the XMT menu exists when we clear it.
 menu XMT.dummy		*
 aunmenu XMT
-menu XMT.Set\ Filetype<TAB><C-X>f		<C-X>f
+menu XMT.Set\ Filetype<TAB><C-X>T		<C-X>T
 menu XMT.Find\ This\ Word<TAB>*			*
 menu XMT.Reformat\ Comment<TAB><C-X>=		<C-X>=
 menu XMT.Reformat\ Paragraph<TAB>F		F

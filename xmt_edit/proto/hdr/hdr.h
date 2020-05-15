@@ -23,18 +23,17 @@ $copyright =~ s/\n*$//;
 $copyright =~ s/\n/\n*  /g; 
 print 
 qq{/************************************************************************
-*   Package	: $module->{pkg}
-*   $cm->{rev}
-*   $copyright
+*   Module	: ${filename}
+*   Purpose	: Public interface to the $module->{name} module.
 *
-*   Purpose	: Public interface to the $module->{pkg}::$module->{name} module.
+*   $copyright
 *************************************************************************/
 
 #ifndef __${filename_}
 #define __${filename_}
 
 #ifdef EMBED_REVISION_STRINGS
-static const char ${filename_}_id[] = "@(#) $module->{pkg}::${filename}\t$cm->{rev}";
+static const char ${filename_}_id[] = "@(#) ${filename}\t$cm->{rev}";
 #endif
 
 

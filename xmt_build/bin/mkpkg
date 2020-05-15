@@ -57,11 +57,11 @@ if ( defined( $XMTEDIT ) )
 {
     if (! -e "$pkg/src/Makefile.pkg" )
     {
-	system( "cd $pkg/src; $XMTEDIT/bin/hdr Makefile.pkg > Makefile.pkg; ");
+	system( "cd $pkg; $XMTEDIT/bin/hdr Makefile.pkg > Makefile.pkg; ");
     }
     if (! -e "$pkg/src/Makefile" )
     {
-	system( "cd $pkg/src; $XMTEDIT/bin/hdr Makefile > Makefile; ");
+	system( "cd $pkg; $XMTEDIT/bin/hdr Makefile > Makefile; ");
     }
 }
 

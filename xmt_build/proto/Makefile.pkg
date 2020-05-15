@@ -20,6 +20,6 @@
 #************************************************************************
 
 LANGUAGE	= c
-ARCH		= STM32L4
-BUILD_TGT	= exe
+ARCH		= $(XMTBUILD_DFLT_ARCH)
+BUILD_TGT	= lib
 

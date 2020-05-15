@@ -46,7 +46,7 @@ EXE_SFX.cc.STM32F4	:= .elf
 # This is the place to define default flags that are specific to THIS 
 # platform and THIS language.
 #**********************************************************************
-CFLAGS.cc.STM32F4 += -Wall -mlittle-endian -mthumb -mcpu=cortex-m4 	\
+CFLAGS.cc.STM32F4 += -Wall -Wno-attributes -Wno-unused-function -Wno-unused-const-variable -mlittle-endian -mthumb -mcpu=cortex-m4 	\
 		    -mthumb-interwork -mfloat-abi=hard -mfpu=fpv4-sp-d16 	
 
 LDFLAGS.cc.STM32F4	+= $(CFLAGS.cc.STM32F4) 

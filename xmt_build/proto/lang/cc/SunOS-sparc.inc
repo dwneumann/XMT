@@ -39,8 +39,8 @@ DOC.$l.SunOS-sparc	:= $(XMTBUILD)/bin/srcdoc
 # This is the place to define default flags that are specific to THIS 
 # platform and THIS language.
 #**********************************************************************
-CFLAGS.$l.SunOS-sparc	:= -Wall -fpic
-LDFLAGS.$l.SunOS-sparc	:= -Wall 
+CFLAGS.$l.SunOS-sparc	:= -Wall -Wno-attributes -Wno-unused-function -Wno-unused-const-variable -fpic
+LDFLAGS.$l.SunOS-sparc	:= -Wall -Wno-attributes -Wno-unused-function -Wno-unused-const-variable 
 ARFLAGS.$l.SunOS-sparc	:= -Wall -shared
 LINTFLAGS.$l.SunOS-sparc	 = $(CFLAGS.cc.SunOS-sparc)
 DOCFLAGS.$l.SunOS-sparc	:= 

@@ -2,7 +2,7 @@
 #************************************************************************
 #   $Version:$
 #   Package	: 
-#   Synopsis	: gdbgui <pgm.elf>
+#   Synopsis	: gdbocd <pgm.elf>
 #   Purpose	: spawn openocd, launch gdbgui, connect to target, debug <pgm.elf>.
 #
 #   Copyright 2018 Visionary Research Inc.  
@@ -20,6 +20,9 @@
 $SIG{INT} 	= \&cleanup;
 $SIG{TERM}	= \&cleanup;
 use Env;
+
+my $usage = "gdbocd <pgm.elf>";
+die $usage if $#ARGV != 0;
 
 # note: when executing on Windows gdbgui needs a Windows-style path to gdb
 my $gdb		= "$GCCROOT/bin/arm-none-eabi-gdb";

@@ -41,10 +41,13 @@ endif
 # useful programming-related aliases ...
 #************************************************************************
 if ( $?prompt ) then
-    alias mk		'make -j8 -k -f Makefile \!* >& \!$.ERRS'
+    alias make		'make -j16 -k -f Makefile'
+    alias mk		'make -j16 -k  -f Makefile \!* >& \!$.ERRS'
     alias ve		'vi *.ERRS'
+    alias me		'more *.ERRS'
+    alias rme		'rm *.ERRS'
     alias mm		makemake
-    alias  cs.build	'set s=`pwd`; pushd /; find $s -name "*.[chs]" -ls | sed -e "s|.* /cygdrive/c/|c:/|"  > $s/cscope.files; popd; cscope -I /cygdrive/c/Programs/gcc/arm-none-eabi/include -b'
+    alias  cs.build	'pushd $PROJECT; set p=`pwd`; pushd /; find -L $p \( -name "*.[ch]" -o -name "*.cpp" \)  > $p/cscope.files; popd; cd $p; cscope -I $GCCROOT/include -b; popd;'
     alias cta		'cs.build'
     alias flist 	'cat tags|sed "s/	.*//"'
     alias fflist	'flist|fgrep \!:1'

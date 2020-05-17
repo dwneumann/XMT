@@ -12,7 +12,6 @@ Thumbs.db
 cscope.*
 .DS_Store
 *.ERRS
-ERRS.*
 *.exe
 *.gcda
 *.gcno

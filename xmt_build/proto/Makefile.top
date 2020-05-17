@@ -50,6 +50,7 @@ pkg_dir		= $(CURDIR)
 MAKE		= make
 MAKEDEPEND	= makedepend
 ARCH		= $(XMTBUILD_DFLT_ARCH)
+BUILD_CFG	= $(XMTBUILD_CONFIG)
 CMSOURCES	= git checkout .
 CMCLEAN		= 
 JAVA_PKGTREE	= .
@@ -59,8 +60,8 @@ SRCDIR		= src
 TESTDIR		= test
 DOCDIR		= doc
 DATADIR		= data
-OBJDIR		= obj/$(ARCH)
-TGTDIR		= tgt/$(ARCH)
+OBJDIR		= obj/$(ARCH)/$(BUILD_CFG)
+TGTDIR		= tgt/$(ARCH)/$(BUILD_CFG)
 LIB_NM          = $(LIB_PFX.$(LANGUAGE).$(ARCH))$(PKG_NM)$(LIB_SFX.$(LANGUAGE).$(ARCH))
 EXE_NM          = $(EXE_PFX.$(LANGUAGE).$(ARCH))$(PKG_NM)$(EXE_SFX.$(LANGUAGE).$(ARCH))
 LANGUAGE	= c
@@ -134,12 +135,13 @@ build: $(reqd_pkgs)
 	$(MAKE) -w --always-make $(BUILD_TGT)
 
 #**********************************************************************
-# "showflags" (or "show") simply echoes the value of the programs
+# "printflags" (or "show") simply echoes the value of the programs
 # and flags to be used for the specified language and architecture.
 #**********************************************************************
 show printflags: 
 	@echo LANGUAGE = $(LANGUAGE)
 	@echo ARCH = $(ARCH)
+	@echo BUILD_CFG	= $(XMTBUILD_CONFIG)
 	@echo srcs.$(LANGUAGE) = $(srcs.$(LANGUAGE))
 	@echo objs.$(LANGUAGE) = $(objs.$(LANGUAGE))
 	@echo lnts.$(LANGUAGE) = $(lnts.$(LANGUAGE))

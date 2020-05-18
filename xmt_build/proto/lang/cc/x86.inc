@@ -28,60 +28,66 @@
 #**********************************************************************
 # define program paths...
 #**********************************************************************
-COMPILE.cc.linux_x86	:= g++
-LD.cc.linux_x86		:= $(COMPILE.cc.linux_x86)
-AR.cc.linux_x86		:= ar
-LINT.cc.linux_x86	:= echo /usr/ucb/lint not installed
-DOC.cc.linux_x86	:= $(XMTBUILD)/bin/srcdoc 
+COMPILE.cc.$(ARCH)	= g++
+LD.cc.$(ARCH)		= $(COMPILE.cc.$(ARCH))
+AR.cc.$(ARCH)		= ar
+LINT.cc.$(ARCH)	= echo /usr/ucb/lint not installed
+DOC.cc.$(ARCH)		= $(XMTBUILD)/bin/srcdoc 
 #**********************************************************************
 # This is the place to define default flags that are specific to THIS 
 # platform and THIS language.
 #**********************************************************************
-CFLAGS.cc.linux_x86	= -Wall -Wno-attributes -Wno-unused-function -Wno-unused-const-variable -isystem /usr/include/x86_64-linux-gnu
-LDFLAGS.cc.linux_x86	=  -Wall -Wno-attributes -Wno-unused-function -Wno-unused-const-variable 
-ARFLAGS.cc.linux_x86	= -r
-LINTFLAGS.cc.linux_x86	= $(CFLAGS.cc.linux_x86)
-DOCFLAGS.cc.linux_x86	= 
-LIB_PFX.cc.linux_x86	= lib
-LIB_SFX.cc.linux_x86	= .a
-EXE_PFX.cc.linux_x86	= 
-EXE_SFX.cc.linux_x86	= 
-
-
+CFLAGS.cc.$(ARCH)	= -Wall -Wno-attributes -Wno-unused-function -Wno-unused-const-variable -isystem /usr/include/x86_64-linux-gnu
+LDFLAGS.cc.$(ARCH)	= $(CFLAGS.cc.$(ARCH))
+ARFLAGS.cc.$(ARCH)	= -r
+LINTFLAGS.cc.$(ARCH)	= $(CFLAGS.cc.$(ARCH))
+DOCFLAGS.cc.$(ARCH)	= 
+LIB_PFX.cc.$(ARCH)	= lib
+LIB_SFX.cc.$(ARCH)	= .a
+EXE_PFX.cc.$(ARCH)	= 
+EXE_SFX.cc.$(ARCH)	= 
 
 $(OBJDIR)/%.o	: %.S
-	@echo $(CFLAGS) $(CFLAGS.c) $(CFLAGS.c.$(ARCH)) > $@.cflags ; 
-	$(COMPILE.c.$(ARCH)) @$@.cflags $< 
+	@mkdir -p $(@D)
+	@echo  $(CFLAGS) $(CFLAGS.cc) $(CFLAGS.cc.$(ARCH)) > $@.cflags ;
+	$(COMPILE.cc.$(ARCH)) @$@.cflags $<
 
 $(OBJDIR)/%.o	: %.s
-	@echo $(CFLAGS) $(CFLAGS.c) $(CFLAGS.c.$(ARCH)) > $@.cflags ; 
-	$(COMPILE.c.$(ARCH)) @$@.cflags $< 
+	@mkdir -p $(@D)
+	@echo  $(CFLAGS) $(CFLAGS.cc) $(CFLAGS.cc.$(ARCH)) > $@.cflags ;
+	$(COMPILE.cc.$(ARCH)) @$@.cflags $<
 
-$(OBJDIR)/%.o	: %.c
-	@echo $(CFLAGS) $(CFLAGS.c) $(CFLAGS.c.$(ARCH)) > $@.cflags ; 
-	$(COMPILE.c.$(ARCH)) @$@.cflags $< 
+$(OBJDIR)/%.o	: %.cc
+	@mkdir -p $(@D)
+	@echo  $(CFLAGS) $(CFLAGS.cc) $(CFLAGS.cc.$(ARCH)) > $@.cflags ;
+	$(COMPILE.cc.$(ARCH)) @$@.cflags $<
 
-$(OBJDIR)/%.i	: /%.c
-	@echo -E $(CFLAGS) $(CFLAGS.c) $(CFLAGS.c.$(ARCH)) > $@.cflags ; 
-	$(COMPILE.c.$(ARCH)) @$@.cflags $< 
+$(OBJDIR)/%.i	: /%.cc
+	@mkdir -p $(@D)
+	@echo  $(CFLAGS) $(CFLAGS.cc) $(CFLAGS.cc.$(ARCH)) -E > $@.cflags ;
+	$(COMPILE.cc.$(ARCH)) @$@.cflags -E $<
 
-$(OBJDIR)/%.ln	: %.c
-	@echo $(LINTFLAGS) $(LINTFLAGS.c) $(LINTFLAGS.c.$(ARCH)) > $@.lintflags ; 
-	$(LINT.c.$(ARCH)) @$@.lintflags $< 
+$(OBJDIR)/%.ln	: %.cc
+	@mkdir -p $(@D)
+	@echo  $(LINTFLAGS) $(LINTFLAGS.cc) $(LINTFLAGS.cc.$(ARCH)) > $@.lintflags ;
+	$(LINT.cc.$(ARCH)) @$@.lintflags $<
 
-$(DOCDIR)/%.html: $(SRCDIR)/%.c
-	@echo $(DOCFLAGS) $(DOCFLAGS.c) $(DOCFLAGS.c.$(ARCH)) > $@.docflags ; 
-	$(DOC.c.$(ARCH)) @$@.docflags $< 
+$(DOCDIR)/%.html: $(SRCDIR)/%.cc
+	@mkdir -p $(@D)
+	@echo  $(DOCFLAGS) $(DOCFLAGS.cc) $(DOCFLAGS.cc.$(ARCH)) > $@.docflags ;
+	$(DOC.cc.$(ARCH)) @$@.docflags $<
 
 .lib.$(LANGUAGE):	$(TGTDIR)/$(LIB_NM)
 $(LIB_NM): $(TGTDIR)/$(LIB_NM)
 $(TGTDIR)/$(LIB_NM): $(objs.$(LANGUAGE)) $(EXTRA_OBJS)
+	@mkdir -p $(@D)
 	@echo 	$(ARFLAGS) $(ARFLAGS.$(LANGUAGE)) $(ARFLAGS.$(LANGUAGE).$(ARCH)) > $@.arflags;
 	$(AR.$(LANGUAGE).$(ARCH)) @$@.arflags $@ $^ 	
 
 .exe.$(LANGUAGE):	$(TGTDIR)/$(EXE_NM)
 $(EXE_NM): $(TGTDIR)/$(EXE_NM)
 $(TGTDIR)/$(EXE_NM): $(objs.$(LANGUAGE)) $(EXTRA_OBJS) 
+	@mkdir -p $(@D)
 	@echo $(LDFLAGS) $(LDFLAGS.$(LANGUAGE)) $(LDFLAGS.$(LANGUAGE).$(ARCH)) > $@.ldflags;
 	$(LD.$(LANGUAGE).$(ARCH)) @$@.ldflags $^ \
 	    $(LIBS) $(LIBS.$(LANGUAGE)) $(LIBS.$(LANGUAGE).$(ARCH)) 

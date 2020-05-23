@@ -41,12 +41,12 @@ for f in split(globpath('$XMTEDIT/proto/vim', '*.vim'), '\n')
 endfor
 
 " map derived filetypes to base file types
-au BufNewFile,BufRead *.txt,*.md		doautocmd BufRead %.html
-au BufNewFile,BufRead *.h,*.l,*.y		doautocmd BufRead %.c
-au BufNewFile,BufRead *.csh,*.ksh,*.pkg		doautocmd BufRead %.sh
-au BufNewFile,BufRead *.pl,*.pm			doautocmd BufRead %.perl
-au BufNewFile,BufRead *.cc,*.cxx,*.c++,*.cs	doautocmd BufRead %.cpp
-au BufNewFile,BufRead *.hh,*.hxx,*.h++		doautocmd BufRead %.cpp
+au BufNewFile,BufRead *.txt,*.md				doautocmd BufRead %.html
+au BufNewFile,BufRead *.h,*.l,*.y				doautocmd BufRead %.c
+au BufNewFile,BufRead *.csh,*.ksh,*.pkg.*.pkg,*.top,*.inc	doautocmd BufRead %.sh
+au BufNewFile,BufRead *.pl,*.pm					doautocmd BufRead %.perl
+au BufNewFile,BufRead *.cc,*.cxx,*.c++,*.cs			doautocmd BufRead %.cpp
+au BufNewFile,BufRead *.hh,*.hxx,*.h++				doautocmd BufRead %.cpp
 
 " auto-create new files from template based upon file suffix
 au BufNewFile *	0r !$XMTEDIT/bin/hdr %

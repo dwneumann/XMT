@@ -51,38 +51,46 @@ EXE_SFX.c.SunOS-sparc	:=
 
 
 $(OBJDIR)/%.o	: %.S
+	@mkdir -p $(@D)
 	@echo $(CFLAGS) $(CFLAGS.c) $(CFLAGS.c.$(ARCH)) > $@.cflags ; 
 	$(COMPILE.c.$(ARCH)) @$@.cflags $< 
 
 $(OBJDIR)/%.o	: %.s
+	@mkdir -p $(@D)
 	@echo $(CFLAGS) $(CFLAGS.c) $(CFLAGS.c.$(ARCH)) > $@.cflags ; 
 	$(COMPILE.c.$(ARCH)) @$@.cflags $< 
 
 $(OBJDIR)/%.o	: %.c
+	@mkdir -p $(@D)
 	@echo $(CFLAGS) $(CFLAGS.c) $(CFLAGS.c.$(ARCH)) > $@.cflags ; 
 	$(COMPILE.c.$(ARCH)) @$@.cflags $< 
 
 $(OBJDIR)/%.i	: /%.c
+	@mkdir -p $(@D)
 	@echo -E $(CFLAGS) $(CFLAGS.c) $(CFLAGS.c.$(ARCH)) > $@.cflags ; 
 	$(COMPILE.c.$(ARCH)) @$@.cflags $< 
 
 $(OBJDIR)/%.ln	: %.c
+	@mkdir -p $(@D)
 	@echo $(LINTFLAGS) $(LINTFLAGS.c) $(LINTFLAGS.c.$(ARCH)) > $@.lintflags ; 
 	$(LINT.c.$(ARCH)) @$@.lintflags $< 
 
 $(DOCDIR)/%.html: $(SRCDIR)/%.c
+	@mkdir -p $(@D)
 	@echo $(DOCFLAGS) $(DOCFLAGS.c) $(DOCFLAGS.c.$(ARCH)) > $@.docflags ; 
 	$(DOC.c.$(ARCH)) @$@.docflags $< 
 
 .lib.$(LANGUAGE):	$(TGTDIR)/$(LIB_NM)
 $(LIB_NM): $(TGTDIR)/$(LIB_NM)
 $(TGTDIR)/$(LIB_NM): $(objs.$(LANGUAGE)) $(EXTRA_OBJS)
+	@mkdir -p $(@D)
 	@echo 	$(ARFLAGS) $(ARFLAGS.$(LANGUAGE)) $(ARFLAGS.$(LANGUAGE).$(ARCH)) > $@.arflags;
 	$(AR.$(LANGUAGE).$(ARCH)) @$@.arflags $@ $^ 	
 
 .exe.$(LANGUAGE):	$(TGTDIR)/$(EXE_NM)
 $(EXE_NM): $(TGTDIR)/$(EXE_NM)
 $(TGTDIR)/$(EXE_NM): $(objs.$(LANGUAGE)) $(EXTRA_OBJS) 
+	@mkdir -p $(@D)
 	@echo $(LDFLAGS) $(LDFLAGS.$(LANGUAGE)) $(LDFLAGS.$(LANGUAGE).$(ARCH)) > $@.ldflags;
 	$(LD.$(LANGUAGE).$(ARCH)) @$@.ldflags $^ \
 	    $(LIBS) $(LIBS.$(LANGUAGE)) $(LIBS.$(LANGUAGE).$(ARCH)) 

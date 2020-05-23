@@ -35,7 +35,6 @@ AR.c.STM32L4		:= $(GNUROOT)-ar
 DOC.c.STM32L4		:= $(XMTBUILD)/bin/srcdoc 
 LINT.c.STM32L4		:= echo lint not installed
 OBJCOPY.c.STM32L4	:= $(GNUROOT)-objcopy
-FLASH.c.STM32L4		:= /usr/bin/st-flash
 LIB_PFX.c.STM32L4	:= lib
 LIB_SFX.c.STM32L4	:= .a
 EXE_PFX.c.STM32L4	:= 
@@ -43,22 +42,28 @@ EXE_SFX.c.STM32L4	:= .elf
 
 #**********************************************************************
 # This is the place to define default flags and recipes
-# that are always true for THIS target platform for THIS language.
+# that are specific to THIS target platform for THIS language.
+#	-mcpu=cortex-m4+nofp -mfloat-abi=hard -mfpu=auto -D__FPU_PRESENT	
 #**********************************************************************
-CFLAGS.c.STM32L4 += -Wall -Wno-unused-const-variable -mlittle-endian -mthumb	\
-	-mcpu=cortex-m4 -mthumb-interwork -mfloat-abi=hard -mfpu=fpv4-sp-d16	\
-	-fstack-usage -fdata-sections -ffunction-sections 			\
-	-DARM_MATH_CM4 
 
-LDFLAGS.c.STM32L4	+= $(CFLAGS.c.STM32L4) -Wl,-Map=$(TGTDIR)/$(PKG_NM).map \
-	-Wl,--cref -Wl,--gc-sections 
+MCU	= -mcpu=cortex-m4 -mfpu=fpv4-sp-d16 -mfloat-abi=hard -mthumb -D__FPU_PRESENT=1	
+CFLAGS.c.STM32L4 += -Wall -Wno-strict-aliasing 					\
+	-Wno-attributes -Wno-unused-function -Wno-unused-const-variable 	\
+	-std=gnu99 -g3 -Os -MMD -MP						\
+	$(MCU) --specs=nano.specs 						\
+	-DSTM32L4xx -DARM_MATH_CM4 -DCORE_M4					\
+	-mlittle-endian -mthumb -mthumb-interwork				\
+	-fstack-usage -fdata-sections -ffunction-sections -fmessage-length=0	\
+	-fno-builtin -fsingle-precision-constant 
+ 			
+LDFLAGS.c.STM32L4	+= $(MCU) -specs=nano.specs -specs=nosys.specs	\
+	-Wl,-Map=$(TGTDIR)/$(PKG_NM).map -Wl,--cref -Wl,--gc-sections 
 
 ARFLAGS.c.STM32L4	+= -rscDv
 LINTFLAGS.c.STM32L4	+= $(CFLAGS.c.STM32L4)
 DOCFLAGS.c.STM32L4	+= 
 
-flash: bin
-	$(FLASH.c.STM32L4)  write $(TGTDIR)/$(PKG_NM).bin 0x8000000
+elf: exe
 
 bin: exe
 	$(OBJCOPY.c.STM32L4) -O binary $(TGTDIR)/$(EXE_NM) $(TGTDIR)/$(PKG_NM).bin
@@ -67,38 +72,46 @@ hex: exe
 	$(OBJCOPY.c.STM32L4) -O ihex $(TGTDIR)/$(EXE_NM) $(TGTDIR)/$(PKG_NM).hex
 
 $(OBJDIR)/%.o	: %.S
+	@mkdir -p $(@D)
 	@echo $(CFLAGS) $(CFLAGS.c) $(CFLAGS.c.$(ARCH)) > $@.cflags ; 
 	$(COMPILE.c.$(ARCH)) @$@.cflags $< 
 
 $(OBJDIR)/%.o	: %.s
+	@mkdir -p $(@D)
 	@echo $(CFLAGS) $(CFLAGS.c) $(CFLAGS.c.$(ARCH)) > $@.cflags ; 
 	$(COMPILE.c.$(ARCH)) @$@.cflags $< 
 
 $(OBJDIR)/%.o	: %.c
+	@mkdir -p $(@D)
 	@echo $(CFLAGS) $(CFLAGS.c) $(CFLAGS.c.$(ARCH)) > $@.cflags ; 
 	$(COMPILE.c.$(ARCH)) @$@.cflags $< 
 
 $(OBJDIR)/%.i	: /%.c
+	@mkdir -p $(@D)
 	@echo -E $(CFLAGS) $(CFLAGS.c) $(CFLAGS.c.$(ARCH)) > $@.cflags ; 
 	$(COMPILE.c.$(ARCH)) @$@.cflags $< 
 
 $(OBJDIR)/%.ln	: %.c
+	@mkdir -p $(@D)
 	@echo $(LINTFLAGS) $(LINTFLAGS.c) $(LINTFLAGS.c.$(ARCH)) > $@.lintflags ; 
 	$(LINT.c.$(ARCH)) @$@.lintflags $< 
 
 $(DOCDIR)/%.html: $(SRCDIR)/%.c
+	@mkdir -p $(@D)
 	@echo $(DOCFLAGS) $(DOCFLAGS.c) $(DOCFLAGS.c.$(ARCH)) > $@.docflags ; 
 	$(DOC.c.$(ARCH)) @$@.docflags $< 
 
 .lib.$(LANGUAGE):	$(TGTDIR)/$(LIB_NM)
 $(LIB_NM): $(TGTDIR)/$(LIB_NM)
 $(TGTDIR)/$(LIB_NM): $(objs.$(LANGUAGE)) $(EXTRA_OBJS)
+	@mkdir -p $(@D)
 	@echo 	$(ARFLAGS) $(ARFLAGS.$(LANGUAGE)) $(ARFLAGS.$(LANGUAGE).$(ARCH)) > $@.arflags;
 	$(AR.$(LANGUAGE).$(ARCH)) @$@.arflags $@ $^ 	
 
 .exe.$(LANGUAGE):	$(TGTDIR)/$(EXE_NM)
 $(EXE_NM): $(TGTDIR)/$(EXE_NM)
 $(TGTDIR)/$(EXE_NM): $(objs.$(LANGUAGE)) $(EXTRA_OBJS) 
+	@mkdir -p $(@D)
 	@echo $(LDFLAGS) $(LDFLAGS.$(LANGUAGE)) $(LDFLAGS.$(LANGUAGE).$(ARCH)) > $@.ldflags;
 	$(LD.$(LANGUAGE).$(ARCH)) @$@.ldflags $^ \
 	    $(LIBS) $(LIBS.$(LANGUAGE)) $(LIBS.$(LANGUAGE).$(ARCH)) 

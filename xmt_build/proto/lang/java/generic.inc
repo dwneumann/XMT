@@ -25,7 +25,6 @@
 #*  limitations under the License. 
 #************************************************************************
 
-
 #   := assignements are evaluated during lexical scan;
 #    = assignments are recursively expanded during rule parsing
 srcs.java	:= $(wildcard $(SRCDIR)/$(JAVA_PKGROOT)/*.java)

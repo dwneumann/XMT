@@ -25,14 +25,12 @@
 #************************************************************************
 
 
-CMSIS	= $(STM32_FW)/Libraries/CMSIS
-
 #**********************************************************************
 # define program paths...
 #**********************************************************************
 GNUROOT			:= arm-none-eabi
-COMPILE.cpp.STM32F4	:= $(GNUROOT)-gcc
-LD.cpp.STM32F4		:= $(GNUROOT)-gcc
+COMPILE.cpp.STM32F4	:= $(GNUROOT)-g++
+LD.cpp.STM32F4		:= $(GNUROOT)-g++
 AR.cpp.STM32F4		:= $(GNUROOT)-ar
 DOC.cpp.STM32F4		:= $(XMTBUILD)/bin/srcdoc 
 LINT.cpp.STM32F4		:= echo lint not installed
@@ -43,17 +41,29 @@ EXE_PFX.cpp.STM32F4	:=
 EXE_SFX.cpp.STM32F4	:= .elf
 
 #**********************************************************************
-# This is the place to define default flags that are specific to THIS 
-# platform and THIS language.
+# This is the place to define default flags and recipes
+# that are specific to THIS target platform for THIS language.
+#	-mcpu=cortex-m4+nofp -mfloat-abi=hard -mfpu=auto -D__FPU_PRESENT	
 #**********************************************************************
-CFLAGS.cpp.STM32F4 += -Wall -Wno-attributes -Wno-unused-function -Wno-unused-const-variable -mlittle-endian -mthumb -mcpu=cortex-m4 	\
-		    -mthumb-interwork -mfloat-abi=hard -mfpu=fpv4-sp-d16 	
 
-LDFLAGS.cpp.STM32F4	+= $(CFLAGS.cpp.STM32F4) 
+MCU	= -mcpu=cortex-m4 -mfpu=fpv4-sp-d16 -mfloat-abi=hard -mthumb -D__FPU_PRESENT=1	
+CFLAGS.cpp.STM32F4 += -Wall -Wno-strict-aliasing 					\
+	-Wno-attributes -Wno-unused-function -Wno-unused-const-variable 	\
+	-std=gnu99 -g3 -Os -MMD -MP						\
+	$(MCU) --specs=nano.specs 						\
+	-DSTM32F4xx -DARM_MATH_CM4 -DCORE_M4					\
+	-mlittle-endian -mthumb -mthumb-interwork				\
+	-fstack-usage -fdata-sections -ffunction-sections -fmessage-length=0	\
+	-fno-builtin -fsingle-precision-constant 
+ 			
+LDFLAGS.cpp.STM32F4	+= $(MCU) -specs=nano.specs -specs=nosys.specs	\
+	-Wl,-Map=$(TGTDIR)/$(PKG_NM).map -Wl,--cref -Wl,--gc-sections 
+
 ARFLAGS.cpp.STM32F4	+= -rscDv
 LINTFLAGS.cpp.STM32F4	+= $(CFLAGS.cpp.STM32F4)
 DOCFLAGS.cpp.STM32F4	+= 
 
+elf: exe
 
 bin: exe
 	$(OBJCOPY.cpp.STM32F4) -O binary $(TGTDIR)/$(EXE_NM) $(TGTDIR)/$(PKG_NM).bin
@@ -61,41 +71,47 @@ bin: exe
 hex: exe
 	$(OBJCOPY.cpp.STM32F4) -O ihex $(TGTDIR)/$(EXE_NM) $(TGTDIR)/$(PKG_NM).hex
 
-
-
 $(OBJDIR)/%.o	: %.S
-	@echo  $(CFLAGS) $(CFLAGS.cpp) $(CFLAGS.cpp.$(ARCH)) > $@.cflags ;
-	$(COMPILE.cpp.$(ARCH)) @$@.cflags $<
+	@mkdir -p $(@D)
+	@echo $(CFLAGS) $(CFLAGS.c) $(CFLAGS.cpp.$(ARCH)) > $@.cflags ; 
+	$(COMPILE.cpp.$(ARCH)) @$@.cflags $< 
 
 $(OBJDIR)/%.o	: %.s
-	@echo  $(CFLAGS) $(CFLAGS.cpp) $(CFLAGS.cpp.$(ARCH)) > $@.cflags ;
-	$(COMPILE.cpp.$(ARCH)) @$@.cflags $<
+	@mkdir -p $(@D)
+	@echo $(CFLAGS) $(CFLAGS.c) $(CFLAGS.cpp.$(ARCH)) > $@.cflags ; 
+	$(COMPILE.cpp.$(ARCH)) @$@.cflags $< 
 
-$(OBJDIR)/%.o	: %.cpp
-	@echo  $(CFLAGS) $(CFLAGS.cpp) $(CFLAGS.cpp.$(ARCH)) > $@.cflags ;
-	$(COMPILE.cpp.$(ARCH)) @$@.cflags $<
+$(OBJDIR)/%.o	: %.c
+	@mkdir -p $(@D)
+	@echo $(CFLAGS) $(CFLAGS.c) $(CFLAGS.cpp.$(ARCH)) > $@.cflags ; 
+	$(COMPILE.cpp.$(ARCH)) @$@.cflags $< 
 
-$(OBJDIR)/%.i	: /%.cpp
-	@echo  $(CFLAGS) $(CFLAGS.cpp) $(CFLAGS.cpp.$(ARCH)) -E > $@.cflags ;
-	$(COMPILE.cpp.$(ARCH)) @$@.cflags -E $<
+$(OBJDIR)/%.i	: /%.c
+	@mkdir -p $(@D)
+	@echo -E $(CFLAGS) $(CFLAGS.c) $(CFLAGS.cpp.$(ARCH)) > $@.cflags ; 
+	$(COMPILE.cpp.$(ARCH)) @$@.cflags $< 
 
-$(OBJDIR)/%.ln	: %.cpp
-	@echo  $(LINTFLAGS) $(LINTFLAGS.cpp) $(LINTFLAGS.cpp.$(ARCH)) > $@.lintflags ;
-	$(LINT.cpp.$(ARCH)) @$@.lintflags $<
+$(OBJDIR)/%.ln	: %.c
+	@mkdir -p $(@D)
+	@echo $(LINTFLAGS) $(LINTFLAGS.c) $(LINTFLAGS.cpp.$(ARCH)) > $@.lintflags ; 
+	$(LINT.cpp.$(ARCH)) @$@.lintflags $< 
 
-$(DOCDIR)/%.html: $(SRCDIR)/%.cpp
-	@echo  $(DOCFLAGS) $(DOCFLAGS.cpp) $(DOCFLAGS.cpp.$(ARCH)) > $@.docflags ;
-	$(DOC.cpp.$(ARCH)) @$@.docflags $<
+$(DOCDIR)/%.html: $(SRCDIR)/%.c
+	@mkdir -p $(@D)
+	@echo $(DOCFLAGS) $(DOCFLAGS.c) $(DOCFLAGS.cpp.$(ARCH)) > $@.docflags ; 
+	$(DOC.cpp.$(ARCH)) @$@.docflags $< 
 
 .lib.$(LANGUAGE):	$(TGTDIR)/$(LIB_NM)
 $(LIB_NM): $(TGTDIR)/$(LIB_NM)
 $(TGTDIR)/$(LIB_NM): $(objs.$(LANGUAGE)) $(EXTRA_OBJS)
+	@mkdir -p $(@D)
 	@echo 	$(ARFLAGS) $(ARFLAGS.$(LANGUAGE)) $(ARFLAGS.$(LANGUAGE).$(ARCH)) > $@.arflags;
 	$(AR.$(LANGUAGE).$(ARCH)) @$@.arflags $@ $^ 	
 
 .exe.$(LANGUAGE):	$(TGTDIR)/$(EXE_NM)
 $(EXE_NM): $(TGTDIR)/$(EXE_NM)
 $(TGTDIR)/$(EXE_NM): $(objs.$(LANGUAGE)) $(EXTRA_OBJS) 
+	@mkdir -p $(@D)
 	@echo $(LDFLAGS) $(LDFLAGS.$(LANGUAGE)) $(LDFLAGS.$(LANGUAGE).$(ARCH)) > $@.ldflags;
 	$(LD.$(LANGUAGE).$(ARCH)) @$@.ldflags $^ \
 	    $(LIBS) $(LIBS.$(LANGUAGE)) $(LIBS.$(LANGUAGE).$(ARCH)) 

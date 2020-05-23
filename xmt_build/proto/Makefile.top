@@ -146,6 +146,18 @@ show printflags:
 	@echo objs.$(LANGUAGE) = $(objs.$(LANGUAGE))
 	@echo lnts.$(LANGUAGE) = $(lnts.$(LANGUAGE))
 	@echo docs.$(LANGUAGE) = $(docs.$(LANGUAGE))
+	@echo thirdparty_cdirs	= $(thirdparty_cdirs)
+	@echo thirdparty_hdirs	= $(thirdparty_hdirs)
+	@echo thirdparty_sdirs	= $(thirdparty_sdirs)
+	@echo thirdparty_Sdirs	= $(thirdparty_Sdirs)
+	@echo thirdparty_cfiles	= $(thirdparty_cfiles)
+	@echo thirdparty_hfiles	= $(thirdparty_hfiles)
+	@echo thirdparty_sfiles	= $(thirdparty_sfiles)
+	@echo thirdparty_Sfiles	= $(thirdparty_Sfiles)
+	@echo thirdparty_includes	= $(thirdparty_includes)
+	@echo thirdparty_objfiles	= $(thirdparty_objfiles)
+	@echo
+	@echo EXTRA_OBJS = $(EXTRA_OBJS)
 	@echo
 	@echo COMPILE.$(LANGUAGE).$(ARCH) =  $(COMPILE.$(LANGUAGE).$(ARCH))
 	@echo CFLAGS = $(CFLAGS)

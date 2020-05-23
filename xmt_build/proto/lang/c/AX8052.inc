@@ -90,9 +90,11 @@ LDFLAGS.c.AX8052 += -mmcs51 --verbose --model-small -muwx -M 			\
 
 
 $(OBJDIR)/%.rel	: $(SRCDIR)/%.s
+	@mkdir -p $(@D)
 	$(COMPILE.c.AX8052) $(CFLAGS) $(CFLAGS.c) $(CFLAGS.c.AX8052) -c $< -o $@
 
 $(OBJDIR)/%.rel	: $(SRCDIR)/%.c
+	@mkdir -p $(@D)
 	$(COMPILE.c.AX8052) $(CFLAGS) $(CFLAGS.c) $(CFLAGS.c.AX8052) -c $< -o $@
 
 bin: exe
@@ -105,12 +107,14 @@ flash:  $(TGTDIR)/$(EXE_NM)
 .lib.$(LANGUAGE):	$(TGTDIR)/$(LIB_NM)
 $(LIB_NM): $(TGTDIR)/$(LIB_NM)
 $(TGTDIR)/$(LIB_NM): $(objs.$(LANGUAGE)) $(EXTRA_OBJS)
+	@mkdir -p $(@D)
 	@echo 	$(ARFLAGS) $(ARFLAGS.$(LANGUAGE)) $(ARFLAGS.$(LANGUAGE).$(ARCH)) > $@.arflags;
 	$(AR.$(LANGUAGE).$(ARCH)) @$@.arflags $@ $^ 	
 
 .exe.$(LANGUAGE):	$(TGTDIR)/$(EXE_NM)
-$(EXE_NM): $(TGTDIR)/$(EXE_NM)
-$(TGTDIR)/$(EXE_NM): $(objs.$(LANGUAGE)) $(EXTRA_OBJS) 
+$(EXE_NM): $(TGTDIR) $(TGTDIR)/$(EXE_NM)
+$(TGTDIR)/$(EXE_NM): $(TGTDIR) $(objs.$(LANGUAGE)) $(EXTRA_OBJS) 
+	@mkdir -p $(@D)
 	@echo $(LDFLAGS) $(LDFLAGS.$(LANGUAGE)) $(LDFLAGS.$(LANGUAGE).$(ARCH)) > $@.ldflags;
 	$(LD.$(LANGUAGE).$(ARCH)) @$@.ldflags $^ \
 	    $(LIBS) $(LIBS.$(LANGUAGE)) $(LIBS.$(LANGUAGE).$(ARCH)) 

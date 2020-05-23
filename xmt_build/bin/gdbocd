@@ -17,12 +17,20 @@
 #   limitations under the License. 
 #************************************************************************
 
+use strict;
+use Getopt::Long;
+use File::Basename;
 $SIG{INT} 	= \&cleanup;
 $SIG{TERM}	= \&cleanup;
 use Env;
 
-my $usage = "gdbocd <pgm.elf>";
-die $usage if $#ARGV != 0;
+(my $pgmname = $0) =~ s{.*/}{};
+my $usage = "$pgmname -b[oard] <board_name> <pgm.elf>";
+undef my $opt_u;	# unnecessary, but it shuts up -w
+my $board = 'st.*[fl]4.*';	# unnecessary, but it shuts up -w
+GetOptions( "board=s"  => \$board, "u" ) || die $usage;
+die "$usage" if defined $opt_u;
+my $elf = $ARGV[0];
 
 # note: when executing on Windows gdbgui needs a Windows-style path to gdb
 my $gdb		= "$GCCROOT/bin/arm-none-eabi-gdb";
@@ -40,17 +48,37 @@ my $gdbgui_args	= "-g $gdb --gdb-args=\"$gdb_args\"";
 
 # note: openocd needs a Windows-style path to its config file
 my $openocd	= `which openocd`; chomp $openocd;
-my $ocd_args	= "/usr/share/openocd/scripts/board/st_nucleo_l476rg.cfg";
+my $ocd_args	= get_board($board);
 
 # launch openocd & leave running as a background process
 system( "$openocd -f $ocd_args 1>/dev/null 2>&1 &" );
 
 # launch gdbgui, it spawns gdb, gdb connects to openocd ...
 # then gdb reads its startup commands.
-system( "$gdbgui $gdbgui_args --args $ARGV[0]") or die "$gdbgui: $!\n";
+system( "$gdbgui $gdbgui_args --args $elf") or die "$gdbgui: $!\n";
 
 END {
     cleanup();
+}
+
+sub get_board
+{
+    my $cfg_dir	= "/usr/share/openocd/scripts/board";
+    my ($pattern) = @_;
+
+    my @matching_boards =  sort grep( /${pattern}/i, glob qq("${cfg_dir}/*.cfg"));
+    die "no boards matching *${pattern}* found" if (scalar(@matching_boards) == 0);
+    return $matching_boards[0] if (scalar(@matching_boards) == 1);
+
+    foreach my $i ( 0 .. scalar(@matching_boards) -1)
+    {
+        printf("[%d]\t%s\n", $i, basename($matching_boards[$i], '.cfg'));
+    }
+    printf("Which one?: ");
+    $| = 1; 		# flush our print
+    $_ = <STDIN>;	# read user's input
+    die "invalid choice" if ($_ > scalar(@matching_boards));
+    return $matching_boards[$_];
 }
 
 sub cleanup

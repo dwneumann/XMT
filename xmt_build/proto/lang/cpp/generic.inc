@@ -25,32 +25,60 @@
 #************************************************************************
 
 
-srcs.cpp	= $(wildcard $(SRCDIR)/*.cpp)
-hdrs.cpp	= $(wildcard $(SRCDIR)/*.h)
-objs.cpp	= $(patsubst $(SRCDIR)/%.cpp,$(OBJDIR)/%.o,$(srcs.cpp))
-docs.cpp	= $(patsubst $(SRCDIR)/%.cpp,$(DOCDIR)/%.html,$(srcs.cpp))
-lnts.cpp	= $(patsubst $(SRCDIR)/%.cpp,$(OBJDIR)/%.ln,$(srcs.cpp))
+#   := assignements are evaluated during lexical scan;
+#    = assignments are recursively evaluated during rule parsing
+lang	:= cpp
+
+# we specifically do NOT want to recursively search below SRCDIR for sources
+# because there may be platfrorm-specific code in different subdirectories
+# that we need to include or exclude at the package level.
+srcs.$(lang)	= $(wildcard $(SRCDIR)/*.$(lang))
+hdrs.$(lang)	= $(wildcard $(SRCDIR)/*.h)
+objs.$(lang)	= $(patsubst $(SRCDIR)/%.$(lang),$(OBJDIR)/%.o,$(srcs.$(lang)))
+docs.$(lang)	= $(patsubst $(SRCDIR)/%.$(lang),$(DOCDIR)/%.html,$(srcs.$(lang)))
+lnts.$(lang)	= $(patsubst $(SRCDIR)/%.$(lang),$(OBJDIR)/%.ln,$(srcs.$(lang)))
 
 #**********************************************************************
-# pull in 3rd party sources from subtree rooted at EXTERNAL_SRCS
+# if directory THIRDPARTY_SRCS exists
+# recurse down into it and gather all 3rd party sources and includes found there.
+# There could be different third party directories for different build configurations
+# so THIRDPARTY_SRCS needs to be set at the package level.
 #**********************************************************************
-EXTERNAL_SRCS	:= $(SRCDIR)/vendor
-_vendors	:= $(shell [ -d "$(EXTERNAL_SRCS)" ] && echo "$(EXTERNAL_SRCS)" || echo "/dev/null")
-vendor_srcdirs	:= $(dir $(shell find -L $(_vendors) -name "*.$(LANGUAGE)"))
-vendor_srcfiles	:= $(notdir $(shell find -L $(_vendors) -name "*.$(LANGUAGE)"))
-vendor_sdirs	:= $(dir $(shell find -L $(_vendors) -name "*.[sS]"))
-vendor_sfiles	:= $(notdir $(shell find -L $(_vendors) -name "*.[sS]"))
-vendor_objfiles	:= $(patsubst %,$(OBJDIR)/%,$(vendor_srcfiles:.$(LANGUAGE)=.o) $(vendor_sfiles:.s=.o))
-vendor_hdirs	:= $(dir $(shell find -L $(_vendors) -name "*.h"))
-vendor_hfiles	:= $(notdir $(shell find -L $(_vendors) -name "*.h"))
-vendor_incs	:= $(patsubst %,-I%,$(vendor_hdirs))
-vpath %.cpp $(SRCDIR) $(vendor_srcdirs)
-vpath %.i $(SRCDIR) $(vendor_srcdirs)
-vpath %.ln $(SRCDIR) $(vendor_srcdirs)
-vpath %.html $(SRCDIR) $(vendor_srcdirs)
-vpath %.h $(SRCDIR) $(vendor_hdirs)
-vpath %.s $(SRCDIR) $(vendor_sdirs)
-vpath %.S $(SRCDIR) $(vendor_sdirs)
+tpdir		= $(shell [ -d "$(THIRDPARTY_SRCS)" ] && echo "$(THIRDPARTY_SRCS)" || echo "")
+ifneq ($(strip $(tpdir)),)
+  thirdparty_c		= $(sort $(shell find -L $(tpdir) -name "*.$(lang)"))
+  thirdparty_h		= $(sort $(shell find -L $(tpdir) -name "*.h"))
+  thirdparty_s		= $(sort $(shell find -L $(tpdir) -name "*.s"))
+  thirdparty_S		= $(sort $(shell find -L $(tpdir) -name "*.S"))
+  thirdparty_cdirs	= $(sort $(dir $(thirdparty_c)))
+  thirdparty_hdirs	= $(sort $(dir $(thirdparty_h)))
+  thirdparty_sdirs	= $(sort $(dir $(thirdparty_s)))
+  thirdparty_Sdirs	= $(sort $(dir $(thirdparty_S)))
+  thirdparty_cfiles	= $(sort $(notdir $(thirdparty_c)))
+  thirdparty_hfiles	= $(sort $(notdir $(thirdparty_h)))
+  thirdparty_sfiles	= $(sort $(notdir $(thirdparty_s)))
+  thirdparty_Sfiles	= $(sort $(notdir $(thirdparty_S)))
+  thirdparty_includes	= $(sort $(patsubst %,-I%,$(thirdparty_hdirs)))
+  thirdparty_objfiles	= $(patsubst  %,$(OBJDIR)/%,$(notdir $(thirdparty_cfiles:.$(lang)=.o)))
+  thirdparty_objfiles	+= $(patsubst %,$(OBJDIR)/%,$(notdir $(thirdparty_sfiles:.s=.o)))
+  thirdparty_objfiles	+= $(patsubst %,$(OBJDIR)/%,$(notdir $(thirdparty_Sfiles:.S=.o)))
+  vpath	%.c	$(SRCDIR) $(thirdparty_cdirs)
+  vpath	%.i	$(SRCDIR) $(thirdparty_cdirs)
+  vpath	%.ln	$(SRCDIR) $(thirdparty_cdirs)
+  vpath	%.html	$(SRCDIR) $(thirdparty_cdirs)
+  vpath	%.h	$(SRCDIR) $(thirdparty_hdirs)
+  vpath	%.s	$(SRCDIR) $(thirdparty_sdirs)
+  vpath	%.S	$(SRCDIR) $(thirdparty_Sdirs)
+else
+  vpath	%.c	$(SRCDIR) 
+  vpath	%.i	$(SRCDIR) 
+  vpath	%.ln	$(SRCDIR) 
+  vpath	%.html	$(SRCDIR) 
+  vpath	%.h	$(SRCDIR) 
+  vpath	%.s	$(SRCDIR) 
+  vpath	%.S	$(SRCDIR) 
+endif
+
 
 #**********************************************************************
 # This is the place to define default flags and recipes

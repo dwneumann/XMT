@@ -25,10 +25,11 @@ $SIG{TERM}	= \&cleanup;
 use Env;
 
 (my $pgmname = $0) =~ s{.*/}{};
-my $usage = "$pgmname -b[oard] <board_name> <pgm.elf>";
+my $usage = "$pgmname [-nogui] -b[oard] <board_name> <pgm.elf>";
 undef my $opt_u;	# unnecessary, but it shuts up -w
+undef my $nogui;	# unnecessary, but it shuts up -w
 my $board = 'st.*[fl]4.*';	# by default, filter the options to just STM32 boards
-GetOptions( "board=s"  => \$board, "u" ) || die $usage;
+GetOptions( "board=s"  => \$board, "nogui" => \$nogui, "u" ) || die $usage;
 die "$usage" if defined $opt_u;
 my $elf = $ARGV[0];
 
@@ -44,6 +45,7 @@ my $gdb_args	= "--quiet "
 		. "-ex 'continue' ";		# run to break at main
 
 my $gdbgui	= "$ENV{'HOME'}/.local/bin/gdbgui";
+my $gdb_cmd	= "$gdb $gdb_args";
 my $gdbgui_args	= "-g $gdb --gdb-args=\"$gdb_args\"";
 
 # note: when executing on Windows openocd needs a Windows-style path to its config file
@@ -53,9 +55,16 @@ my $ocd_args	= get_board_selection($board);
 # launch openocd & leave running as a background process
 system( "$openocd -f $ocd_args 1>/dev/null 2>&1 &" );
 
-# launch gdbgui, it spawns gdb, gdb connects to openocd ...
-# then gdb reads its startup commands.
-system( "$gdbgui $gdbgui_args --args $elf") or die "$gdbgui: $!\n";
+if (defined $nogui)
+{
+    system( "$gdb_cmd $elf") or die "$gdb: $!\n";
+}
+else
+{
+    # launch gdbgui, it spawns gdb, gdb connects to openocd ...
+    # then gdb reads its startup commands.
+    system( "$gdbgui $gdbgui_args --args $elf") or die "$gdbgui: $!\n";
+}
 
 END {
     cleanup();

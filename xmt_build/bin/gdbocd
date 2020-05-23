@@ -27,7 +27,7 @@ use Env;
 (my $pgmname = $0) =~ s{.*/}{};
 my $usage = "$pgmname -b[oard] <board_name> <pgm.elf>";
 undef my $opt_u;	# unnecessary, but it shuts up -w
-my $board = 'st.*[fl]4.*';	# unnecessary, but it shuts up -w
+my $board = 'st.*[fl]4.*';	# by default, filter the options to just STM32 boards
 GetOptions( "board=s"  => \$board, "u" ) || die $usage;
 die "$usage" if defined $opt_u;
 my $elf = $ARGV[0];
@@ -46,9 +46,9 @@ my $gdb_args	= "--quiet "
 my $gdbgui	= "$ENV{'HOME'}/.local/bin/gdbgui";
 my $gdbgui_args	= "-g $gdb --gdb-args=\"$gdb_args\"";
 
-# note: openocd needs a Windows-style path to its config file
+# note: when executing on Windows openocd needs a Windows-style path to its config file
 my $openocd	= `which openocd`; chomp $openocd;
-my $ocd_args	= get_board($board);
+my $ocd_args	= get_board_selection($board);
 
 # launch openocd & leave running as a background process
 system( "$openocd -f $ocd_args 1>/dev/null 2>&1 &" );
@@ -61,7 +61,7 @@ END {
     cleanup();
 }
 
-sub get_board
+sub get_board_selection
 {
     my $cfg_dir	= "/usr/share/openocd/scripts/board";
     my ($pattern) = @_;

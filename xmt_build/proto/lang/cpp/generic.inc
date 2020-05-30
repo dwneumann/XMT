@@ -12,7 +12,7 @@
 #*   architecture to XMTBUILD_SUPP_ARCHS.
 #*
 #*  Copyright (c) 1998	Neumann & Associates Information Systems Inc.
-#*  			legal.info@neumann-associates.cppom
+#*  			legal.info@neumann-associates.com
 #*  Licensed under the Apache License, Version 2.0 (the "License");
 #*  you may not use this file except in compliance with the License.
 #*  You may obtain a copy of the License at http://www.apache.org/licenses/LICENSE-2.0
@@ -62,7 +62,7 @@ ifneq ($(strip $(tpdir)),)
   thirdparty_objfiles	= $(patsubst  %,$(OBJDIR)/%,$(notdir $(thirdparty_cfiles:.$(lang)=.o)))
   thirdparty_objfiles	+= $(patsubst %,$(OBJDIR)/%,$(notdir $(thirdparty_sfiles:.s=.o)))
   thirdparty_objfiles	+= $(patsubst %,$(OBJDIR)/%,$(notdir $(thirdparty_Sfiles:.S=.o)))
-  vpath	%.c	$(SRCDIR) $(thirdparty_cdirs)
+  vpath	%.$(lang)	$(SRCDIR) $(thirdparty_cdirs)
   vpath	%.i	$(SRCDIR) $(thirdparty_cdirs)
   vpath	%.ln	$(SRCDIR) $(thirdparty_cdirs)
   vpath	%.html	$(SRCDIR) $(thirdparty_cdirs)
@@ -70,7 +70,7 @@ ifneq ($(strip $(tpdir)),)
   vpath	%.s	$(SRCDIR) $(thirdparty_sdirs)
   vpath	%.S	$(SRCDIR) $(thirdparty_Sdirs)
 else
-  vpath	%.c	$(SRCDIR) 
+  vpath	%.$(lang)	$(SRCDIR) 
   vpath	%.i	$(SRCDIR) 
   vpath	%.ln	$(SRCDIR) 
   vpath	%.html	$(SRCDIR) 
@@ -79,16 +79,15 @@ else
   vpath	%.S	$(SRCDIR) 
 endif
 
-
 #**********************************************************************
 # This is the place to define default flags and recipes
 # that are common to ALL target architectures for THIS language.
 #**********************************************************************
-CFLAGS.cpp	+= -c -o $@
-ARFLAGS.cpp	+= 
-LDFLAGS.cpp	+= -o $@
-LINTFLAGS.cpp	+= $(CFLAGS.cpp)
-DOCFLAGS.cpp	+= -o $@
+CFLAGS.$(lang)		+= -c -o $@ 
+ARFLAGS.$(lang)		+= 
+LDFLAGS.$(lang)		+= -o $@
+LINTFLAGS.$(lang)	+= $(CFLAGS.$(lang))
+DOCFLAGS.$(lang)	+= -o $@
 
 ## Define recipes in $(XMTBUILD)/proto/lang/$(LANGUAGE)/$(ARCH)
 ## after variables are further defined there 

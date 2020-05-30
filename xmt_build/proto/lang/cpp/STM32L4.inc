@@ -43,21 +43,21 @@ EXE_SFX.cpp.STM32L4	:= .elf
 #**********************************************************************
 # This is the place to define default flags and recipes
 # that are specific to THIS target platform for THIS language.
-#	-mcpu=cortex-m4+nofp -mfloat-abi=hard -mfpu=auto -D__FPU_PRESENT	
 #**********************************************************************
 
-MCU	= -mcpu=cortex-m4 -mfpu=fpv4-sp-d16 -mfloat-abi=hard -mthumb -D__FPU_PRESENT=1	
-CFLAGS.cpp.STM32L4 += -Wall -Wno-strict-aliasing 					\
+MCU	= -mcpu=cortex-m4 -mfpu=fpv4-sp-d16 -mfloat-abi=hard -mthumb 
+CFLAGS.cpp.STM32L4 += -Wall -Wno-strict-aliasing 				\
 	-Wno-attributes -Wno-unused-function -Wno-unused-const-variable 	\
-	-std=gnu99 -g3 -Os -MMD -MP						\
-	$(MCU) --specs=nano.specs 						\
+	-g3 -Os -MMD -MP							\
+	$(MCU) --specs=nano.specs --specs=nosys.specs 			 	\
 	-DSTM32L4xx -DARM_MATH_CM4 -DCORE_M4					\
 	-mlittle-endian -mthumb -mthumb-interwork				\
 	-fstack-usage -fdata-sections -ffunction-sections -fmessage-length=0	\
 	-fno-builtin -fsingle-precision-constant 
  			
-LDFLAGS.cpp.STM32L4	+= $(MCU) -specs=nano.specs -specs=nosys.specs	\
-	-Wl,-Map=$(TGTDIR)/$(PKG_NM).map -Wl,--cref -Wl,--gc-sections 
+
+LDFLAGS.cpp.STM32L4	+= $(MCU) -Wl,-Map=$(TGTDIR)/$(PKG_NM).map		\
+	-specs=nano.specs -specs=nosys.specs -Wl,--cref -Wl,--gc-sections 
 
 ARFLAGS.cpp.STM32L4	+= -rscDv
 LINTFLAGS.cpp.STM32L4	+= $(CFLAGS.cpp.STM32L4)
@@ -73,47 +73,49 @@ hex: exe
 
 $(OBJDIR)/%.o	: %.S
 	@mkdir -p $(@D)
-	@echo $(CFLAGS) $(CFLAGS.c) $(CFLAGS.cpp.$(ARCH)) > $@.cflags ; 
-	$(COMPILE.cpp.$(ARCH)) @$@.cflags $< 
+	@echo $(CFLAGS) $(CFLAGS.cpp) $(CFLAGS.cpp.STM32L4) > $@.cflags ; 
+	$(COMPILE.cpp.STM32L4) @$@.cflags $< 
 
 $(OBJDIR)/%.o	: %.s
 	@mkdir -p $(@D)
-	@echo $(CFLAGS) $(CFLAGS.c) $(CFLAGS.cpp.$(ARCH)) > $@.cflags ; 
-	$(COMPILE.cpp.$(ARCH)) @$@.cflags $< 
+	@echo $(CFLAGS) $(CFLAGS.cpp) $(CFLAGS.cpp.STM32L4) > $@.cflags ; 
+	$(COMPILE.cpp.STM32L4) @$@.cflags $< 
 
-$(OBJDIR)/%.o	: %.c
+$(OBJDIR)/%.o	: %.cpp
 	@mkdir -p $(@D)
-	@echo $(CFLAGS) $(CFLAGS.c) $(CFLAGS.cpp.$(ARCH)) > $@.cflags ; 
-	$(COMPILE.cpp.$(ARCH)) @$@.cflags $< 
+	@echo $(CFLAGS) $(CFLAGS.cpp) $(CFLAGS.cpp.STM32L4) > $@.cflags ; 
+	$(COMPILE.cpp.STM32L4) @$@.cflags $< 
 
-$(OBJDIR)/%.i	: /%.c
+$(OBJDIR)/%.i	: /%.cpp
 	@mkdir -p $(@D)
-	@echo -E $(CFLAGS) $(CFLAGS.c) $(CFLAGS.cpp.$(ARCH)) > $@.cflags ; 
-	$(COMPILE.cpp.$(ARCH)) @$@.cflags $< 
+	@echo -E $(CFLAGS) $(CFLAGS.cpp) $(CFLAGS.cpp.STM32L4) > $@.cflags ; 
+	$(COMPILE.cpp.STM32L4) @$@.cflags $< 
 
-$(OBJDIR)/%.ln	: %.c
+$(OBJDIR)/%.ln	: %.cpp
 	@mkdir -p $(@D)
-	@echo $(LINTFLAGS) $(LINTFLAGS.c) $(LINTFLAGS.cpp.$(ARCH)) > $@.lintflags ; 
-	$(LINT.cpp.$(ARCH)) @$@.lintflags $< 
+	@echo $(LINTFLAGS) $(LINTFLAGS.cpp) $(LINTFLAGS.cpp.STM32L4) > $@.lintflags ; 
+	$(LINT.cpp.STM32L4) @$@.lintflags $< 
 
-$(DOCDIR)/%.html: $(SRCDIR)/%.c
+$(DOCDIR)/%.html: $(SRCDIR)/%.cpp
 	@mkdir -p $(@D)
-	@echo $(DOCFLAGS) $(DOCFLAGS.c) $(DOCFLAGS.cpp.$(ARCH)) > $@.docflags ; 
-	$(DOC.cpp.$(ARCH)) @$@.docflags $< 
+	@echo $(DOCFLAGS) $(DOCFLAGS.cpp) $(DOCFLAGS.cpp.STM32L4) > $@.docflags ; 
+	$(DOC.cpp.STM32L4) @$@.docflags $< 
 
-.lib.$(LANGUAGE):	$(TGTDIR)/$(LIB_NM)
+.lib.cpp:	$(TGTDIR)/$(LIB_NM)
 $(LIB_NM): $(TGTDIR)/$(LIB_NM)
-$(TGTDIR)/$(LIB_NM): $(objs.$(LANGUAGE)) $(EXTRA_OBJS)
+$(TGTDIR)/$(LIB_NM): $(objs.cpp) $(EXTRA_OBJS)
 	@mkdir -p $(@D)
-	@echo 	$(ARFLAGS) $(ARFLAGS.$(LANGUAGE)) $(ARFLAGS.$(LANGUAGE).$(ARCH)) > $@.arflags;
-	$(AR.$(LANGUAGE).$(ARCH)) @$@.arflags $@ $^ 	
+	@echo 	$(ARFLAGS) $(ARFLAGS.cpp) $(ARFLAGS.cpp.STM32L4) > $@.arflags;
+	$(AR.cpp.STM32L4) @$@.arflags $@ $^ 	
 
-.exe.$(LANGUAGE):	$(TGTDIR)/$(EXE_NM)
+.exe.cpp:	$(TGTDIR)/$(EXE_NM)
 $(EXE_NM): $(TGTDIR)/$(EXE_NM)
-$(TGTDIR)/$(EXE_NM): $(objs.$(LANGUAGE)) $(EXTRA_OBJS) 
+$(TGTDIR)/$(EXE_NM): $(objs.cpp) $(EXTRA_OBJS) 
 	@mkdir -p $(@D)
-	@echo $(LDFLAGS) $(LDFLAGS.$(LANGUAGE)) $(LDFLAGS.$(LANGUAGE).$(ARCH)) > $@.ldflags;
-	$(LD.$(LANGUAGE).$(ARCH)) @$@.ldflags $^ \
-	    $(LIBS) $(LIBS.$(LANGUAGE)) $(LIBS.$(LANGUAGE).$(ARCH)) 
+	@echo $(LDFLAGS) $(LDFLAGS.cpp) $(LDFLAGS.cpp.STM32L4) > $@.ldflags;
+	$(LD.cpp.STM32L4) @$@.ldflags $^ \
+	    $(LIBS) $(LIBS.cpp) $(LIBS.cpp.STM32L4) 
 
+flash:
+	st-flash write $(TGTDIR)/$(PKG_NM).bin 0x8000000
 

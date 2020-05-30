@@ -12,7 +12,7 @@
 #*   architecture to XMTBUILD_SUPP_ARCHS.
 #*
 #*  Copyright (c) 1998	Neumann & Associates Information Systems Inc.
-#*  			legal.info@neumann-associates.ccom
+#*  			legal.info@neumann-associates.com
 #*  Licensed under the Apache License, Version 2.0 (the "License");
 #*  you may not use this file except in compliance with the License.
 #*  You may obtain a copy of the License at http://www.apache.org/licenses/LICENSE-2.0
@@ -23,6 +23,7 @@
 #*  See the License for the specific language governing permissions and
 #*  limitations under the License. 
 #************************************************************************
+
 
 #   := assignements are evaluated during lexical scan;
 #    = assignments are recursively evaluated during rule parsing
@@ -61,6 +62,7 @@ ifneq ($(strip $(tpdir)),)
   thirdparty_objfiles	= $(patsubst  %,$(OBJDIR)/%,$(notdir $(thirdparty_cfiles:.$(lang)=.o)))
   thirdparty_objfiles	+= $(patsubst %,$(OBJDIR)/%,$(notdir $(thirdparty_sfiles:.s=.o)))
   thirdparty_objfiles	+= $(patsubst %,$(OBJDIR)/%,$(notdir $(thirdparty_Sfiles:.S=.o)))
+  vpath	%.$(lang) $(SRCDIR) $(thirdparty_cdirs)
   vpath	%.c	$(SRCDIR) $(thirdparty_cdirs)
   vpath	%.i	$(SRCDIR) $(thirdparty_cdirs)
   vpath	%.ln	$(SRCDIR) $(thirdparty_cdirs)
@@ -69,6 +71,7 @@ ifneq ($(strip $(tpdir)),)
   vpath	%.s	$(SRCDIR) $(thirdparty_sdirs)
   vpath	%.S	$(SRCDIR) $(thirdparty_Sdirs)
 else
+  vpath	%.$(lang) $(SRCDIR) 
   vpath	%.c	$(SRCDIR) 
   vpath	%.i	$(SRCDIR) 
   vpath	%.ln	$(SRCDIR) 
@@ -78,16 +81,15 @@ else
   vpath	%.S	$(SRCDIR) 
 endif
 
-
 #**********************************************************************
 # This is the place to define default flags and recipes
 # that are common to ALL target architectures for THIS language.
 #**********************************************************************
-CFLAGS.cc	+= -c -o $@
-ARFLAGS.cc	+= 
-LDFLAGS.cc	+= -o $@
-LINTFLAGS.cc	+= $(CFLAGS.cc)
-DOCFLAGS.cc	+= -o $@
+CFLAGS.$(lang)		+=  -c -o $@ 
+ARFLAGS.$(lang)		+= 
+LDFLAGS.$(lang)		+= -o $@
+LINTFLAGS.$(lang)	+= $(CFLAGS.$(lang))
+DOCFLAGS.$(lang)	+= -o $@
 
 ## Define recipes in $(XMTBUILD)/proto/lang/$(LANGUAGE)/$(ARCH)
 ## after variables are further defined there 

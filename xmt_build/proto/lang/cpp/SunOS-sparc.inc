@@ -54,47 +54,47 @@ EXE_SFX.cpp.SunOS-sparc	:=
 
 $(OBJDIR)/%.o	: %.S
 	@mkdir -p $(@D)
-	@echo  $(CFLAGS) $(CFLAGS.cpp) $(CFLAGS.cpp.$(ARCH)) > $@.cflags ;
-	$(COMPILE.cpp.$(ARCH)) @$@.cflags $<
+	@echo  $(CFLAGS) $(CFLAGS.cpp) $(CFLAGS.cpp.SunOS-sparc) > $@.cflags ;
+	$(COMPILE.cpp.SunOS-sparc) @$@.cflags $<
 
 $(OBJDIR)/%.o	: %.s
 	@mkdir -p $(@D)
-	@echo  $(CFLAGS) $(CFLAGS.cpp) $(CFLAGS.cpp.$(ARCH)) > $@.cflags ;
-	$(COMPILE.cpp.$(ARCH)) @$@.cflags $<
+	@echo  $(CFLAGS) $(CFLAGS.cpp) $(CFLAGS.cpp.SunOS-sparc) > $@.cflags ;
+	$(COMPILE.cpp.SunOS-sparc) @$@.cflags $<
 
 $(OBJDIR)/%.o	: %.cpp
 	@mkdir -p $(@D)
-	@echo  $(CFLAGS) $(CFLAGS.cpp) $(CFLAGS.cpp.$(ARCH)) > $@.cflags ;
-	$(COMPILE.cpp.$(ARCH)) @$@.cflags $<
+	@echo  $(CFLAGS) $(CFLAGS.cpp) $(CFLAGS.cpp.SunOS-sparc) > $@.cflags ;
+	$(COMPILE.cpp.SunOS-sparc) @$@.cflags $<
 
 $(OBJDIR)/%.i	: /%.cpp
 	@mkdir -p $(@D)
-	@echo  $(CFLAGS) $(CFLAGS.cpp) $(CFLAGS.cpp.$(ARCH)) -E > $@.cflags ;
-	$(COMPILE.cpp.$(ARCH)) @$@.cflags -E $<
+	@echo  $(CFLAGS) $(CFLAGS.cpp) $(CFLAGS.cpp.SunOS-sparc) -E > $@.cflags ;
+	$(COMPILE.cpp.SunOS-sparc) @$@.cflags -E $<
 
 $(OBJDIR)/%.ln	: %.cpp
 	@mkdir -p $(@D)
-	@echo  $(LINTFLAGS) $(LINTFLAGS.cpp) $(LINTFLAGS.cpp.$(ARCH)) > $@.lintflags ;
-	$(LINT.cpp.$(ARCH)) @$@.lintflags $<
+	@echo  $(LINTFLAGS) $(LINTFLAGS.cpp) $(LINTFLAGS.cpp.SunOS-sparc) > $@.lintflags ;
+	$(LINT.cpp.SunOS-sparc) @$@.lintflags $<
 
 $(DOCDIR)/%.html: $(SRCDIR)/%.cpp
 	@mkdir -p $(@D)
-	@echo  $(DOCFLAGS) $(DOCFLAGS.cpp) $(DOCFLAGS.cpp.$(ARCH)) > $@.docflags ;
-	$(DOC.cpp.$(ARCH)) @$@.docflags $<
+	@echo  $(DOCFLAGS) $(DOCFLAGS.cpp) $(DOCFLAGS.cpp.SunOS-sparc) > $@.docflags ;
+	$(DOC.cpp.SunOS-sparc) @$@.docflags $<
 
-.lib.$(LANGUAGE):	$(TGTDIR)/$(LIB_NM)
+.lib.cpp:	$(TGTDIR)/$(LIB_NM)
 $(LIB_NM): $(TGTDIR)/$(LIB_NM)
-$(TGTDIR)/$(LIB_NM): $(objs.$(LANGUAGE)) $(EXTRA_OBJS)
+$(TGTDIR)/$(LIB_NM): $(objs.cpp) $(EXTRA_OBJS)
 	@mkdir -p $(@D)
-	@echo 	$(ARFLAGS) $(ARFLAGS.$(LANGUAGE)) $(ARFLAGS.$(LANGUAGE).$(ARCH)) > $@.arflags;
-	$(AR.$(LANGUAGE).$(ARCH)) @$@.arflags $@ $^ 	
+	@echo 	$(ARFLAGS) $(ARFLAGS.cpp) $(ARFLAGS.cpp.SunOS-sparc) > $@.arflags;
+	$(AR.cpp.SunOS-sparc) @$@.arflags $@ $^ 	
 
-.exe.$(LANGUAGE):	$(TGTDIR)/$(EXE_NM)
+.exe.cpp:	$(TGTDIR)/$(EXE_NM)
 $(EXE_NM): $(TGTDIR)/$(EXE_NM)
-$(TGTDIR)/$(EXE_NM): $(objs.$(LANGUAGE)) $(EXTRA_OBJS) 
+$(TGTDIR)/$(EXE_NM): $(objs.cpp) $(EXTRA_OBJS) 
 	@mkdir -p $(@D)
-	@echo $(LDFLAGS) $(LDFLAGS.$(LANGUAGE)) $(LDFLAGS.$(LANGUAGE).$(ARCH)) > $@.ldflags;
-	$(LD.$(LANGUAGE).$(ARCH)) @$@.ldflags $^ \
-	    $(LIBS) $(LIBS.$(LANGUAGE)) $(LIBS.$(LANGUAGE).$(ARCH)) 
+	@echo $(LDFLAGS) $(LDFLAGS.cpp) $(LDFLAGS.cpp.SunOS-sparc) > $@.ldflags;
+	$(LD.cpp.SunOS-sparc) @$@.ldflags $^ \
+	    $(LIBS) $(LIBS.cpp) $(LIBS.cpp.SunOS-sparc) 
 
 

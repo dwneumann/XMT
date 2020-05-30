@@ -54,20 +54,19 @@ EXE_SFX.java.SunOS-sparc	:=
 $(JAVA_PKGROOT)/%.class: $(SRCDIR)/$(JAVA_PKGROOT)/%.java
 	@mkdir -p $(@D)
 	@mkdir -p $(OBJDIR)/$(JAVA_PKGROOT);
-	@echo	$(CFLAGS) $(CFLAGS.java) $(CFLAGS.java.$(ARCH)) > $@.cflags ;
-	$(COMPILE.java.$(ARCH))	@$@.cflags $<
+	@echo	$(CFLAGS) $(CFLAGS.java) $(CFLAGS.java.SunOS-sparc) > $@.cflags ;
+	$(COMPILE.java.SunOS-sparc)	@$@.cflags $<
 
 $(DOCDIR)/%.html: $(SRCDIR)/$(JAVA_PKGROOT)/%.java
 	@mkdir -p $(@D)
-	cd $(DOCDIR); $(DOC.java.$(ARCH)) $(DOCFLAGS) $(DOCFLAGS.java) $(DOCFLAGS.java.$(ARCH)) $<
+	cd $(DOCDIR); $(DOC.java.SunOS-sparc) $(DOCFLAGS) $(DOCFLAGS.java) $(DOCFLAGS.java.SunOS-sparc) $<
 
-.lib.$(LANGUAGE):	$(TGTDIR)/$(LIB_NM)
-.lib.$(LANGUAGE):	$(TGTDIR)/$(LIB_NM)
-$(TGTDIR)/$(LIB_NM): $(objs.$(LANGUAGE)) 
+.lib.java:	$(TGTDIR)/$(LIB_NM)
+$(TGTDIR)/$(LIB_NM): $(objs.java) 
 	@mkdir -p $(@D)
 	(cd $(OBJDIR);  \
-	echo $(ARFLAGS) $(ARFLAGS.$(LANGUAGE)) $(ARFLAGS.$(LANGUAGE).$(ARCH)) > $(LIB_NM).arflags;\
-	$(AR.$(LANGUAGE).$(ARCH)) @$(LIB_NM).arflags $(LIB_NM) $(objs.$(LANGUAGE)) $(EXTRA_OBJS);)
+	echo $(ARFLAGS) $(ARFLAGS.java) $(ARFLAGS.java.SunOS-sparc) > $(LIB_NM).arflags;\
+	$(AR.java.SunOS-sparc) @$(LIB_NM).arflags $(LIB_NM) $(objs.java) $(EXTRA_OBJS);)
 	-/bin/mv $(OBJDIR)/$(LIB_NM) $(TGTDIR)/$(LIB_NM)
 
 

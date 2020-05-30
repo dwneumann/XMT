@@ -104,19 +104,19 @@ flash:  $(TGTDIR)/$(EXE_NM)
 	axsdb --flashprog $(TGTDIR)/$(EXE_NM)
 
 
-.lib.$(LANGUAGE):	$(TGTDIR)/$(LIB_NM)
+.lib.c:	$(TGTDIR)/$(LIB_NM)
 $(LIB_NM): $(TGTDIR)/$(LIB_NM)
-$(TGTDIR)/$(LIB_NM): $(objs.$(LANGUAGE)) $(EXTRA_OBJS)
+$(TGTDIR)/$(LIB_NM): $(objs.c) $(EXTRA_OBJS)
 	@mkdir -p $(@D)
-	@echo 	$(ARFLAGS) $(ARFLAGS.$(LANGUAGE)) $(ARFLAGS.$(LANGUAGE).$(ARCH)) > $@.arflags;
-	$(AR.$(LANGUAGE).$(ARCH)) @$@.arflags $@ $^ 	
+	@echo 	$(ARFLAGS) $(ARFLAGS.c) $(ARFLAGS.c.$(ARCH)) > $@.arflags;
+	$(AR.c.$(ARCH)) @$@.arflags $@ $^ 	
 
-.exe.$(LANGUAGE):	$(TGTDIR)/$(EXE_NM)
+.exe.c:	$(TGTDIR)/$(EXE_NM)
 $(EXE_NM): $(TGTDIR) $(TGTDIR)/$(EXE_NM)
-$(TGTDIR)/$(EXE_NM): $(TGTDIR) $(objs.$(LANGUAGE)) $(EXTRA_OBJS) 
+$(TGTDIR)/$(EXE_NM): $(TGTDIR) $(objs.c) $(EXTRA_OBJS) 
 	@mkdir -p $(@D)
-	@echo $(LDFLAGS) $(LDFLAGS.$(LANGUAGE)) $(LDFLAGS.$(LANGUAGE).$(ARCH)) > $@.ldflags;
-	$(LD.$(LANGUAGE).$(ARCH)) @$@.ldflags $^ \
-	    $(LIBS) $(LIBS.$(LANGUAGE)) $(LIBS.$(LANGUAGE).$(ARCH)) 
+	@echo $(LDFLAGS) $(LDFLAGS.c) $(LDFLAGS.c.$(ARCH)) > $@.ldflags;
+	$(LD.c.$(ARCH)) @$@.ldflags $^ \
+	    $(LIBS) $(LIBS.c) $(LIBS.c.$(ARCH)) 
 
 

@@ -52,20 +52,20 @@ EXE_SFX.java.linux_x86	:=
 $(JAVA_PKGROOT)/%.class: $(SRCDIR)/$(JAVA_PKGROOT)/%.java
 	@mkdir -p $(@D)
 	@mkdir -p $(OBJDIR)/$(JAVA_PKGROOT);
-	@echo	$(CFLAGS) $(CFLAGS.java) $(CFLAGS.java.$(ARCH)) > $(OBJDIR)/$@.cflags ;
-	$(COMPILE.java.$(ARCH))	@$(OBJDIR)/$@.cflags $<
+	@echo	$(CFLAGS) $(CFLAGS.java) $(CFLAGS.java.linux_x86) > $(OBJDIR)/$@.cflags ;
+	$(COMPILE.java.linux_x86)	@$(OBJDIR)/$@.cflags $<
 
 $(DOCDIR)/%.html: $(SRCDIR)/$(JAVA_PKGROOT)/%.java
 	@mkdir -p $(@D)
-	cd $(DOCDIR); $(DOC.java.$(ARCH)) $(DOCFLAGS) $(DOCFLAGS.java) $(DOCFLAGS.java.$(ARCH)) $<
+	cd $(DOCDIR); $(DOC.java.linux_x86) $(DOCFLAGS) $(DOCFLAGS.java) $(DOCFLAGS.java.linux_x86) $<
 
-.lib.$(LANGUAGE):	$(TGTDIR)/$(LIB_NM)
-.exe.$(LANGUAGE):	$(TGTDIR)/$(LIB_NM)
-$(TGTDIR)/$(LIB_NM): $(objs.$(LANGUAGE)) 
+.lib.java:	$(TGTDIR)/$(LIB_NM)
+.exe.java:	$(TGTDIR)/$(LIB_NM)
+$(TGTDIR)/$(LIB_NM): $(objs.java) 
 	@mkdir -p $(@D)
 	(cd $(OBJDIR);  \
-	echo $(ARFLAGS) $(ARFLAGS.$(LANGUAGE)) $(ARFLAGS.$(LANGUAGE).$(ARCH)) > $(LIB_NM).arflags;\
-	$(AR.$(LANGUAGE).$(ARCH)) @$(LIB_NM).arflags $(LIB_NM) *.class;)
+	echo $(ARFLAGS) $(ARFLAGS.java) $(ARFLAGS.java.linux_x86) > $(LIB_NM).arflags;\
+	$(AR.java.linux_x86) @$(LIB_NM).arflags $(LIB_NM) *.class;)
 	-/bin/mv $(OBJDIR)/$(LIB_NM) $(TGTDIR)/$(LIB_NM)
 
 

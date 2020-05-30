@@ -62,7 +62,7 @@ ifneq ($(strip $(tpdir)),)
   thirdparty_objfiles	= $(patsubst  %,$(OBJDIR)/%,$(notdir $(thirdparty_cfiles:.$(lang)=.o)))
   thirdparty_objfiles	+= $(patsubst %,$(OBJDIR)/%,$(notdir $(thirdparty_sfiles:.s=.o)))
   thirdparty_objfiles	+= $(patsubst %,$(OBJDIR)/%,$(notdir $(thirdparty_Sfiles:.S=.o)))
-  vpath	%.c	$(SRCDIR) $(thirdparty_cdirs)
+  vpath	%.$(lang)	$(SRCDIR) $(thirdparty_cdirs)
   vpath	%.i	$(SRCDIR) $(thirdparty_cdirs)
   vpath	%.ln	$(SRCDIR) $(thirdparty_cdirs)
   vpath	%.html	$(SRCDIR) $(thirdparty_cdirs)
@@ -70,7 +70,7 @@ ifneq ($(strip $(tpdir)),)
   vpath	%.s	$(SRCDIR) $(thirdparty_sdirs)
   vpath	%.S	$(SRCDIR) $(thirdparty_Sdirs)
 else
-  vpath	%.c	$(SRCDIR) 
+  vpath	%.$(lang)	$(SRCDIR) 
   vpath	%.i	$(SRCDIR) 
   vpath	%.ln	$(SRCDIR) 
   vpath	%.html	$(SRCDIR) 
@@ -83,11 +83,11 @@ endif
 # This is the place to define default flags and recipes
 # that are common to ALL target architectures for THIS language.
 #**********************************************************************
-CFLAGS.c	+=  -c -o $@ 
-ARFLAGS.c	+= 
-LDFLAGS.c	+= -o $@
-LINTFLAGS.c	+= $(CFLAGS.c)
-DOCFLAGS.c	+= -o $@
+CFLAGS.$(lang)		+=  -c -o $@ 
+ARFLAGS.$(lang)		+= 
+LDFLAGS.$(lang)		+= -o $@
+LINTFLAGS.$(lang)	+= $(CFLAGS.$(lang))
+DOCFLAGS.$(lang)	+= -o $@
 
 ## Define recipes in $(XMTBUILD)/proto/lang/$(LANGUAGE)/$(ARCH)
 ## after variables are further defined there 

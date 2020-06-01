@@ -35,7 +35,7 @@ die "$usage" if defined $opt_u;
 
 die "$usage" if $#ARGV < 0;
 my @found;
-find(\&match, @ARGV);		# populate @found with all src files in each <rootdir>
+find({wanted=>\&match, follow=>1}, @ARGV);	# find all src files in each <rootdir>
 FILE: foreach my $f (@found)
 {
     if (@exclude)

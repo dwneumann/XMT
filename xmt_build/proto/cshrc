@@ -48,7 +48,7 @@ if ( $?prompt ) then
     alias me		'more *.ERRS'
     alias rme		'rm *.ERRS'
     alias mm		makemake
-    alias  cs.build	'pushd $PROJECT; set p=`pwd`/\!*; pushd /; echo building database for $p;find -L $p \( -name "*.[ch]" -o -name "*.cpp" \)  > $PROJECT/cscope.files; popd; cscope -I $GCCROOT/include -b; popd;'
+    alias  cs.build	'pushd $PROJECT; set p=`pwd`/\!*; pushd /; echo building database for $p; srclist $p > $PROJECT/cscope.files; popd; cscope -I $GCCROOT/include -b; popd;'
     alias cta		'cs.build'
     alias flist 	'cat tags|sed "s/	.*//"'
     alias fflist	'flist|fgrep \!:1'

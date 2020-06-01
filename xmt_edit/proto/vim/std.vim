@@ -43,7 +43,11 @@ endfor
 " map derived filetypes to base file types
 au BufNewFile,BufRead *.txt,*.md				doautocmd BufRead %.html
 au BufNewFile,BufRead *.h,*.l,*.y				doautocmd BufRead %.c
-au BufNewFile,BufRead *.csh,*.ksh,*.pkg,*.top,*.inc		doautocmd BufRead %.sh
+au BufNewFile,BufRead *.csh					doautocmd BufRead %.sh
+au BufNewFile,BufRead *.ksh					doautocmd BufRead %.sh
+au BufNewFile,BufRead *.pkg					doautocmd BufRead %.sh
+au BufNewFile,BufRead *.top					doautocmd BufRead %.sh
+au BufNewFile,BufRead *.inc					doautocmd BufRead %.sh
 au BufNewFile,BufRead *.pl,*.pm					doautocmd BufRead %.perl
 au BufNewFile,BufRead *.cc,*.cxx,*.c++,*.cs			doautocmd BufRead %.cpp
 au BufNewFile,BufRead *.hh,*.hxx,*.h++				doautocmd BufRead %.cpp

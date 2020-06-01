@@ -19,9 +19,7 @@
 set nocompatible
 so $XMTEDIT/proto/vim/std.vim
 set nohlsearch
-auto BufEnter * let &titlestring = expand("%")
-let $FQN = expand("%")
-let &titleold=getcwd()
+auto BufEnter * let &titlestring = expand("%:p")
 let $TMP="/tmp"
 set magic
 set cscoperelative
@@ -39,5 +37,3 @@ set shellslash
 " for gvim, set fontsize
 set guifont=Monospace\ 9
 
-" reset cursor when vim exits
-autocmd VimLeave * silent !echo -ne "\033]112\007"

@@ -22,8 +22,8 @@ setenv PATH	"${PATH}:$XMTUTIL/bin"
 
 if ( $?prompt ) then
     alias a alias
-    a cwdcmd	'set prompt="$cwd:t/ \! >"; tooltitle $cwd'
-    a cdb	'cd "$owd"'
+    a cwdcmd	'set prompt="%c1/ \! >"; tooltitle $cwd'	# uses tcsh special variables
+    a cdb	'cd "$owd"'					# uses tcsh special variables
     a vi        vim
     a c		clear
     a hi 	history

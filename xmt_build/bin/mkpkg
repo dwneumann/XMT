@@ -38,7 +38,7 @@ die $usage 	if ( $#ARGV != 0 );
 $pkg  = $ARGV[0];
 mkdir( $pkg, $mode )		|| warn "$pkg: $!";
 
-foreach $dir ( qw{src src/vendor obj tgt test data doc} )
+foreach $dir ( qw{src src/thirdparty obj tgt test data doc} )
 {
     mkdir( "$pkg/$dir", $mode )	|| warn "$pkg/$dir: $!";
 }

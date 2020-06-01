@@ -32,8 +32,8 @@ color xmt
 syntax on
 
 so $XMT/xmt_edit/proto/vim/ctrl-X.vim
-echo ' '
-"" define autocmds based upon suffix of base file type
+
+" define autocmds based upon suffix of base file type
 for f in split(globpath('$XMTEDIT/proto/vim', '*.vim'), '\n')
     let e = fnamemodify(f, ':t')
     let e = fnamemodify(e, ':r')
@@ -43,7 +43,7 @@ endfor
 " map derived filetypes to base file types
 au BufNewFile,BufRead *.txt,*.md				doautocmd BufRead %.html
 au BufNewFile,BufRead *.h,*.l,*.y				doautocmd BufRead %.c
-au BufNewFile,BufRead *.csh,*.ksh,*.pkg.*.pkg,*.top,*.inc	doautocmd BufRead %.sh
+au BufNewFile,BufRead *.csh,*.ksh,*.pkg,*.top,*.inc		doautocmd BufRead %.sh
 au BufNewFile,BufRead *.pl,*.pm					doautocmd BufRead %.perl
 au BufNewFile,BufRead *.cc,*.cxx,*.c++,*.cs			doautocmd BufRead %.cpp
 au BufNewFile,BufRead *.hh,*.hxx,*.h++				doautocmd BufRead %.cpp

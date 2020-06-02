@@ -57,7 +57,7 @@ FILE: foreach my $f (@found)
 	    next FILE if $f !~ m{$_};
 	}
     }
-    if (defined $opt_full)
+    if (defined $opt_full && $f !~ m:^/:)
     {
         $f = realpath($cwd . "/" .$f);
     }

@@ -48,8 +48,8 @@ if ( $?prompt ) then
     alias me		'more *.ERRS'
     alias rme		'rm *.ERRS'
     alias mm		makemake
-    alias  cs.build	'pushd $PROJECT; set p=`pwd`/\!*; pushd /; echo building database for $p; srclist $p > $PROJECT/cscope.files; popd; cscope -I $GCCROOT/include -b; popd;'
-    alias cta		'cs.build'
+    alias  cs.build	'pushd $PROJECT; srclist -full \!* > ./cscope.files; cscope -I $GCCROOT/include -b; popd;'
+    alias cta		'cs.build $PROJECT'
     alias flist 	'cat tags|sed "s/	.*//"'
     alias fflist	'flist|fgrep \!:1'
     alias funcs 	'sed -n "/\!*/p" tags | sed "s/	.*//"'

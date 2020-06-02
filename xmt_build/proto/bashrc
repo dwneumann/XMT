@@ -45,8 +45,8 @@ if [[ $- == *i* ]]; then
     alias mk='make -j8 -k -f Makefile \!* >& \!$.ERRS'
     alias ve='vi *.ERRS'
     alias mm=makemake
-    alias  cs.build='set s=`pwd`; pushd /; find $s -name "*.[chs]" -ls | sed -e "s|.* /cygdrive/c/|c:/|"  > $s/cscope.files; popd; cscope -I /cygdrive/c/Programs/gcc/arm-none-eabi/include -b'
-    alias cta='cs.build'
+    alias  cs.build='pushd $PROJECT; srclist -full \!* > ./cscope.files; cscope -I $GCCROOT/include -b; popd;'
+    alias cta='cs.build $PROJECT'
     alias flist='cat tags|sed "s/	.*//"'
     alias fflist='flist|fgrep \!:1'
     alias funcs='sed -n "/\!*/p" tags | sed "s/	.*//"'

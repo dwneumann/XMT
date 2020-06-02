@@ -1,10 +1,12 @@
 #!/usr/bin/env perl 
 #************************************************************************
 #   Package	: xmt_edit
-#   Synopsis	: srclist [-x <ptn> ...] [-i <ptn>...] <rootdir> ...
-#   Purpose	: find all srcfiles under <rootdir>, 
-#	excluding all files or directories matching -x <pattern>
-#	including only those files or directories matching -i <pattern>
+#   Synopsis	: srclist [-full] [-x <ptn>] [-i <ptn>] <rootdir> ...
+#   Purpose	: find all srcfiles under all listed <rootdir>, 
+#	excluding all files or directories matching regex -x <ptn>
+#	including only those files or directories matching regex -i <ptn>.
+#	The -x and -i options may be repeated.
+#	Output relative paths unless -full is specified.
 #
 #	 Copyright 2019 Visionary Research Inc.   All rights reserved.
 #	 			legal@visionary-research.com
@@ -22,19 +24,22 @@
 use strict;
 use Getopt::Long;
 use File::Find;
-use Cwd 'abs_path';
+use Cwd qw(getcwd realpath);
 use Env;
 
 (my $pgmname = $0) =~ s{.*/}{};
-my $usage		= "usage: $pgmname [-x <ptn>] [-i <ptn>] <rootdir> ...\n";
+my $usage		= "usage: $pgmname [-full] [-x <ptn>] [-i <ptn>] <rootdir> ...\n";
 undef my $opt_u;	# unnecessary, but it shuts up -w
+undef my $opt_full;	# unnecessary, but it shuts up -w
 undef my @exclude;	# unnecessary, but it shuts up -w
 undef my @include;	# unnecessary, but it shuts up -w
-GetOptions( "u", "x=s" => \@exclude, "i=s" => \@include ) || die $usage;
+GetOptions( "u"=>\$opt_u, "full"=>\$opt_full, 
+	    "x=s" => \@exclude, "i=s" => \@include ) || die $usage;
 die "$usage" if defined $opt_u;
 
 die "$usage" if $#ARGV < 0;
 my @found;
+my $cwd = getcwd();
 find({wanted=>\&match, follow=>1}, @ARGV);	# find all src files in each <rootdir>
 FILE: foreach my $f (@found)
 {
@@ -51,6 +56,10 @@ FILE: foreach my $f (@found)
 	{
 	    next FILE if $f !~ m{$_};
 	}
+    }
+    if (defined $opt_full)
+    {
+        $f = realpath($cwd . "/" .$f);
     }
     print $f . "\n";	
 }

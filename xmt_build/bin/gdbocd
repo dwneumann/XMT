@@ -26,14 +26,16 @@ $SIG{TERM}	= \&cleanup;
 use Env;
 
 (my $pgmname = $0) =~ s{.*/}{};
-my $usage 	= "$pgmname [-nogui] [-mode stlink|jlink] -board <board_name> <pgm.elf>";
-my $mode	= "jlink";
+my $usage 	= "$pgmname [-nogui] [-jlink|stlink] -board <board_name> <pgm.elf>";
 undef my $opt_u;	# unnecessary, but it shuts up -w
 undef my $nogui;	# unnecessary, but it shuts up -w
+undef my $jlink;	# unnecessary, but it shuts up -w
+undef my $stlink;	# unnecessary, but it shuts up -w
 my $board = 'st.*[fl]4.*';	# by default, filter the options to just STM32 boards
-GetOptions( "mode=s" => \$mode, "board=s"  => \$board, "nogui" => \$nogui, "u" ) || die $usage;
+GetOptions( "jlink"=>\$jlink, "stlink"=>\$stlink, 
+	    "board=s" =>\$board, "nogui"=>\$nogui, "u"=>\$opt_u ) || die $usage;
 die "$usage" if defined $opt_u;
-die "$usage" if $mode !~ '(j|st)link';
+die "$usage" if (!defined $jlink && !defined $stlink);
 my $elf = $ARGV[0];
 die "no executable $elf" if (! -x $elf);
 
@@ -42,7 +44,7 @@ my $gdbsrvr_args= "";
 my $gdb_args;
 my @devices = ();
 
-if ($mode eq "jlink")
+if (defined $jlink) # use JLink & JlinkGDBserver
 {
     my $JLINK	= "/opt/SEGGER/JLink";
     my $dev_list= "$JLINK/devices.txt";
@@ -61,23 +63,21 @@ if ($mode eq "jlink")
 		. "-ex 'target remote :2331' "	# gdbsrvr port
 		. "-ex 'monitor speed auto' "	
 		. "-ex 'monitor endian little' "
-		. "-ex 'monitor semihosting enable' "
 		. "-ex 'monitor reset' "
 		. "-ex 'load $elf' "
 		. "-ex 'break main' ";
 }
-else # using openocd
+else # use STlink & openocd
 {
     # note: on Windows openocd needs a Windows-style path 
     my $dev_dir	= "/usr/share/openocd/scripts/board";
     @devices =  sort grep( /${board}/i, glob qq("${dev_dir}/*.cfg"));
     @devices = map (basename($_, '.cfg'), @devices);
     $gdbsrvr		= `which openocd`; chomp $gdbsrvr;
-    $gdbsrvr_args	= "-f ". get_board_selection(@devices);
+    $gdbsrvr_args	= sprintf("-f %s/%s.cfg", $dev_dir, get_board_selection(@devices));
     # initial commands sent by gdb to openocd
     $gdb_args	= "--quiet " 
 		. "-ex 'target remote :3333' "
-		. "-ex 'monitor arm semihosting enable' "
 		. "-ex 'monitor reset halt' "
 		. "-ex 'monitor reset init' "
 		. "-ex 'load' "	
@@ -91,11 +91,11 @@ system( "$gdbsrvr $gdbsrvr_args &" );
 my $gdb		= "$GCCROOT/bin/arm-none-eabi-gdb";
 my $gdbgui	= "$ENV{'HOME'}/.local/bin/gdbgui";
 my $gdb_cmd	= "$gdb $gdb_args";
-if (defined $nogui)
+if (defined $nogui)	# use commandline gdb
 {
     system( "$gdb_cmd $elf") or die "$gdb: $!\n";
 }
-else
+else	# use gdbgui
 {
     # launch gdbgui, it spawns gdb, gdb connects to openocd ...
     # then gdb reads its startup commands.

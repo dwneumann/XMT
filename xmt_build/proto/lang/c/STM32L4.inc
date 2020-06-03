@@ -116,6 +116,6 @@ $(TGTDIR)/$(EXE_NM): $(objs.c) $(EXTRA_OBJS)
 	$(LD.c.STM32L4) @$@.ldflags $^ \
 	    $(LIBS) $(LIBS.c) $(LIBS.c.STM32L4) 
 
-flash:
+flash:  bin
 	st-flash write $(TGTDIR)/$(PKG_NM).bin 0x8000000
 

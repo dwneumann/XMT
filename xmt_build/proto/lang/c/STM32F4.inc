@@ -66,10 +66,10 @@ DOCFLAGS.c.STM32F4	+=
 elf: exe
 
 bin: exe
-	$(OBJCOPY.c.STM32F4) -O binary $(TGTDIR)/$(EXE_NM) $(TGTDIR)/$(EXE_NM).bin
+	$(OBJCOPY.c.STM32F4) -O binary $(TGTDIR)/$(EXE_NM) $(TGTDIR)/$(PKG_NM).bin
 
 hex: exe
-	$(OBJCOPY.c.STM32F4) -O ihex $(TGTDIR)/$(EXE_NM) $(TGTDIR)/$(EXE_NM).hex
+	$(OBJCOPY.c.STM32F4) -O ihex $(TGTDIR)/$(EXE_NM) $(TGTDIR)/$(PKG_NM).hex
 
 $(OBJDIR)/%.o	: %.S
 	@mkdir -p $(@D)
@@ -116,6 +116,6 @@ $(TGTDIR)/$(EXE_NM): $(objs.c) $(EXTRA_OBJS)
 	$(LD.c.STM32F4) @$@.ldflags $^ \
 	    $(LIBS) $(LIBS.c) $(LIBS.c.STM32F4) 
 
-stflash: $(TGTDIR)/$(EXE_NM).bin
-	st-flash write $(TGTDIR)/$(EXE_NM).bin 0x8000000
+stflash: bin
+	st-flash write $(TGTDIR)/$(PKG_NM).bin 0x8000000
 

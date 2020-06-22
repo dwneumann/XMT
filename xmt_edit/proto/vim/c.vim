@@ -44,7 +44,7 @@ map  <C-X>e	:'s,'e s/..\(.*\)/extern \1;/<CR>
 map  <C-X>f	ma]]mb:'a,'b !$XMTEDIT/bin/hdr -d -m c.func.ansi<CR>
 map  <C-X>H	:0r !$XMTEDIT/bin/hdr %<CR>
 
-imap <C-X>c	<CR>/*<CR> *  <CR>*/<ESC>2-A
+imap <C-X>c	<CR>/*<CR> *  <CR>*/<ESC>-A
 imap <C-X>/	<C-X>c
 imap {<CR>	{<CR>}<ESC>O    
 

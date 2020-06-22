@@ -31,11 +31,12 @@ undef my $opt_u;	# unnecessary, but it shuts up -w
 undef my $nogui;	# unnecessary, but it shuts up -w
 undef my $jlink;	# unnecessary, but it shuts up -w
 undef my $stlink;	# unnecessary, but it shuts up -w
+my $link = 'jlink';	# unnecessary, but it shuts up -w
 my $board = 'st.*[fl]4.*';	# by default, filter the options to just STM32 boards
 GetOptions( "jlink"=>\$jlink, "stlink"=>\$stlink, 
 	    "board=s" =>\$board, "nogui"=>\$nogui, "u"=>\$opt_u ) || die $usage;
 die "$usage" if defined $opt_u;
-die "$usage" if (!defined $jlink && !defined $stlink);
+$link = 'stlink' if defined $stlink;
 my $elf = $ARGV[0];
 die "no executable $elf" if (! -x $elf);
 
@@ -44,7 +45,7 @@ my $gdbsrvr_args= "";
 my $gdb_args;
 my @devices = ();
 
-if (defined $jlink) # use JLink & JlinkGDBserver
+if ($link eq 'jlink') # use JLink & JlinkGDBserver
 {
     my $JLINK	= "/opt/SEGGER/JLink";
     my $dev_list= "$JLINK/devices.txt";

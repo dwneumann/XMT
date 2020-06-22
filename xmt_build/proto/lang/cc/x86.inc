@@ -47,7 +47,7 @@ CFLAGS.cc.x86 += -Wall -Wno-strict-aliasing 					\
 	-g3 -Os -MMD -MP							\
 	-isystem /usr/include/x86_64-linux-gnu
 
-LDFLAGS.cc.x86	+= $(CFLAGS.cc.x86) 
+LDFLAGS.cc.x86	+= 
 ARFLAGS.cc.x86	+= -r
 LINTFLAGS.cc.x86	+= $(CFLAGS.cc.x86)
 DOCFLAGS.cc.x86	+= 

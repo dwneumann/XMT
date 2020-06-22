@@ -48,7 +48,7 @@ EXE_SFX.c.STM32F4	:= .elf
 MCU	= -mcpu=cortex-m4 -mfpu=fpv4-sp-d16 -mfloat-abi=hard -mthumb 
 CFLAGS.c.STM32F4 += -Wall -Wno-strict-aliasing 					\
 	-Wno-attributes -Wno-unused-function -Wno-unused-const-variable 	\
-	-std=gnu99 -g3 -Os -MMD -MP						\
+	-std=gnu99 -g -MMD -MP							\
 	$(MCU) --specs=nano.specs --specs=nosys.specs 			 	\
 	-DSTM32F4xx -DARM_MATH_CM4 -DCORE_M4					\
 	-mlittle-endian -mthumb -mthumb-interwork				\

@@ -28,8 +28,8 @@
 #**********************************************************************
 # define program paths...
 #**********************************************************************
-COMPILE.c.x86	= g++
-LD.c.x86	= g++
+COMPILE.c.x86	= gcc
+LD.c.x86	= gcc
 AR.c.x86	= ar
 DOC.c.x86	= $(XMTBUILD)/bin/srcdoc 
 LINT.c.x86	= echo lint not installed
@@ -44,10 +44,10 @@ EXE_SFX.c.x86	=
 #**********************************************************************
 CFLAGS.c.x86 += -Wall -Wno-strict-aliasing 					\
 	-Wno-attributes -Wno-unused-function -Wno-unused-const-variable 	\
-	-m32 -g3 -Os -MMD -MP						\
+	-g -m32 -MMD -MP						\
 	-isystem /usr/include/x86_64-linux-gnu
 
-LDFLAGS.c.x86	+= $(CFLAGS.c.x86) 
+LDFLAGS.c.x86	+= -m32
 ARFLAGS.c.x86	+= -r
 LINTFLAGS.c.x86	+= $(CFLAGS.c.x86)
 DOCFLAGS.c.x86	+= 

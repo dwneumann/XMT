@@ -44,7 +44,8 @@ map <C-X>T	:doautocmd BufRead %.
 map <C-X>i	:'s,'e !indent - \|unexpand --all<CR>
 map <C-X>S	Go<ESC>!!spell -b %<CR>
 map <C-X>+	c0:e! <ESC>f:s +<ESC>;C 0WdW$p<C-X>x
-map <C-X>E	:. perldo s/^.*?([^\s:]+):([\d]+):.*/:e! +$2 $1/<CR><C-X>x
+"map <C-X>E	:. perldo s/^.*?([^\s:]+):([\d]+):.*/:e! +$2 $1/<CR><C-X>x
+map <C-X>E	:.!$XMTEDIT/bin/parse_err<CR><C-X>x
 map <C-X>x	:.y x<CR>@x
 map <C-X><	<%mh%dd'hdd
 map <> 		<%>>%>>%

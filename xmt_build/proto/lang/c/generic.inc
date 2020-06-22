@@ -30,7 +30,7 @@
 lang	:= c
 
 # we specifically do NOT want to recursively search below SRCDIR for sources
-# because there may be platfrorm-specific code in different subdirectories
+# because there may be platform-specific code in different subdirectories
 # that we need to include or exclude at the package level.
 srcs.$(lang)	= $(wildcard $(SRCDIR)/*.$(lang))
 hdrs.$(lang)	= $(wildcard $(SRCDIR)/*.h)

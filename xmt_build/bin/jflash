@@ -1,0 +1,28 @@
+#!/usr/bin/env perl 
+#************************************************************************
+#   Package	: xmt_build
+#   Purpose	: use JLink to reflash the board with the specified binary
+#   Synopsis	: jflash <filename>
+#
+#	 Copyright 2019 Visionary Research Inc.   All rights reserved.
+# 			legal@visionary-research.com
+#************************************************************************
+
+use strict;
+use Getopt::Long;
+use Env;
+
+(my $pgmname = $0) =~ s{.*/}{};
+my $usage		= "usage: $pgmname <firmware_file>\n";
+undef my $opt_u;	# unnecessary, but it shuts up -w
+GetOptions( "u" ) || die $usage;
+die "$usage" if defined $opt_u;
+
+my $rcfile = "/tmp/$pgmname.rc";
+open( my $fh, ">", "/tmp/$pgmname.rc") or die "$rcfile: $!";
+print $fh "r\n";
+print $fh "loadfile $ARGV[$#ARGV]\n";
+print $fh "q\n";
+close $fh;
+system("/opt/SEGGER/JLink/JLinkExe -device STM32F411VE -if SWD -speed 4000 -autoconnect 1 -CommanderScript $rcfile");
+

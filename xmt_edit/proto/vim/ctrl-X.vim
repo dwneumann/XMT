@@ -21,7 +21,7 @@
 "  ^X^B	Block operation			{^M expand block braces
 "  ^X^P	Put block 			^Xc Comment
 "  ^X^X	Cut block			^Xi indent C/C++ code block
-"  ^X^Y	Yank block
+"  ^X^Y	Yank block			^Xh flip between .c* & .h file
 "  ^X=  format comment block		^X+ goto named line of named file
 "  ^Xx	Execute this line		^XE goto the source of this compiler error
 "  ^P	Pop tagstack			^X< remove braces & shift left
@@ -41,10 +41,10 @@ map <C-X><C-X>	:<C-U>'s,'ed z<CR>
 map <C-X><C-Y>	:<C-U>'s,'ey z<CR>
 map <C-X>=	:<C-U>'s,'e !$XMTEDIT/bin/hdr -d -m comment<CR>
 map <C-X>T	:doautocmd BufRead %.
+map <C-X>h	:.!$XMTEDIT/bin/htoc %<CR><C-X>x
 map <C-X>i	:'s,'e !indent - \|unexpand --all<CR>
 map <C-X>S	Go<ESC>!!spell -b %<CR>
 map <C-X>+	c0:e! <ESC>f:s +<ESC>;C 0WdW$p<C-X>x
-"map <C-X>E	:. perldo s/^.*?([^\s:]+):([\d]+):.*/:e! +$2 $1/<CR><C-X>x
 map <C-X>E	:.!$XMTEDIT/bin/parse_err<CR><C-X>x
 map <C-X>x	:.y x<CR>@x
 map <C-X><	<%mh%dd'hdd
@@ -71,3 +71,4 @@ menu XMT.Syntax\ On				:color xmt<CR>:syntax on<CR>
 menu XMT.Syntax\ Dim\ Code			:XMTDimCode<CR>
 menu XMT.Syntax\ Dim\ Comments			:XMTDimComments<CR>
 menu XMT.Syntax\ No\ Dim			:XMTNoDim<CR>
+

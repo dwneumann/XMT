@@ -10,11 +10,15 @@
 use strict;
 use Env;
 
+my $fpath;
 while (<>)
 {
     (my $fname = $_) =~ s/:.*//; chomp $fname;
-    my $fpath = $fname;
-    if (-r "$PROJECT/cscope.files")
+    if (-r "./$fname")
+    {
+	$fpath = "./$fname";
+    }
+    elsif (-r "$PROJECT/cscope.files")
     {
 	my $found = `fgrep $fname $PROJECT/cscope.files`;
 	if ($found !~ /^\s*$/)

@@ -26,11 +26,11 @@ if [[ $- == *i* ]]; then
     alias vi=vim
     alias c=clear
     alias hi=history
-    alias ls='ls -F'
+    alias ls='ls -cF'
     alias so=source
     alias f='find . -name \"\!$1\"'
-    alias fsrc='find . -name "*.[ch]" | xargs  grep '
-    alias fstr='find . -type f | xargs  grep '
+    alias fsrc='find . -name "*.[ch]" -print | xargs  grep '
+    alias fstr='find . -type f -print | xargs  grep '
     alias vstr='vi `fgrep -l \!:0 \!:2*`'
     set history = 100
 fi

@@ -48,13 +48,14 @@ imap <C-X>c	<CR>/*<CR> *  <CR>*/<ESC>-A
 imap <C-X>/	<C-X>c
 imap {<CR>	{<CR>}<ESC>O    
 
-menu XMT.File\ Header<TAB><C-X>F			<C-X>H
+menu XMT.File\ Header<TAB><C-X>H			<C-X>H
 menu XMT.Renumber\ Constants<TAB><C-X>#			<C-X>#
 menu XMT.Alphebetize\ Declarations<TAB><C-X><C-A>	<C-X><C-A>
 menu XMT.Function.Generate\ List<TAB><C-X><C-L>		<C-X><C-L>
 menu XMT.Function.Generate\ Prototypes<TAB><C-X>e	<C-X>e
 menu XMT.Function.ANSI\ Header<TAB><C-X>f		<C-X>f
 
+" add cscope database connection & cscope functions
 set cscopetag 
 set nocscopeverbose
 "set cscopeprg=C:/cygwin32/bin/cscope.exe

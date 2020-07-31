@@ -44,7 +44,7 @@ EXE_SFX.c.x86	=
 #**********************************************************************
 CFLAGS.c.x86 += -Wall -Wno-strict-aliasing 					\
 	-Wno-attributes -Wno-unused-function -Wno-unused-const-variable 	\
-	-g -m32 -MMD -MP						\
+	-g3 -m32 -MMD -MP							\
 	-isystem /usr/include/x86_64-linux-gnu
 
 LDFLAGS.c.x86	+= -m32

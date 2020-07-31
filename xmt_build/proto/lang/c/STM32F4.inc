@@ -45,19 +45,19 @@ EXE_SFX.c.STM32F4	:= .elf
 # that are specific to THIS target platform for THIS language.
 #**********************************************************************
 
-MCU	= -mcpu=cortex-m4 -mfpu=fpv4-sp-d16 -mfloat-abi=hard -mthumb 
-CFLAGS.c.STM32F4 += -Wall -Wno-strict-aliasing 					\
+MCU	= -mcpu=cortex-m4 -mthumb -mfpu=fpv4-sp-d16 -mfloat-abi=hard 
+CFLAGS.c.STM32F4 += -Wall -Wno-strict-aliasing -Wno-write-strings 		\
 	-Wno-attributes -Wno-unused-function -Wno-unused-const-variable 	\
 	-std=gnu99 -g -MMD -MP							\
 	$(MCU) --specs=nano.specs --specs=nosys.specs 			 	\
-	-DSTM32F4xx -DARM_MATH_CM4 -DCORE_M4					\
-	-mlittle-endian -mthumb -mthumb-interwork				\
+	-DSTM32F4xx -DARM_MATH_CM4 -DCORE_M4 -mlittle-endian 			\
 	-fstack-usage -fdata-sections -ffunction-sections -fmessage-length=0	\
 	-fno-builtin -fsingle-precision-constant 
  			
 
 LDFLAGS.c.STM32F4	+= $(MCU) -Wl,-Map=$(TGTDIR)/$(PKG_NM).map		\
-	-specs=nano.specs -specs=nosys.specs -Wl,--cref -Wl,--gc-sections 
+	-Wl,--cref -Wl,--gc-sections 						\
+	--specs=nano.specs --specs=nosys.specs 
 
 ARFLAGS.c.STM32F4	+= -rscDv
 LINTFLAGS.c.STM32F4	+= $(CFLAGS.c.STM32F4)

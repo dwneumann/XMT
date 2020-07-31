@@ -44,8 +44,9 @@ EXE_SFX.cpp.x86	=
 #**********************************************************************
 CFLAGS.cpp.x86 += -Wall -Wno-strict-aliasing 					\
 	-Wno-attributes -Wno-unused-function -Wno-unused-const-variable 	\
-	-g3 -Os -MMD -MP							\
+	-g3 -MMD -MP							\
 	-isystem /usr/include/x86_64-linux-gnu
+#	-g3 -Os -MMD -MP							\
 
 LDFLAGS.cpp.x86		+= 
 ARFLAGS.cpp.x86		+= -r

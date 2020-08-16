@@ -16,9 +16,9 @@
 "************************************************************************
 
 set ruler showmode 
-set tabstop=8 shiftwidth=4 shiftround
+set tabstop=8 shiftwidth=4 softtabstop=0 shiftround
+set expandtab
 set tags=tags,$PROJECT/tags
-set softtabstop=0 
 set more nocompatible notitle tildeop 
 set backspace=indent,eol,start
 set cpoptions=aABceFsu

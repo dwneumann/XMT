@@ -1,0 +1,34 @@
+#!/usr/bin/env perl 
+#************************************************************************
+#   Package	: xmt_edit
+#   Synopsis	: argfilter -cmd "command to run" -filter 'regexp pattern'  file file ...
+#   Purpose	: run the given command on the subset of
+#                 given files matching the regex pattern given by -filter. 
+#
+#    Copyright 2019 Visionary Research Inc.   All rights reserved.  
+#			   legal@visionary-research.com
+#************************************************************************
+
+use strict;
+use Getopt::Long;
+use Env;
+
+(my $pgmname = $0) =~ s{.*/}{};
+my $usage		= "usage: $pgmname [-u] -cmd 'command to invoke' -filter 'regex pattern' \n";
+undef my $opt_u;	# unnecessary, but it shuts up -w
+undef my $cmd;	# unnecessary, but it shuts up -w
+undef my $ptn;	# unnecessary, but it shuts up -w
+GetOptions( "u|help"=> \$opt_u, "cmd=s" => \$cmd, "filter=s" => \$ptn ) || die $usage;
+die "$usage" if defined $opt_u;
+
+my @files;
+foreach my $f (@ARGV)
+{
+    if ($f =~ /$ptn/)
+    {
+        push @files, $f;
+    }
+}
+
+my $rc = system( "$cmd " . join ' ', @files );
+exit $rc;

@@ -1,10 +1,6 @@
 ---
 BasedOnStyle:  Mozilla
 Language:        Java
-Language:        CSharp
-Language:        JavaScript
-Language:        Proto
-Language:        TextProto
 Language:        Cpp
 AccessModifierOffset: -4
 AlignAfterOpenBracket: Align
@@ -97,7 +93,7 @@ PenaltyReturnTypeOnItsOwnLine: 200
 PointerAlignment: Right
 ReflowComments:  true
 SortIncludes:    false
-SortUsingDeclarations: true
+SortUsingDeclarations: false
 SpaceAfterCStyleCast: true
 SpaceAfterLogicalNot: false
 SpaceAfterTemplateKeyword: true

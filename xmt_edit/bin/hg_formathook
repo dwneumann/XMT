@@ -14,7 +14,7 @@ use Getopt::Long;
 use Env;
 
 my $cmd = 'clang-format -i --verbose';
-my $ptn = '.*\.(c|h|cpp)';      # format only these file types
+my $ptn = '.*\.(c|h|cpp)$';      # format only these file types
 
 my @allfiles = split ' ', `hg log -r$HG_NODE --template="{files}\n"`;
 my @filtered_list;
@@ -26,5 +26,9 @@ foreach my $f (@allfiles)
     }
 }
 
-my $rc = system( "echo $cmd " . join ' ', @filtered_list );
+my $rc = 0;
+if (@allfiles)
+{
+    $rc = system( "echo $cmd " . join ' ', @filtered_list );
+}
 exit $rc;

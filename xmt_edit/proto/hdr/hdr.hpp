@@ -1,8 +1,6 @@
 {
 #************************************************************************
-#   $Version:$
 #   Package	: xmt_edit
-#   Synopsis	:
 #   Purpose	: Perl block which, when eval'ed, prints the desired
 # 		file header for C++ interface files.
 #
@@ -23,18 +21,15 @@ $copyright =~ s/\n*$//;
 $copyright =~ s/\n/\n*  /g; 
 print 
 qq{/************************************************************************
-*   Module	: ${filename}
-*   Purpose	: Public interface to the $module->{pkg}::$module->{name} module.
+*   \@file	${filename}
+*   \@brief	Public interface to the $module->{pkg}::$module->{name} module.
 *
 *   $copyright
 *************************************************************************/
 
 #ifndef __${filename_}
 #define __${filename_}
-
-namespace {
-const char ${filename_}_id[] = "@(#) ${filename}\t$cm->{rev}";
-}
+#define __${filename_}_VERSION   "$cm->{rev}";
 
 // nested includes exposed through this interface ...
 
@@ -54,7 +49,7 @@ class $module->{name}	// : <base class>
 	~$module->{name}();		// destructor
 };
 
-// forward declarations of public class (non-member) functions ...
+// public class (non-member) functions ...
 
 
 #endif // __${filename_}

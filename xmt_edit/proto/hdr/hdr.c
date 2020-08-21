@@ -1,9 +1,8 @@
 {
 #************************************************************************
-#   $cm->{rev}
-#   Package	: xmt_edit
-#   Synopsis	:
-#   Purpose	: Perl block which, when eval'ed, prints the desired
+#   @version    $cm->{rev}
+#   Package	xmt_edit
+#   @brief	Perl block which, when eval'ed, prints the desired
 # 		file header for 'C' files.
 #
 #   Copyright (c) 1998	Neumann & Associates Information Systems Inc.
@@ -23,17 +22,14 @@ $copyright =~ s/\n*$//;
 $copyright =~ s/\n/\n*   /g; 
 print 
 qq{/************************************************************************
-*   Module	: ${filename}
-*   Purpose	: 
+*   \@file       ${filename}
+*   \@brief      <description>
 *
 *   $copyright
 ************************************************************************/
 
 #define __${filename_}
-
-#ifdef EMBED_REVISION_STRINGS
-static const char ${filename_}_id[] = "@(#) ${filename}\t$cm->{rev}";
-#endif
+#define __${filename_}_VERSION   "$cm->{rev}";
 
 };
 

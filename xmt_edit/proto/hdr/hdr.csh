@@ -1,8 +1,6 @@
 {
 #************************************************************************
-#   $Version:$
 #   Package	: xmt_edit
-#   Synopsis	:
 #   Purpose	: Perl block which, when eval'ed, prints the desired
 # 		file header for csh script files.
 #
@@ -25,10 +23,10 @@ print
 qq{#!/bin/csh -fb
 #************************************************************************
 #   Package	: $module->{pkg}
-#   $cm->{rev}
+#   Version     : $cm->{rev}
 #   $copyright
 #
-#   Synopsis	:
+#   Usage:	:
 #   Purpose	: 
 #************************************************************************
 };

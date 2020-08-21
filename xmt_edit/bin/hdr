@@ -69,6 +69,18 @@ use Hdr;
 			'committer'	=> "\$" . "Committer:" . "\$",
 			'signer'	=> "\$" . "Signer:" . "\$",
 			'sigStatus'	=> "\$" . "SigStatus:" . "\$",
+			'tag'		=> "\$" . "Tag:" . "\$" },
+
+	    'hg'    => {'rev'		=> "\$" . "Version:" . "\$",
+			'id'		=> "\$" . "CommitId:" . "\$",
+			'abbrevId'	=> "\$" . "AbbrevId:" . "\$",
+			'lcd'		=> "\$" . "CommitDate:" . "\$",
+			'msg'		=> "\$" . "CommitSubject:" . "\$",
+			'branch'	=> "\$" . "Branch:" . "\$",
+			'build'		=> "\$" . "BuildNum:" . "\$",
+			'committer'	=> "\$" . "Committer:" . "\$",
+			'signer'	=> "\$" . "Signer:" . "\$",
+			'sigStatus'	=> "\$" . "SigStatus:" . "\$",
 			'tag'		=> "\$" . "Tag:" . "\$" }
 	);
 

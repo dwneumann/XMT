@@ -1,4 +1,9 @@
 # ignore all files matching regexp patterns rooted here
+xmt_extern/**
+!xmt_extern/proto
+!xmt_extern/proto/**
+!xmt_extern/COPYING
+!xmt_extern/README.md
 .svn
 obj
 tmp

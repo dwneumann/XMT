@@ -1,0 +1,27 @@
+#************************************************************************
+#*   Package	: xmt_extern
+#*   Synopsis	: source xmt_extern/proto/bashrc
+#*   Purpose	: extern package .bashrc additions
+#*      XMT can be installed on an NFS-exported filesystem that is mounted by
+#*      all developers to avoid each developer having to install and configure
+#*      it locally. XMT packages can have dependencies on thirdparty tools.
+#*      It may be convenient to install those here as well, and make them
+#*      available via the same NFS mount. xmt_extern/bin is the recommended
+#*      path for thirdparty software invoked by XMT.  $XMT/.cshrc and
+#*      $XMT/.bashrc adds this to PATH by default.
+#*
+#*  Copyright (c) 1998	Neumann & Associates Information Systems Inc.
+#*  			legal.info@neumann-associates.com
+#*  Licensed under the Apache License, Version 2.0 (the "License");
+#*  you may not use this file except in compliance with the License.
+#*  You may obtain a copy of the License at http://www.apache.org/licenses/LICENSE-2.0
+#*  
+#*  Unless required by applicable law or agreed to in writing, software
+#*  distributed under the License is distributed on an "AS IS" BASIS,
+#*  WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+#*  See the License for the specific language governing permissions and
+#*  limitations under the License. 
+#************************************************************************
+
+export XMTEXT="${XMT}/xmt_extern"
+export PATH="${XMTEXT}/bin:${PATH}"

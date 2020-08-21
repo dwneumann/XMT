@@ -26,4 +26,11 @@
 setenv XMTEXT	        "$XMT/xmt_extern"
 setenv PATH "${PATH}:$XMTEXT/./usr/bin"
 setenv LD_LIBRARY_PATH "${LD_LIBRARY_PATH}:$XMTEXT/"
-setenv MANPATH "${MANPATH}:$XMTEXT/./usr/share/man"
+if ( ! $?MANPATH ) then
+     setenv MANPATH /usr/share/man
+endif
+
+setenv MANPATH "${MANPATH}:$XMTEXT/usr/share/man"
+setenv PATH "${PATH}:$XMTEXT/./usr/bin ./usr/share/clang/scan-build-py-9/bin ./usr/share/clang/scan-view-9/bin ./usr/share/clang/scan-build-9/bin ./usr/lib/llvm-9/bin"
+setenv LD_LIBRARY_PATH "${LD_LIBRARY_PATH}:$XMTEXT/./usr/lib ./usr/lib/llvm-9/lib"
+setenv MANPATH "${MANPATH}:$XMTEXT/./usr/share/man ./usr/share/clang/scan-build-9/man ./usr/lib/llvm-9/share/man"

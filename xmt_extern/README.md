@@ -9,8 +9,11 @@ cp -r -i /tmp/mydir/* $XMTEXT;  # install binaries, libs, conf files, man pages 
 rm -r /tmp/mydir;               # remove the temp directory
 
 # add newly installed directories to search PATHs
+cd $XMTEXT;
 echo 'setenv PATH "${PATH}:$XMTEXT/'`find . -name bin`'"' >> proto/cshrc
 echo 'setenv LD_LIBRARY_PATH "${LD_LIBRARY_PATH}:$XMTEXT/'`find . -name lib`'"' >> proto/cshrc
 echo 'setenv MANPATH "${MANPATH}:$XMTEXT/'`find . -name man`'"' >> proto/cshrc
+mandb --debug;                  # rebuild man database. watch for permission denied
 
-# exportfs $XMT so others can mount & use these binaries without having to install
+# exportfs $XMT so developers can use these binaries without having to install anything
+/home/XMT		10.0.0.0/24(ro,sync,no_subtree_check)

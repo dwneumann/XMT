@@ -1,4 +1,5 @@
 # ignore all files matching regexp patterns rooted here
+.config/**
 xmt_extern/**
 !xmt_extern/proto
 !xmt_extern/proto/**

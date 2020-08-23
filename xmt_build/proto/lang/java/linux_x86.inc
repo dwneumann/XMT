@@ -26,46 +26,50 @@
 #************************************************************************
 
 
+override lang := java
+override arch := linux_x86
+
 #**********************************************************************
 # define program paths...
 #**********************************************************************
-COMPILE.java.linux_x86	:= javac
-LD.java.linux_x86	:= /bin/true
-AR.java.linux_x86	:= jar
-LINT.java.linux_x86	:= echo no lint installed for Java
-DOC.java.linux_x86	:= javadoc
+DOCER.$(lang).$(arch)       = $(DOCER.$(lang))
+LINTER.$(lang).$(arch)      = $(LINTER.$(lang))
+COMPILER.$(lang).$(arch)    = $(COMPILER.$(lang))
+LINKER.$(lang).$(arch)      = $(LINKER.$(lang))
+ARCHIVER.$(lang).$(arch)    = $(ARCHIVER.$(lang))
+OBJCOPY.$(lang).$(arch)     = $(OBJCOPY.$(lang))
 
 #**********************************************************************
 # This is the place to define flags that are specific to THIS language
 # when compiled for THIS architecture.
 #**********************************************************************
-CFLAGS.java.linux_x86	= 
-LDFLAGS.java.linux_x86	= 
-ARFLAGS.java.linux_x86	=
-LINTFLAGS.java.linux_x86= 
-DOCFLAGS.java.linux_x86	=
-LIB_PFX.java.linux_x86	:= 
-LIB_SFX.java.linux_x86	:= .jar
-EXE_PFX.java.linux_x86	:= 
-EXE_SFX.java.linux_x86	:= 
+CFLAGS.$(lang).$(arch)	    = 
+LDFLAGS.$(lang).$(arch)	    = 
+ARFLAGS.$(lang).$(arch)	    = 
+LINTFLAGS.$(lang).$(arch)	= 
+DOCFLAGS.$(lang).$(arch)	= 
+LIB_PFX.$(lang).$(arch)		:= 
+LIB_SFX.$(lang).$(arch)		:= .jar
+EXE_PFX.$(lang).$(arch)		:= 
+EXE_SFX.$(lang).$(arch)		:= 
 
-$(JAVA_PKGROOT)/%.class: $(SRCDIR)/$(JAVA_PKGROOT)/%.java
+$(JAVA_PKGROOT)/%.class: $(SRCDIR)/$(JAVA_PKGROOT)/%.$(lang)
 	@mkdir -p $(@D)
 	@mkdir -p $(OBJDIR)/$(JAVA_PKGROOT);
-	@echo	$(CFLAGS) $(CFLAGS.java) $(CFLAGS.java.linux_x86) > $(OBJDIR)/$@.cflags ;
-	$(COMPILE.java.linux_x86)	@$(OBJDIR)/$@.cflags $<
+	@echo	$(CFLAGS) $(CFLAGS.$(lang)) $(CFLAGS.$(lang).$(arch)) > $(OBJDIR)/$@.cflags ;
+	$(COMPILER.$(lang).$(arch))	@$(OBJDIR)/$@.cflags $<
 
-$(DOCDIR)/%.html: $(SRCDIR)/$(JAVA_PKGROOT)/%.java
+$(DOCDIR)/%.html: $(SRCDIR)/$(JAVA_PKGROOT)/%.$(lang)
 	@mkdir -p $(@D)
-	cd $(DOCDIR); $(DOC.java.linux_x86) $(DOCFLAGS) $(DOCFLAGS.java) $(DOCFLAGS.java.linux_x86) $<
+	cd $(DOCDIR); $(DOC.$(lang).$(arch)) $(DOCFLAGS) $(DOCFLAGS.$(lang)) $(DOCFLAGS.$(lang).$(arch)) $<
 
-.lib.java:	$(TGTDIR)/$(LIB_NM)
-.exe.java:	$(TGTDIR)/$(LIB_NM)
-$(TGTDIR)/$(LIB_NM): $(objs.java) 
+.lib.$(lang):	$(TGTDIR)/$(LIB_NM)
+.exe.$(lang):	$(TGTDIR)/$(LIB_NM)
+$(TGTDIR)/$(LIB_NM): $(objs.$(lang)) 
 	@mkdir -p $(@D)
 	(cd $(OBJDIR);  \
-	echo $(ARFLAGS) $(ARFLAGS.java) $(ARFLAGS.java.linux_x86) > $(LIB_NM).arflags;\
-	$(AR.java.linux_x86) @$(LIB_NM).arflags $(LIB_NM) *.class;)
+	echo $(ARFLAGS) $(ARFLAGS.$(lang)) $(ARFLAGS.$(lang).$(arch)) > $(LIB_NM).arflags;\
+	$(ARCHIVE.$(lang).$(arch)) @$(LIB_NM).arflags $(LIB_NM) *.class;)
 	-/bin/mv $(OBJDIR)/$(LIB_NM) $(TGTDIR)/$(LIB_NM)
 
 

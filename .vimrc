@@ -24,6 +24,8 @@ let $TMP="/tmp"
 set magic
 set cscoperelative
 set title 
+set tabstop=4
+set shiftwidth=4
 
 " shell escapes should run bash open in the working directory
 " Without --login, Cygwin won't mount some directories such as /usr/bin/

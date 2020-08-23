@@ -1,11 +1,9 @@
 #************************************************************************
-#*   $Version:$
 #*   Package	: xmt_build
-#*   Synopsis	: included by $(XMTBUILD)/proto/lang/cpp/generic.inc
+#*   Synopsis	: included by $(XMTBUILD)/proto/lang/<language>/generic.inc
 #*   Purpose	: 
 #*              This Makefile segment adds architecture support to
 #*              $(XMTBUILD)/proto/lang/<language>/generic.inc
-#*              It is intended to be included by that file only.
 #*
 #*   To add support for a new target architecture,  clone any existing
 #*   <architecture>.inc file & alter program paths & flags appropriately.
@@ -25,76 +23,75 @@
 #*  limitations under the License. 
 #************************************************************************
 
-
+override lang := cpp
+override arch := SunOS-sparc
 #**********************************************************************
 # define program paths...
 #**********************************************************************
-COMPILE.cpp.SunOS-sparc	:= /usr/local/bin/g++
-LD.cpp.SunOS-sparc	:= $(COMPILE.cpp.SunOS-sparc)
-AR.cpp.SunOS-sparc	:= $(COMPILE.cpp.SunOS-sparc)
-LINT.cpp.SunOS-sparc	:= echo /usr/ucb/lint not installed
-DOC.cpp.SunOS-sparc	:= $(XMTBUILD)/bin/srcdoc 
+DOCER.$(lang).$(arch)	= $(DOCER.$(lang))
+LINTER.$(lang).$(arch)	= $(LINTER.$(lang))
+COMPILER.$(lang).$(arch)= /usr/local/bin/g++
+LINKER.$(lang).$(arch)  = /usr/local/bin/g++
+ARCHIVER.$(lang).$(arch)= /usr/local/bin/g++
+OBJCOPY.$(lang).$(arch)	= echo no objcopy for $(arch)
+LIB_PFX.$(lang).$(arch)	= $(LIB_PFX).$(lang)
+LIB_SFX.$(lang).$(arch)	= .so
+EXE_PFX.$(lang).$(arch)	= 
+EXE_SFX.$(lang).$(arch)	= 
 
 #**********************************************************************
 # This is the place to define default flags that are specific to THIS 
 # platform and THIS language.
 #**********************************************************************
-CFLAGS.cpp.SunOS-sparc	:= -Wall -Wno-attributes -Wno-unused-function -Wno-unused-const-variable -fpic
-LDFLAGS.cpp.SunOS-sparc	:= -Wall -Wno-attributes -Wno-unused-function -Wno-unused-const-variable 
-ARFLAGS.cpp.SunOS-sparc	:= -Wall -shared
-LINTFLAGS.cpp.SunOS-sparc	 = $(CFLAGS.cc.SunOS-sparc)
-DOCFLAGS.cpp.SunOS-sparc	:= 
-LIB_PFX.cpp.SunOS-sparc	:= lib
-LIB_SFX.cpp.SunOS-sparc	:= .so
-EXE_PFX.cpp.SunOS-sparc	:= 
-EXE_SFX.cpp.SunOS-sparc	:= 
 
+CFLAGS.$(lang).$(arch)	    = -Wall -Wno-attributes -Wno-unused-function -Wno-unused-const-variable -fpic 
+LDFLAGS.$(lang).$(arch)	    = 
+ARFLAGS.$(lang).$(arch)	    = -shared 
+LINTFLAGS.$(lang).$(arch)	= 
+DOCFLAGS.$(lang).$(arch)	= 
 
-
-
-$(OBJDIR)/%.o	: %.S
-	@mkdir -p $(@D)
-	@echo  $(CFLAGS) $(CFLAGS.cpp) $(CFLAGS.cpp.SunOS-sparc) > $@.cflags ;
-	$(COMPILE.cpp.SunOS-sparc) @$@.cflags $<
+lint.$(lang).$(arch) :
+	$(LINTER.$(LANGUAGE).$(ARCH))    \
+        $(LINTFLAGS) $(LINTFLAGS.$(LANGUAGE)) $(LINTFLAGS.$(LANGUAGE).$(ARCH))  \
+        $(srcs.$(lang)) $(hdrs.$(lang))
+    
+docs.$(lang).$(arch) :
+	$(DOCER.$(LANGUAGE).$(ARCH))    \
+        $(DOCFLAGS) $(DOCFLAGS.$(LANGUAGE)) $(DOCFLAGS.$(LANGUAGE).$(ARCH))
 
 $(OBJDIR)/%.o	: %.s
 	@mkdir -p $(@D)
-	@echo  $(CFLAGS) $(CFLAGS.cpp) $(CFLAGS.cpp.SunOS-sparc) > $@.cflags ;
-	$(COMPILE.cpp.SunOS-sparc) @$@.cflags $<
+	@echo $(CFLAGS) $(CFLAGS.$(lang)) $(CFLAGS.$(lang).$(arch)) > $@.cflags ; 
+	$(COMPILER.$(lang).$(arch)) @$@.cflags $< 
 
-$(OBJDIR)/%.o	: %.cpp
+$(OBJDIR)/%.o	: %.$(lang)
 	@mkdir -p $(@D)
-	@echo  $(CFLAGS) $(CFLAGS.cpp) $(CFLAGS.cpp.SunOS-sparc) > $@.cflags ;
-	$(COMPILE.cpp.SunOS-sparc) @$@.cflags $<
+	@echo $(CFLAGS) $(CFLAGS.$(lang)) $(CFLAGS.$(lang).$(arch)) > $@.cflags ; 
+	$(COMPILER.$(lang).$(arch)) @$@.cflags $< 
 
-$(OBJDIR)/%.i	: /%.cpp
+$(OBJDIR)/%.i	: $(SRCDIR)/%.$(lang)
 	@mkdir -p $(@D)
-	@echo  $(CFLAGS) $(CFLAGS.cpp) $(CFLAGS.cpp.SunOS-sparc) -E > $@.cflags ;
-	$(COMPILE.cpp.SunOS-sparc) @$@.cflags -E $<
+	@echo -E $(CFLAGS) $(CFLAGS.$(lang)) $(CFLAGS.$(lang).$(arch)) > $@.cflags ; 
+	$(COMPILER.$(lang).$(arch)) @$@.cflags $< 
 
-$(OBJDIR)/%.ln	: %.cpp
+$(DOCDIR)/%.html: $(SRCDIR)/%.$(lang)
 	@mkdir -p $(@D)
-	@echo  $(LINTFLAGS) $(LINTFLAGS.cpp) $(LINTFLAGS.cpp.SunOS-sparc) > $@.lintflags ;
-	$(LINT.cpp.SunOS-sparc) @$@.lintflags $<
+	@echo $(DOCFLAGS) $(DOCFLAGS.$(lang)) $(DOCFLAGS.$(lang).$(arch)) > $@.docflags ; 
+	$(DOC.$(lang).$(arch)) @$@.docflags $< 
 
-$(DOCDIR)/%.html: $(SRCDIR)/%.cpp
-	@mkdir -p $(@D)
-	@echo  $(DOCFLAGS) $(DOCFLAGS.cpp) $(DOCFLAGS.cpp.SunOS-sparc) > $@.docflags ;
-	$(DOC.cpp.SunOS-sparc) @$@.docflags $<
-
-.lib.cpp:	$(TGTDIR)/$(LIB_NM)
+.lib.$(lang):	$(TGTDIR)/$(LIB_NM)
 $(LIB_NM): $(TGTDIR)/$(LIB_NM)
-$(TGTDIR)/$(LIB_NM): $(objs.cpp) $(EXTRA_OBJS)
+$(TGTDIR)/$(LIB_NM): $(objs.$(lang)) $(EXTRA_OBJS)
 	@mkdir -p $(@D)
-	@echo 	$(ARFLAGS) $(ARFLAGS.cpp) $(ARFLAGS.cpp.SunOS-sparc) > $@.arflags;
-	$(AR.cpp.SunOS-sparc) @$@.arflags $@ $^ 	
+	@echo 	$(ARFLAGS) $(ARFLAGS.$(lang)) $(ARFLAGS.$(lang).$(arch)) > $@.arflags;
+	$(ARCHIVER.$(lang).$(arch)) @$@.arflags $@ $^ 	
 
-.exe.cpp:	$(TGTDIR)/$(EXE_NM)
+.exe.$(lang):	$(TGTDIR)/$(EXE_NM)
 $(EXE_NM): $(TGTDIR)/$(EXE_NM)
-$(TGTDIR)/$(EXE_NM): $(objs.cpp) $(EXTRA_OBJS) 
+$(TGTDIR)/$(EXE_NM): $(objs.$(lang)) $(EXTRA_OBJS) 
 	@mkdir -p $(@D)
-	@echo $(LDFLAGS) $(LDFLAGS.cpp) $(LDFLAGS.cpp.SunOS-sparc) > $@.ldflags;
-	$(LD.cpp.SunOS-sparc) @$@.ldflags $^ \
-	    $(LIBS) $(LIBS.cpp) $(LIBS.cpp.SunOS-sparc) 
+	@echo $(LDFLAGS) $(LDFLAGS.$(lang)) $(LDFLAGS.$(lang).$(arch)) > $@.ldflags;
+	$(LINKER.$(lang).$(arch)) @$@.ldflags $^ \
+	    $(LIBS) $(LIBS.$(lang)) $(LIBS.$(lang).$(arch)) 
 
 

@@ -25,35 +25,53 @@
 #*  limitations under the License. 
 #************************************************************************
 
-#************************************************************************
-# DO ALL VARIABLE ASSIGNMENTS HERE
-#************************************************************************
+
+override lang := java
+override arch := android
 
 #**********************************************************************
 # define program paths...
 #**********************************************************************
-COMPILE.java.android	:= javac
-LD.java.android	:= /bin/true
-AR.java.android	:= jar
-LINT.java.android	:= echo no lint installed for Java
-DOC.java.android	:= javadoc
+DOCER.$(lang).$(arch)       = $(DOCER.$(lang))
+LINTER.$(lang).$(arch)      = $(LINTER.$(lang))
+COMPILER.$(lang).$(arch)    = $(COMPILER.$(lang))
+LINKER.$(lang).$(arch)      = $(LINKER.$(lang))
+ARCHIVER.$(lang).$(arch)    = $(ARCHIVER.$(lang))
+OBJCOPY.$(lang).$(arch)     = $(OBJCOPY.$(lang))
 
 #**********************************************************************
 # This is the place to define flags that are specific to THIS language
 # when compiled for THIS architecture.
 #**********************************************************************
-CFLAGS.java.android     += -cp .:$(OBJDIR):$(ANDROID_HOME)/platforms/android-$(MIN_ANDROID_API)/android.jar
-LDFLAGS.java.android	=
-ARFLAGS.java.android	=
-LINTFLAGS.java.android  =
-DOCFLAGS.java.android	=
-LIB_PFX.java.android	:= 
-LIB_SFX.java.android	:= .jar
-EXE_PFX.java.android	:= 
-EXE_SFX.java.android	:= 
+CFLAGS.$(lang).$(arch)	    = -cp .:$(OBJDIR):$(ANDROID_HOME)/platforms/android-$(MIN_ANDROID_API)/android.jar
+LDFLAGS.$(lang).$(arch)	    = 
+ARFLAGS.$(lang).$(arch)	    = 
+LINTFLAGS.$(lang).$(arch)	= 
+DOCFLAGS.$(lang).$(arch)	= 
+LIB_PFX.$(lang).$(arch)		:= 
+LIB_SFX.$(lang).$(arch)		:= .jar
+EXE_PFX.$(lang).$(arch)		:= 
+EXE_SFX.$(lang).$(arch)		:= 
 
-#************************************************************************
-# DO TARGET RULE OVERRIDES HERE
-#************************************************************************
+$(JAVA_PKGROOT)/%.class: $(SRCDIR)/$(JAVA_PKGROOT)/%.$(lang)
+	@mkdir -p $(@D)
+	@mkdir -p $(OBJDIR)/$(JAVA_PKGROOT);
+	@echo	$(CFLAGS) $(CFLAGS.$(lang)) $(CFLAGS.$(lang).$(arch)) > $(OBJDIR)/$@.cflags ;
+	$(COMPILER.$(lang).$(arch))	@$(OBJDIR)/$@.cflags $<
+
+$(DOCDIR)/%.html: $(SRCDIR)/$(JAVA_PKGROOT)/%.$(lang)
+	@mkdir -p $(@D)
+	cd $(DOCDIR); $(DOC.$(lang).$(arch)) $(DOCFLAGS) $(DOCFLAGS.$(lang)) $(DOCFLAGS.$(lang).$(arch)) $<
+
+.lib.$(lang):	$(TGTDIR)/$(LIB_NM)
+.exe.$(lang):	$(TGTDIR)/$(LIB_NM)
+$(TGTDIR)/$(LIB_NM): $(objs.$(lang)) 
+	@mkdir -p $(@D)
+	(cd $(OBJDIR);  \
+	echo $(ARFLAGS) $(ARFLAGS.$(lang)) $(ARFLAGS.$(lang).$(arch)) > $(LIB_NM).arflags;\
+	$(ARCHIVE.$(lang).$(arch)) @$(LIB_NM).arflags $(LIB_NM) *.class;)
+	-/bin/mv $(OBJDIR)/$(LIB_NM) $(TGTDIR)/$(LIB_NM)
+
+
 
 

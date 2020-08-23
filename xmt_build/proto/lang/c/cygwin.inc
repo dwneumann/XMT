@@ -1,5 +1,4 @@
 #************************************************************************
-#*   $Version:$
 #*   Package	: xmt_build
 #*   Synopsis	: included by $(XMTBUILD)/proto/lang/<language>/generic.inc
 #*   Purpose	: 
@@ -24,76 +23,74 @@
 #*  limitations under the License. 
 #************************************************************************
 
-
+override lang := c
+override arch := cygwin
 #**********************************************************************
 # define program paths...
 #**********************************************************************
-COMPILE.c.cygwin	:= /usr/bin/gcc
-LD.c.cygwin		:= /usr/bin/gcc
-AR.c.cygwin		:= /usr/bin/ar
-DOC.c.cygwin		:= $(XMTBUILD)/bin/srcdoc 
-LINT.c.cygwin		:= echo lint not installed
-LIB_PFX.c.cygwin	:= lib
-LIB_SFX.c.cygwin	:= .a
-EXE_PFX.c.cygwin	:= 
-EXE_SFX.c.cygwin	:= 
+DOCER.$(lang).$(arch)	= $(DOCER.$(lang))
+LINTER.$(lang).$(arch)	= $(LINTER.$(lang))
+COMPILER.$(lang).$(arch)= /usr/bin/gcc
+LINKER.$(lang).$(arch)  = /usr/bin/gcc
+ARCHIVER.$(lang).$(arch)= /usr/bin/ar
+OBJCOPY.$(lang).$(arch)	= echo no objcopy for $(arch)
+LIB_PFX.$(lang).$(arch)	= $(LIB_PFX).$(lang)
+LIB_SFX.$(lang).$(arch)	= .a
+EXE_PFX.$(lang).$(arch)	= 
+EXE_SFX.$(lang).$(arch)	= 
 
 #**********************************************************************
 # This is the place to define default flags that are specific to THIS 
 # platform and THIS language.
 #**********************************************************************
-CFLAGS.c.cygwin += -Wall -Wno-attributes -Wno-unused-function -Wno-unused-const-variable
-LDFLAGS.c.cygwin	+= $(CFLAGS.c.cygwin) 
-ARFLAGS.c.cygwin	+= -r
-LINTFLAGS.c.cygwin	+= $(CFLAGS.c.cygwin)
-DOCFLAGS.c.cygwin	+= 
+CFLAGS.$(lang).$(arch)  = -Wall -Wno-attributes -Wno-unused-function -Wno-unused-const-variable
+LDFLAGS.$(lang).$(arch)	= $(CFLAGS.$(lang).$(arch)) 
+ARFLAGS.$(lang).$(arch)	= -r
+LINTFLAGS.$(lang).$(arch)	= $(CFLAGS.$(lang).$(arch))
+DOCFLAGS.$(lang).$(arch)	= 
 
-
-
+lint.$(lang).$(arch) :
+	$(LINTER.$(LANGUAGE).$(ARCH))    \
+        $(LINTFLAGS) $(LINTFLAGS.$(LANGUAGE)) $(LINTFLAGS.$(LANGUAGE).$(ARCH))  \
+        $(srcs.$(lang)) $(hdrs.$(lang))
+    
+docs.$(lang).$(arch) :
+	$(DOCER.$(LANGUAGE).$(ARCH))    \
+        $(DOCFLAGS) $(DOCFLAGS.$(LANGUAGE)) $(DOCFLAGS.$(LANGUAGE).$(ARCH))
 
 $(OBJDIR)/%.o	: %.S
 	@mkdir -p $(@D)
-	@echo $(CFLAGS) $(CFLAGS.c) $(CFLAGS.c.cygwin) > $@.cflags ; 
-	$(COMPILE.c.cygwin) @$@.cflags $< 
+	@echo $(CFLAGS) $(CFLAGS.$(lang)) $(CFLAGS.$(lang).$(arch)) > $@.cflags ; 
+	$(COMPILER.$(lang).$(arch)) @$@.cflags $< 
 
 $(OBJDIR)/%.o	: %.s
 	@mkdir -p $(@D)
-	@echo $(CFLAGS) $(CFLAGS.c) $(CFLAGS.c.cygwin) > $@.cflags ; 
-	$(COMPILE.c.cygwin) @$@.cflags $< 
+	@echo $(CFLAGS) $(CFLAGS.$(lang)) $(CFLAGS.$(lang).$(arch)) > $@.cflags ; 
+	$(COMPILER.$(lang).$(arch)) @$@.cflags $< 
 
-$(OBJDIR)/%.o	: %.c
+$(OBJDIR)/%.o	: %.$(lang)
 	@mkdir -p $(@D)
-	@echo $(CFLAGS) $(CFLAGS.c) $(CFLAGS.c.cygwin) > $@.cflags ; 
-	$(COMPILE.c.cygwin) @$@.cflags $< 
+	@echo $(CFLAGS) $(CFLAGS.$(lang)) $(CFLAGS.$(lang).$(arch)) > $@.cflags ; 
+	$(COMPILER.$(lang).$(arch)) @$@.cflags $< 
 
-$(OBJDIR)/%.i	: /%.c
+$(OBJDIR)/%.i	: /%.$(lang)
 	@mkdir -p $(@D)
-	@echo -E $(CFLAGS) $(CFLAGS.c) $(CFLAGS.c.cygwin) > $@.cflags ; 
-	$(COMPILE.c.cygwin) @$@.cflags $< 
+	@echo -E $(CFLAGS) $(CFLAGS.$(lang)) $(CFLAGS.$(lang).$(arch)) > $@.cflags ; 
+	$(COMPILER.$(lang).$(arch)) @$@.cflags $< 
 
-$(OBJDIR)/%.ln	: %.c
-	@mkdir -p $(@D)
-	@echo $(LINTFLAGS) $(LINTFLAGS.c) $(LINTFLAGS.c.cygwin) > $@.lintflags ; 
-	$(LINT.c.cygwin) @$@.lintflags $< 
-
-$(DOCDIR)/%.html: $(SRCDIR)/%.c
-	@mkdir -p $(@D)
-	@echo $(DOCFLAGS) $(DOCFLAGS.c) $(DOCFLAGS.c.cygwin) > $@.docflags ; 
-	$(DOC.c.cygwin) @$@.docflags $< 
-
-.lib.c:	$(TGTDIR)/$(LIB_NM)
+.lib.$(lang):	$(TGTDIR)/$(LIB_NM)
 $(LIB_NM): $(TGTDIR)/$(LIB_NM)
-$(TGTDIR)/$(LIB_NM): $(objs.c) $(EXTRA_OBJS)
+$(TGTDIR)/$(LIB_NM): $(objs.$(lang)) $(EXTRA_OBJS)
 	@mkdir -p $(@D)
-	@echo 	$(ARFLAGS) $(ARFLAGS.c) $(ARFLAGS.c.cygwin) > $@.arflags;
-	$(AR.c.cygwin) @$@.arflags $@ $^ 	
+	@echo 	$(ARFLAGS) $(ARFLAGS.$(lang)) $(ARFLAGS.$(lang).$(arch)) > $@.arflags;
+	$(ARCHIVER.$(lang).$(arch)) @$@.arflags $@ $^ 	
 
-.exe.c:	$(TGTDIR)/$(EXE_NM)
+.exe.$(lang):	$(TGTDIR)/$(EXE_NM)
 $(EXE_NM): $(TGTDIR)/$(EXE_NM)
-$(TGTDIR)/$(EXE_NM): $(objs.c) $(EXTRA_OBJS) 
+$(TGTDIR)/$(EXE_NM): $(objs.$(lang)) $(EXTRA_OBJS) 
 	@mkdir -p $(@D)
-	@echo $(LDFLAGS) $(LDFLAGS.c) $(LDFLAGS.c.cygwin) > $@.ldflags;
-	$(LD.c.cygwin) @$@.ldflags $^ \
-	    $(LIBS) $(LIBS.c) $(LIBS.c.cygwin) 
+	@echo $(LDFLAGS) $(LDFLAGS.$(lang)) $(LDFLAGS.$(lang).$(arch)) > $@.ldflags;
+	$(LINKER.$(lang).$(arch)) @$@.ldflags $^ \
+	    $(LIBS) $(LIBS.$(lang)) $(LIBS.$(lang).$(arch)) 
 
 

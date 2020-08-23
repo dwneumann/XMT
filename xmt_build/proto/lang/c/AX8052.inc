@@ -1,5 +1,4 @@
 #************************************************************************
-#*   $Version:$
 #*   Package	: xmt_build
 #*   Synopsis	: included by $(XMTBUILD)/proto/lang/<language>/generic.inc
 #*   Purpose	: 
@@ -24,25 +23,26 @@
 #*  limitations under the License. 
 #************************************************************************
 
-
+override lang := c
+override arch := AX8052
 #**********************************************************************
 # define program paths...
 #**********************************************************************
-AXSDB			:= "c:\Programs\AXSEM\AXSDB"
-CCROOT			:= "c:\Programs\SDCC"
-COMPILE.c.AX8052	:= sdcc
-LD.c.AX8052		:= sdcc
-AR.c.AX8052		:= sdcclib
-DOC.c.AX8052		:= $(XMTBUILD)/bin/srcdoc 
-LINT.c.AX8052		:= echo lint not installed
-OBJCOPY.c.AX8052	:= 
-LIB_PFX.c.AX8052	:= lib
-LIB_SFX.c.AX8052	:= .lib
-EXE_PFX.c.AX8052	:= 
-EXE_SFX.c.AX8052	:= .hex
+axsdb			        := "c:\Programs\AXSEM\AXSDB"
+ccroot			        := "c:\Programs\SDCC"
+DOCER.$(lang).$(arch)	= $(DOCER.$(lang))
+LINTER.$(lang).$(arch)	= $(LINTER.$(lang))
+COMPILER.$(lang).$(arch)= "$(ccroot)\sdcc"
+LINKER.$(lang).$(arch)	= "$(ccroot)\sdcc"
+ARCHIVER.$(lang).$(arch)= "$(ccroot)\sdcclib"
+LIB_PFX.$(lang).$(arch)	= $(LIB_PFX).$(lang)
+LIB_SFX.$(lang).$(arch)	= .a
+EXE_PFX.$(lang).$(arch)	= 
+EXE_SFX.$(lang).$(arch)	= .hex
+
 
 # SDCC doesn't grok .o file extension.  Must redefine rules & variables to use .rel
-objs.c	= $(patsubst $(SRCDIR)/%.c,$(OBJDIR)/%.rel,$(srcs.c))
+objs.$(lang)	= $(patsubst $(SRCDIR)/%.$(lang),$(OBJDIR)/%.rel,$(srcs.$(lang)))
 
 #**********************************************************************
 # This is the place to define default flags that are specific to THIS 
@@ -51,17 +51,17 @@ objs.c	= $(patsubst $(SRCDIR)/%.c,$(OBJDIR)/%.rel,$(srcs.c))
 
 #*** model-small-stack-auto
 #SMALL_STACK_AUTO	= $(DOSPROJECT)/AX5043/small-stack-auto
-#SYS_INCLUDES.c.AX8052 = \
-#		   -I$(CCROOT)/include 				\
+#SYS_INCLUDES.$(lang).$(arch) = \
+#		   -I$(ccroot)/include 				\
 #		   -I$(SMALL_STACK_AUTO)/libmf/src		\
 #		   -I$(SMALL_STACK_AUTO)/libaxdvk2/src		\
 #		   -I$(SMALL_STACK_AUTO)/libax5043/src	
-#CFLAGS.c.AX8052 += -mmcs51 --verbose --model-small --stack-auto -DRADIO=5043 $(SYS_INCLUDES.c.AX8052)
-#LDFLAGS.c.AX8052 += -mmcs51 --verbose --model-small --stack-auto -muwx -M 	\
+#CFLAGS.$(lang).$(arch) = -mmcs51 --verbose --model-small --stack-auto -DRADIO=5043 $(SYS_INCLUDES.$(lang).$(arch))
+#LINKERFLAGS.$(lang).$(arch) = -mmcs51 --verbose --model-small --stack-auto -muwx -M 	\
 #		    --xram-size 8192 --iram-size 256 --code-size 64512 		\
 #		    --code-loc 0x0000 --xram-loc 0x0000 --data-loc 0x08 	\
-#		    -L$(CCROOT)/lib 						\
-#		    -L$(AXSDB)/libreent/sdcc 					\
+#		    -L$(ccroot)/lib 						\
+#		    -L$(axsdb)/libreent/sdcc 					\
 #		    -L$(SMALL_STACK_AUTO)/libaxdvk2/tgt/AX8052			\
 #		    -L$(SMALL_STACK_AUTO)/libmf/tgt/AX8052			\
 #		    -L$(SMALL_STACK_AUTO)/libax5043/tgt/AX8052			\
@@ -70,32 +70,41 @@ objs.c	= $(patsubst $(SRCDIR)/%.c,$(OBJDIR)/%.rel,$(srcs.c))
 #		    -l libax5043_small_stack_auto				
 
 #*** model-small
-SYS_INCLUDES.c.AX8052 = \
-		   -I$(CCROOT)/include 				\
-		   -I$(AXSDB)/libmf/include			\
-		   -I$(AXSDB)/libaxdvk2/include			\
-		   -I$(AXSDB)/libax5043/include	
-CFLAGS.c.AX8052 += -mmcs51 --verbose --model-small -DRADIO=5043 $(SYS_INCLUDES.c.AX8052)
-LDFLAGS.c.AX8052 += -mmcs51 --verbose --model-small -muwx -M 			\
+SYS_INCLUDES.$(lang).$(arch) = \
+		   -I$(ccroot)/include 				\
+		   -I$(axsdb)/libmf/include			\
+		   -I$(axsdb)/libaxdvk2/include			\
+		   -I$(axsdb)/libax5043/include	
+CFLAGS.$(lang).$(arch) = -mmcs51 --verbose --model-small -DRADIO=5043 $(SYS_INCLUDES.$(lang).$(arch))
+LINKERFLAGS.$(lang).$(arch) = -mmcs51 --verbose --model-small -muwx -M 			\
 		    --xram-size 8192 --iram-size 256 --code-size 64512 		\
 		    --code-loc 0x0000 --xram-loc 0x0000 --data-loc 0x08 	\
-		    -L$(CCROOT)/lib 						\
-		    -L$(AXSDB)/libreent/sdcc 					\
-		    -L$(AXSDB)/libaxdvk2/sdcc 					\
-		    -L$(AXSDB)/libmf/sdcc 					\
-		    -L$(AXSDB)/libax5043/sdcc 					\
+		    -L$(ccroot)/lib 						\
+		    -L$(axsdb)/libreent/sdcc 					\
+		    -L$(axsdb)/libaxdvk2/sdcc 					\
+		    -L$(axsdb)/libmf/sdcc 					\
+		    -L$(axsdb)/libax5043/sdcc 					\
 		    -l libmf 							\
 		    -l libaxdvk2						\
 		    -l libax5043				
 
 
+lint.$(lang).$(arch) :
+	$(LINTER.$(LANGUAGE).$(ARCH))    \
+        $(LINTFLAGS) $(LINTFLAGS.$(LANGUAGE)) $(LINTFLAGS.$(LANGUAGE).$(ARCH))  \
+        $(srcs.$(lang)) $(hdrs.$(lang))
+    
+docs.$(lang).$(arch) :
+	$(DOCER.$(LANGUAGE).$(ARCH))    \
+        $(DOCFLAGS) $(DOCFLAGS.$(LANGUAGE)) $(DOCFLAGS.$(LANGUAGE).$(ARCH))
+
 $(OBJDIR)/%.rel	: $(SRCDIR)/%.s
 	@mkdir -p $(@D)
-	$(COMPILE.c.AX8052) $(CFLAGS) $(CFLAGS.c) $(CFLAGS.c.AX8052) -c $< -o $@
+	$(COMPILER.$(lang).$(arch)) $(CFLAGS) $(CFLAGS.$(lang)) $(CFLAGS.$(lang).$(arch)) -c $< -o $@
 
-$(OBJDIR)/%.rel	: $(SRCDIR)/%.c
+$(OBJDIR)/%.rel	: $(SRCDIR)/%.$(lang)
 	@mkdir -p $(@D)
-	$(COMPILE.c.AX8052) $(CFLAGS) $(CFLAGS.c) $(CFLAGS.c.AX8052) -c $< -o $@
+	$(COMPILER.$(lang).$(arch)) $(CFLAGS) $(CFLAGS.$(lang)) $(CFLAGS.$(lang).$(arch)) -c $< -o $@
 
 bin: exe
 hex: exe
@@ -104,19 +113,19 @@ flash:  $(TGTDIR)/$(EXE_NM)
 	axsdb --flashprog $(TGTDIR)/$(EXE_NM)
 
 
-.lib.c:	$(TGTDIR)/$(LIB_NM)
+.lib.$(lang):	$(TGTDIR)/$(LIB_NM)
 $(LIB_NM): $(TGTDIR)/$(LIB_NM)
-$(TGTDIR)/$(LIB_NM): $(objs.c) $(EXTRA_OBJS)
+$(TGTDIR)/$(LIB_NM): $(objs.$(lang)) $(EXTRA_OBJS)
 	@mkdir -p $(@D)
-	@echo 	$(ARFLAGS) $(ARFLAGS.c) $(ARFLAGS.c.$(ARCH)) > $@.arflags;
-	$(AR.c.$(ARCH)) @$@.arflags $@ $^ 	
+	@echo 	$(ARCHIVERFLAGS) $(ARCHIVERFLAGS.$(lang)) $(ARCHIVERFLAGS.$(lang).$(ARCHIVERCH)) > $@.arflags;
+	$(ARCHIVER.$(lang).$(ARCHIVERCH)) @$@.arflags $@ $^ 	
 
-.exe.c:	$(TGTDIR)/$(EXE_NM)
+.exe.$(lang):	$(TGTDIR)/$(EXE_NM)
 $(EXE_NM): $(TGTDIR) $(TGTDIR)/$(EXE_NM)
-$(TGTDIR)/$(EXE_NM): $(TGTDIR) $(objs.c) $(EXTRA_OBJS) 
+$(TGTDIR)/$(EXE_NM): $(TGTDIR) $(objs.$(lang)) $(EXTRA_OBJS) 
 	@mkdir -p $(@D)
-	@echo $(LDFLAGS) $(LDFLAGS.c) $(LDFLAGS.c.$(ARCH)) > $@.ldflags;
-	$(LD.c.$(ARCH)) @$@.ldflags $^ \
-	    $(LIBS) $(LIBS.c) $(LIBS.c.$(ARCH)) 
+	@echo $(LINKERFLAGS) $(LINKERFLAGS.$(lang)) $(LINKERFLAGS.$(lang).$(ARCHIVERCH)) > $@.ldflags;
+	$(LINKER.$(lang).$(ARCHIVERCH)) @$@.ldflags $^ \
+	    $(LIBS) $(LIBS.$(lang)) $(LIBS.$(lang).$(ARCHIVERCH)) 
 
 

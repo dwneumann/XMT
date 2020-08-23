@@ -25,29 +25,52 @@
 #*  limitations under the License. 
 #************************************************************************
 
+
+override lang := java
+override arch := jre
+
 #**********************************************************************
 # define program paths...
 #**********************************************************************
-COMPILE.java.jre:= javac
-LD.java.jre	:= /bin/true
-AR.java.jre	:= jar
-LINT.java.jre	:= echo no lint installed for Java
-DOC.java.jre	:= javadoc
+DOCER.$(lang).$(arch)       = $(DOCER.$(lang))
+LINTER.$(lang).$(arch)      = $(LINTER.$(lang))
+COMPILER.$(lang).$(arch)    = $(COMPILER.$(lang))
+LINKER.$(lang).$(arch)      = $(LINKER.$(lang))
+ARCHIVER.$(lang).$(arch)    = $(ARCHIVER.$(lang))
+OBJCOPY.$(lang).$(arch)     = $(OBJCOPY.$(lang))
 
 #**********************************************************************
 # This is the place to define flags that are specific to THIS language
 # when compiled for THIS architecture.
 #**********************************************************************
-CFLAGS.java.jre		=
-LDFLAGS.java.jre	= 
-ARFLAGS.java.jre	=
-LINTFLAGS.java.jre= 
-DOCFLAGS.java.jre	=
-LIB_PFX.java.jre	:= 
-LIB_SFX.java.jre	:= .jar
-EXE_PFX.java.jre	:= 
-EXE_SFX.java.jre	:= 
+CFLAGS.$(lang).$(arch)	    = 
+LDFLAGS.$(lang).$(arch)	    = 
+ARFLAGS.$(lang).$(arch)	    = 
+LINTFLAGS.$(lang).$(arch)	= 
+DOCFLAGS.$(lang).$(arch)	= 
+LIB_PFX.$(lang).$(arch)		:= 
+LIB_SFX.$(lang).$(arch)		:= .jar
+EXE_PFX.$(lang).$(arch)		:= 
+EXE_SFX.$(lang).$(arch)		:= 
 
-#************************************************************************
-# DO TARGET RULE OVERRIDES HERE
-#************************************************************************
+$(JAVA_PKGROOT)/%.class: $(SRCDIR)/$(JAVA_PKGROOT)/%.$(lang)
+	@mkdir -p $(@D)
+	@mkdir -p $(OBJDIR)/$(JAVA_PKGROOT);
+	@echo	$(CFLAGS) $(CFLAGS.$(lang)) $(CFLAGS.$(lang).$(arch)) > $(OBJDIR)/$@.cflags ;
+	$(COMPILER.$(lang).$(arch))	@$(OBJDIR)/$@.cflags $<
+
+$(DOCDIR)/%.html: $(SRCDIR)/$(JAVA_PKGROOT)/%.$(lang)
+	@mkdir -p $(@D)
+	cd $(DOCDIR); $(DOC.$(lang).$(arch)) $(DOCFLAGS) $(DOCFLAGS.$(lang)) $(DOCFLAGS.$(lang).$(arch)) $<
+
+.lib.$(lang):	$(TGTDIR)/$(LIB_NM)
+.exe.$(lang):	$(TGTDIR)/$(LIB_NM)
+$(TGTDIR)/$(LIB_NM): $(objs.$(lang)) 
+	@mkdir -p $(@D)
+	(cd $(OBJDIR);  \
+	echo $(ARFLAGS) $(ARFLAGS.$(lang)) $(ARFLAGS.$(lang).$(arch)) > $(LIB_NM).arflags;\
+	$(ARCHIVE.$(lang).$(arch)) @$(LIB_NM).arflags $(LIB_NM) *.class;)
+	-/bin/mv $(OBJDIR)/$(LIB_NM) $(TGTDIR)/$(LIB_NM)
+
+
+

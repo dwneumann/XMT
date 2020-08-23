@@ -1,5 +1,4 @@
 #************************************************************************
-#*   $Version:$
 #*   Package	: xmt_build
 #*   Synopsis	: included by $(XMTBUILD)/proto/Makefile.top
 #*   Purpose	: 
@@ -27,24 +26,29 @@
 
 #   := assignements are evaluated during lexical scan;
 #    = assignments are recursively expanded during rule parsing
-lang	:= c
+override lang	:= java
 
-srcs.java	= $(wildcard $(SRCDIR)/$(JAVA_PKGROOT)/*.java)
-hdrs.java	= 
-#srcs.java	= $(shell find $(SRCDIR)/ -type f -name '*.java')
-objs.java	= $(patsubst $(SRCDIR)/$(JAVA_PKGROOT)/%.java,$(JAVA_PKGROOT)/%.class,$(srcs.java))
-docs.java	= $(patsubst $(SRCDIR)/$(JAVA_PKGROOT)/%.java,$(DOCDIR)/%.html,$(srcs.java))
-lnts.java	= 
+srcs.$(lang)	= $(wildcard $(SRCDIR)/$(JAVA_PKGROOT)/*.$(lang))
+hdrs.$(lang)	= 
+objs.$(lang)	= $(patsubst $(SRCDIR)/$(JAVA_PKGROOT)/%.$(lang),$(JAVA_PKGROOT)/%.class,$(srcs.$(lang)))
+docs.$(lang)	= $(patsubst $(SRCDIR)/$(JAVA_PKGROOT)/%.$(lang),$(DOCDIR)/%.html,$(srcs.$(lang)))
+lnts.$(lang)	= 
 
 #**********************************************************************
 # This is the place to define default flags that are common to ALL 
 # supported architectures for THIS language.
 #**********************************************************************
-CFLAGS.java	+= -g -d $(OBJDIR) 
-LDFLAGS.java	= 
-ARFLAGS.java	= cf 
-LINTFLAGS.java	= 
-DOCFLAGS.java	= 
+DOCER.$(lang)       = $(DOCER)
+LINTER.$(lang)      = 
+COMPILER.$(lang)    = /usr/bin/javac
+LINKER.$(lang)      = /bin/true
+ARCHIVER.$(lang)    = /usr/bin/jar
+OBJCOPY.$(lang)     = echo no objcopy for $(lang)
+CFLAGS.$(lang)	    = -g -d $(OBJDIR) 
+LDFLAGS.$(lang)	    = 
+ARFLAGS.$(lang)	    = cf 
+LINTFLAGS.$(lang)	= 
+DOCFLAGS.$(lang)	= $(PROJECT)/proto/Doxyfile
 
 ## Define recipes in $(XMTBUILD)/proto/lang/$(LANGUAGE)/$(ARCH)
 ## after variables are further defined there 

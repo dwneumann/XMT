@@ -23,14 +23,19 @@
 #*  limitations under the License. 
 #************************************************************************
 
-setenv XMTEXT	        "$XMT/xmt_extern"
-setenv PATH "${PATH}:$XMTEXT/./usr/bin"
-setenv LD_LIBRARY_PATH "${LD_LIBRARY_PATH}:$XMTEXT/"
+# need variables set before referencing them below
+if ( ! $?PATH ) then
+     setenv PATH "/bin:/usr/bin:/usr/local/bin:/sbin:/usr/sbin:/usr/local/sbin"
+endif
+if ( ! $?LD_LIBRARY_PATH ) then
+     setenv LD_LIBRARY_PATH "/lib:/usr/lib:/usr/local/lib"
+endif
 if ( ! $?MANPATH ) then
      setenv MANPATH /usr/share/man
 endif
+setenv XMTEXT	        "$XMT/xmt_extern"
 
-setenv MANPATH "${MANPATH}:$XMTEXT/usr/share/man"
-setenv PATH "${PATH}:$XMTEXT/./usr/bin ./usr/share/clang/scan-build-py-9/bin ./usr/share/clang/scan-view-9/bin ./usr/share/clang/scan-build-9/bin ./usr/lib/llvm-9/bin"
-setenv LD_LIBRARY_PATH "${LD_LIBRARY_PATH}:$XMTEXT/./usr/lib ./usr/lib/llvm-9/lib"
-setenv MANPATH "${MANPATH}:$XMTEXT/./usr/share/man ./usr/share/clang/scan-build-9/man ./usr/lib/llvm-9/share/man"
+# additional paths installed under $XMTEXT, as described in $XMTEXT/README.md
+setenv PATH "${PATH}:$XMTEXT/usr/bin:$XMTEXT/usr/share/clang/scan-build-py-9/bin:$XMTEXT/usr/share/clang/scan-view-9/bin:$XMTEXT/usr/share/clang/scan-build-9/bin:$XMTEXT/usr/lib/llvm-9/bin"
+setenv LD_LIBRARY_PATH "${LD_LIBRARY_PATH}:$XMTEXT/usr/lib/x86_64-linux-gnu:$XMTEXT/usr/lib/llvm-9/lib"
+setenv MANPATH "${LD_LIBRARY_PATH}:$XMTEXT/usr/share/man:$XMTEXT/usr/share/clang/scan-build-9/man:$XMTEXT/usr/lib/llvm-9/share/man"

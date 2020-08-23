@@ -1,5 +1,4 @@
 #************************************************************************
-#*   $Version:$
 #*   Package	: xmt_build
 #*   Synopsis	: included by $(XMTBUILD)/proto/lang/<language>/generic.inc
 #*   Purpose	: 
@@ -24,75 +23,74 @@
 #*  limitations under the License. 
 #************************************************************************
 
-
+override lang := c
+override arch := SunOS-sparc
 #**********************************************************************
 # define program paths...
 #**********************************************************************
-COMPILE.c.SunOS-sparc	:= /usr/local/bin/gcc
-LD.c.SunOS-sparc	:= $(COMPILE.c.SunOS-sparc)
-AR.c.SunOS-sparc	:= $(COMPILE.c.SunOS-sparc)
-LINT.c.SunOS-sparc	:= echo /usr/ucb/lint not installed
-DOC.c.SunOS-sparc	:= $(XMTBUILD)/bin/srcdoc 
+DOCER.$(lang).$(arch)	= $(DOCER.$(lang))
+LINTER.$(lang).$(arch)	= $(LINTER.$(lang))
+COMPILER.$(lang).$(arch)= /usr/local/bin/gcc
+LINKER.$(lang).$(arch)  = /usr/local/bin/gcc
+ARCHIVER.$(lang).$(arch)= /usr/local/bin/gcc
+OBJCOPY.$(lang).$(arch)	= echo no objcopy for $(arch)
+LIB_PFX.$(lang).$(arch)	= $(LIB_PFX).$(lang)
+LIB_SFX.$(lang).$(arch)	= .so
+EXE_PFX.$(lang).$(arch)	= 
+EXE_SFX.$(lang).$(arch)	= 
+
 #**********************************************************************
 # This is the place to define default flags that are specific to THIS 
 # platform and THIS language.
 #**********************************************************************
-CFLAGS.c.SunOS-sparc	:= -Wall -Wno-attributes -Wno-unused-function -Wno-unused-const-variable -fpic 
-LDFLAGS.c.SunOS-sparc	:= -Wall -Wno-attributes -Wno-unused-function -Wno-unused-const-variable 
-ARFLAGS.c.SunOS-sparc	:= -Wall -shared -rscDv
-LINTFLAGS.c.SunOS-sparc	 = $(CFLAGS.c.SunOS-sparc)
-DOCFLAGS.c.SunOS-sparc	:= 
-LIB_PFX.c.SunOS-sparc	:= lib
-LIB_SFX.c.SunOS-sparc	:= .so
-EXE_PFX.c.SunOS-sparc	:= 
-EXE_SFX.c.SunOS-sparc	:= 
 
+CFLAGS.$(lang).$(arch)	    = -Wall -Wno-attributes -Wno-unused-function -Wno-unused-const-variable -fpic 
+LDFLAGS.$(lang).$(arch)	    = 
+ARFLAGS.$(lang).$(arch)	    = -shared 
+LINTFLAGS.$(lang).$(arch)	= 
+DOCFLAGS.$(lang).$(arch)	= 
 
-
-
-$(OBJDIR)/%.o	: %.S
-	@mkdir -p $(@D)
-	@echo $(CFLAGS) $(CFLAGS.c) $(CFLAGS.c.SunOS-sparc) > $@.cflags ; 
-	$(COMPILE.c.SunOS-sparc) @$@.cflags $< 
+lint.$(lang).$(arch) :
+	$(LINTER.$(LANGUAGE).$(ARCH))    \
+        $(LINTFLAGS) $(LINTFLAGS.$(LANGUAGE)) $(LINTFLAGS.$(LANGUAGE).$(ARCH))  \
+        $(srcs.$(lang)) $(hdrs.$(lang))
+    
+docs.$(lang).$(arch) :
+	$(DOCER.$(LANGUAGE).$(ARCH))    \
+        $(DOCFLAGS) $(DOCFLAGS.$(LANGUAGE)) $(DOCFLAGS.$(LANGUAGE).$(ARCH))
 
 $(OBJDIR)/%.o	: %.s
 	@mkdir -p $(@D)
-	@echo $(CFLAGS) $(CFLAGS.c) $(CFLAGS.c.SunOS-sparc) > $@.cflags ; 
-	$(COMPILE.c.SunOS-sparc) @$@.cflags $< 
+	@echo $(CFLAGS) $(CFLAGS.$(lang)) $(CFLAGS.$(lang).$(arch)) > $@.cflags ; 
+	$(COMPILER.$(lang).$(arch)) @$@.cflags $< 
 
-$(OBJDIR)/%.o	: %.c
+$(OBJDIR)/%.o	: %.$(lang)
 	@mkdir -p $(@D)
-	@echo $(CFLAGS) $(CFLAGS.c) $(CFLAGS.c.SunOS-sparc) > $@.cflags ; 
-	$(COMPILE.c.SunOS-sparc) @$@.cflags $< 
+	@echo $(CFLAGS) $(CFLAGS.$(lang)) $(CFLAGS.$(lang).$(arch)) > $@.cflags ; 
+	$(COMPILER.$(lang).$(arch)) @$@.cflags $< 
 
-$(OBJDIR)/%.i	: /%.c
+$(OBJDIR)/%.i	: $(SRCDIR)/%.$(lang)
 	@mkdir -p $(@D)
-	@echo -E $(CFLAGS) $(CFLAGS.c) $(CFLAGS.c.SunOS-sparc) > $@.cflags ; 
-	$(COMPILE.c.SunOS-sparc) @$@.cflags $< 
+	@echo -E $(CFLAGS) $(CFLAGS.$(lang)) $(CFLAGS.$(lang).$(arch)) > $@.cflags ; 
+	$(COMPILER.$(lang).$(arch)) @$@.cflags $< 
 
-$(OBJDIR)/%.ln	: %.c
+$(DOCDIR)/%.html: $(SRCDIR)/%.$(lang)
 	@mkdir -p $(@D)
-	@echo $(LINTFLAGS) $(LINTFLAGS.c) $(LINTFLAGS.c.SunOS-sparc) > $@.lintflags ; 
-	$(LINT.c.SunOS-sparc) @$@.lintflags $< 
+	@echo $(DOCFLAGS) $(DOCFLAGS.$(lang)) $(DOCFLAGS.$(lang).$(arch)) > $@.docflags ; 
+	$(DOC.$(lang).$(arch)) @$@.docflags $< 
 
-$(DOCDIR)/%.html: $(SRCDIR)/%.c
-	@mkdir -p $(@D)
-	@echo $(DOCFLAGS) $(DOCFLAGS.c) $(DOCFLAGS.c.SunOS-sparc) > $@.docflags ; 
-	$(DOC.c.SunOS-sparc) @$@.docflags $< 
-
-.lib.c:	$(TGTDIR)/$(LIB_NM)
+.lib.$(lang):	$(TGTDIR)/$(LIB_NM)
 $(LIB_NM): $(TGTDIR)/$(LIB_NM)
-$(TGTDIR)/$(LIB_NM): $(objs.c) $(EXTRA_OBJS)
+$(TGTDIR)/$(LIB_NM): $(objs.$(lang)) $(EXTRA_OBJS)
 	@mkdir -p $(@D)
-	@echo 	$(ARFLAGS) $(ARFLAGS.c) $(ARFLAGS.c.SunOS-sparc) > $@.arflags;
-	$(AR.c.SunOS-sparc) @$@.arflags $@ $^ 	
+	@echo 	$(ARFLAGS) $(ARFLAGS.$(lang)) $(ARFLAGS.$(lang).$(arch)) > $@.arflags;
+	$(ARCHIVER.$(lang).$(arch)) @$@.arflags $@ $^ 	
 
-.exe.c:	$(TGTDIR)/$(EXE_NM)
+.exe.$(lang):	$(TGTDIR)/$(EXE_NM)
 $(EXE_NM): $(TGTDIR)/$(EXE_NM)
-$(TGTDIR)/$(EXE_NM): $(objs.c) $(EXTRA_OBJS) 
+$(TGTDIR)/$(EXE_NM): $(objs.$(lang)) $(EXTRA_OBJS) 
 	@mkdir -p $(@D)
-	@echo $(LDFLAGS) $(LDFLAGS.c) $(LDFLAGS.c.SunOS-sparc) > $@.ldflags;
-	$(LD.c.SunOS-sparc) @$@.ldflags $^ \
-	    $(LIBS) $(LIBS.c) $(LIBS.c.SunOS-sparc) 
-
+	@echo $(LDFLAGS) $(LDFLAGS.$(lang)) $(LDFLAGS.$(lang).$(arch)) > $@.ldflags;
+	$(LINKER.$(lang).$(arch)) @$@.ldflags $^ \
+	    $(LIBS) $(LIBS.$(lang)) $(LIBS.$(lang).$(arch)) 
 

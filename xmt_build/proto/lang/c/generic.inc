@@ -1,5 +1,4 @@
 #************************************************************************
-#*   $Version:$
 #*   Package	: xmt_build
 #*   Synopsis	: included by $(XMTBUILD)/proto/Makefile.top
 #*   Purpose	: 
@@ -27,7 +26,7 @@
 
 #   := assignements are evaluated during lexical scan;
 #    = assignments are recursively evaluated during rule parsing
-lang	:= c
+override lang	:= c
 
 # we specifically do NOT want to recursively search below SRCDIR for sources
 # because there may be platform-specific code in different subdirectories
@@ -80,14 +79,27 @@ else
 endif
 
 #**********************************************************************
-# This is the place to define default flags and recipes
-# that are common to ALL target architectures for THIS language.
+# This is the place to define programs, flags and recipes
+# that are common to ALL target architectures for *THIS* language.
+# Language-specific values inherit from global (language-independent) defines
+# by default, but can be overridden in a project or package level Makefile
 #**********************************************************************
-CFLAGS.$(lang)		+=  -c -o $@ 
-ARFLAGS.$(lang)		+= 
-LDFLAGS.$(lang)		+= -o $@
-LINTFLAGS.$(lang)	+= $(CFLAGS.$(lang))
-DOCFLAGS.$(lang)	+= -o $@
+DOCER.$(lang)       = $(DOCER)
+LINTER.$(lang)      = $(LINTER)
+gnuroot			    := /opt/gcc-arm-none-eabi-9-2019-q4-major/bin
+COMPILER.$(lang)    = $(gnuroot)/arm-none-eabi-gcc
+LINKER.$(lang)  	= $(gnuroot)/arm-none-eabi-gcc
+ARCHIVER.$(lang)  	= $(gnuroot)/arm-none-eabi-ar
+OBJCOPY.$(lang)     = $(gnuroot)/arm-none-eabi-objcopy
+LIB_PFX.$(lang)     = lib
+LIB_SFX.$(lang)     = .a
+EXE_PFX.$(lang)     = 
+EXE_SFX.$(lang)     = 
+CFLAGS.$(lang)		= -c -o $@ 
+ARFLAGS.$(lang)		= -rscDv
+LDFLAGS.$(lang)		= -o $@
+LINTFLAGS.$(lang)	= 
+DOCFLAGS.$(lang)	= $(PROJECT)/proto/Doxyfile
 
 ## Define recipes in $(XMTBUILD)/proto/lang/$(LANGUAGE)/$(ARCH)
 ## after variables are further defined there 

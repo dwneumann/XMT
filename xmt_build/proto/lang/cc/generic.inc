@@ -1,5 +1,4 @@
 #************************************************************************
-#*   $Version:$
 #*   Package	: xmt_build
 #*   Synopsis	: included by $(XMTBUILD)/proto/Makefile.top
 #*   Purpose	: 
@@ -27,7 +26,7 @@
 
 #   := assignements are evaluated during lexical scan;
 #    = assignments are recursively evaluated during rule parsing
-lang	:= cc
+override lang	:= cc
 
 # we specifically do NOT want to recursively search below SRCDIR for sources
 # because there may be platfrorm-specific code in different subdirectories
@@ -62,8 +61,7 @@ ifneq ($(strip $(tpdir)),)
   thirdparty_objfiles	= $(patsubst  %,$(OBJDIR)/%,$(notdir $(thirdparty_cfiles:.$(lang)=.o)))
   thirdparty_objfiles	+= $(patsubst %,$(OBJDIR)/%,$(notdir $(thirdparty_sfiles:.s=.o)))
   thirdparty_objfiles	+= $(patsubst %,$(OBJDIR)/%,$(notdir $(thirdparty_Sfiles:.S=.o)))
-  vpath	%.$(lang) $(SRCDIR) $(thirdparty_cdirs)
-  vpath	%.c	$(SRCDIR) $(thirdparty_cdirs)
+  vpath	%.$(lang)	$(SRCDIR) $(thirdparty_cdirs)
   vpath	%.i	$(SRCDIR) $(thirdparty_cdirs)
   vpath	%.ln	$(SRCDIR) $(thirdparty_cdirs)
   vpath	%.html	$(SRCDIR) $(thirdparty_cdirs)
@@ -71,8 +69,7 @@ ifneq ($(strip $(tpdir)),)
   vpath	%.s	$(SRCDIR) $(thirdparty_sdirs)
   vpath	%.S	$(SRCDIR) $(thirdparty_Sdirs)
 else
-  vpath	%.$(lang) $(SRCDIR) 
-  vpath	%.c	$(SRCDIR) 
+  vpath	%.$(lang)	$(SRCDIR) 
   vpath	%.i	$(SRCDIR) 
   vpath	%.ln	$(SRCDIR) 
   vpath	%.html	$(SRCDIR) 
@@ -82,14 +79,28 @@ else
 endif
 
 #**********************************************************************
-# This is the place to define default flags and recipes
-# that are common to ALL target architectures for THIS language.
+# This is the place to define programs, flags and recipes
+# that are common to ALL target architectures for *THIS* language.
+# Language-specific values inherit from global (language-independent) defines
+# by default, but can be overridden in a project or package level Makefile
 #**********************************************************************
-CFLAGS.$(lang)		+=  -c -o $@ 
-ARFLAGS.$(lang)		+= 
-LDFLAGS.$(lang)		+= -o $@
-LINTFLAGS.$(lang)	+= $(CFLAGS.$(lang))
-DOCFLAGS.$(lang)	+= -o $@
+DOCER.$(lang)       = $(DOCER)
+LINTER.$(lang)      = $(LINTER)
+gnuroot             := /opt/gcc-arm-none-eabi-9-2019-q4-major/bin
+COMPILER.$(lang)    = $(gnuroot)/arm-none-eabi-gcc
+LINKER.$(lang)      = $(gnuroot)/arm-none-eabi-gcc
+ARCHIVER.$(lang)    = $(gnuroot)/arm-none-eabi-ar
+OBJCOPY.$(lang)     = $(gnuroot)/arm-none-eabi-objcopy
+LIB_PFX.$(lang)     = lib
+LIB_SFX.$(lang)     = .a
+EXE_PFX.$(lang)     =
+EXE_SFX.$(lang)     =
+CFLAGS.$(lang)      = -c -o $@
+ARFLAGS.$(lang)     = -rscDv
+LDFLAGS.$(lang)     = -o $@
+LINTFLAGS.$(lang)   = 
+DOCFLAGS.$(lang)    = $(PROJECT)/proto/Doxyfile
 
 ## Define recipes in $(XMTBUILD)/proto/lang/$(LANGUAGE)/$(ARCH)
-## after variables are further defined there 
+## after variables are further defined there
+

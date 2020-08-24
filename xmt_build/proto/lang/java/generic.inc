@@ -44,10 +44,10 @@ COMPILER.$(lang)	= /usr/bin/javac
 LINKER.$(lang)		= /bin/true
 ARCHIVER.$(lang)	= /usr/bin/jar
 OBJCOPY.$(lang)		= echo no objcopy for $(lang)
-CFLAGS.$(lang)		= -g -d $(OBJDIR) 
-LDFLAGS.$(lang)		= 
-ARFLAGS.$(lang)		= cf 
-LINTFLAGS.$(lang)	= 
-DOCFLAGS.$(lang)	= $(PROJECT)/proto/Doxyfile
+CFLAGS.$(lang)		+= -g -d $(OBJDIR) 
+LDFLAGS.$(lang)		+= 
+ARFLAGS.$(lang)		+= cf 
+LINTFLAGS.$(lang)	+= 
+DOCFLAGS.$(lang)	+= $(PROJECT)/proto/Doxyfile
 
 ## Define recipes in $(XMTBUILD)/proto/lang/$(LANGUAGE)/$(ARCH)

@@ -42,64 +42,64 @@ EXE_SFX.$(lang).$(arch)	=
 # This is the place to define default flags that are specific to THIS 
 # platform and THIS language.
 #**********************************************************************
-CFLAGS.$(lang).$(arch)  = -Wall -Wno-attributes -Wno-unused-function -Wno-unused-const-variable
-LDFLAGS.$(lang).$(arch)	= $(CFLAGS.$(lang).$(arch)) 
-ARFLAGS.$(lang).$(arch)	= -r
-LINTFLAGS.$(lang).$(arch)	= $(CFLAGS.$(lang).$(arch))
-DOCFLAGS.$(lang).$(arch)	= 
+CFLAGS.$(lang).$(arch)  += -Wall -Wno-attributes -Wno-unused-function -Wno-unused-const-variable
+LDFLAGS.$(lang).$(arch)	+= $(CFLAGS.$(lang).$(arch)) 
+ARFLAGS.$(lang).$(arch)	+= -r
+LINTFLAGS.$(lang).$(arch)	+= $(CFLAGS.$(lang).$(arch))
+DOCFLAGS.$(lang).$(arch)	+= 
 
 .PHONY: bin.$(lang).$(arch)
-bin.$(lang).$(arch):: exe.$(lang).$(arch)
+bin.$(lang).$(arch): exe.$(lang).$(arch)
 	$(OBJCOPY.$(lang).$(arch)) -O binary $(TGTDIR)/$(EXE_NM) $(TGTDIR)/$(PKG_NM).bin
 
 .PHONY: hex.$(lang).$(arch)
-hex.$(lang).$(arch):: exe.$(lang).$(arch)
+hex.$(lang).$(arch): exe.$(lang).$(arch)
 	$(OBJCOPY.$(lang).$(arch)) -O ihex $(TGTDIR)/$(EXE_NM) $(TGTDIR)/$(PKG_NM).hex
 
 .PHONY: analyze.$(lang).$(arch) 
-analyze.$(lang).$(arch) ::
+analyze.$(lang).$(arch) :
 	$(LINTER.$(LANGUAGE).$(ARCH))	\
 		$(LINTFLAGS) $(LINTFLAGS.$(LANGUAGE)) $(LINTFLAGS.$(LANGUAGE).$(ARCH))  \
 		$(srcs.$(lang)) $(hdrs.$(lang))
 
 .PHONY: docs.$(lang).$(arch) 
-docs.$(lang).$(arch) ::
+docs.$(lang).$(arch) :
 	$(DOCER.$(LANGUAGE).$(ARCH))	\
 		$(DOCFLAGS) $(DOCFLAGS.$(LANGUAGE)) $(DOCFLAGS.$(LANGUAGE).$(ARCH))
 
-$(OBJDIR)/%.o	:: %.s
+$(OBJDIR)/%.o	: %.s
 	@mkdir -p $(@D)
 	@echo $(CFLAGS) $(CFLAGS.$(lang)) $(CFLAGS.$(lang).$(arch)) > $@.cflags ; 
 	$(COMPILER.$(lang).$(arch)) @$@.cflags $< 
 
-$(OBJDIR)/%.o	:: %.$(lang)
+$(OBJDIR)/%.o	: %.$(lang)
 	@mkdir -p $(@D)
 	@echo $(CFLAGS) $(CFLAGS.$(lang)) $(CFLAGS.$(lang).$(arch)) > $@.cflags ; 
 	$(COMPILER.$(lang).$(arch)) @$@.cflags $< 
 
-$(OBJDIR)/%.i	:: $(SRCDIR)/%.$(lang)
+$(OBJDIR)/%.i	: $(SRCDIR)/%.$(lang)
 	@mkdir -p $(@D)
 	@echo -E $(CFLAGS) $(CFLAGS.$(lang)) $(CFLAGS.$(lang).$(arch)) > $@.cflags ; 
 	$(COMPILER.$(lang).$(arch)) @$@.cflags $< 
 
 .PHONY: lib.$(lang).$(arch)
-lib.$(lang).$(arch)::	$(TGTDIR)/$(LIB_NM)
-$(LIB_NM):: $(TGTDIR)/$(LIB_NM)
-$(TGTDIR)/$(LIB_NM):: $(objs.$(lang)) $(EXTRA_OBJS)
+lib.$(lang).$(arch):	$(TGTDIR)/$(LIB_NM)
+$(LIB_NM): $(TGTDIR)/$(LIB_NM)
+$(TGTDIR)/$(LIB_NM): $(objs.$(lang)) $(EXTRA_OBJS)
 	@mkdir -p $(@D)
 	@echo 	$(ARFLAGS) $(ARFLAGS.$(lang)) $(ARFLAGS.$(lang).$(arch)) > $@.arflags;
 	$(ARCHIVER.$(lang).$(arch)) @$@.arflags $@ $^ 	
 
 .PHONY: exe.$(lang).$(arch)
-exe.$(lang).$(arch)::	$(TGTDIR)/$(EXE_NM)
-$(EXE_NM):: $(TGTDIR)/$(EXE_NM)
-$(TGTDIR)/$(EXE_NM):: $(objs.$(lang)) $(EXTRA_OBJS) 
+exe.$(lang).$(arch):	$(TGTDIR)/$(EXE_NM)
+$(EXE_NM): $(TGTDIR)/$(EXE_NM)
+$(TGTDIR)/$(EXE_NM): $(objs.$(lang)) $(EXTRA_OBJS) 
 	@mkdir -p $(@D)
 	@echo $(LDFLAGS) $(LDFLAGS.$(lang)) $(LDFLAGS.$(lang).$(arch)) > $@.ldflags;
 	$(LINKER.$(lang).$(arch)) @$@.ldflags $^ \
 		$(LIBS) $(LIBS.$(lang)) $(LIBS.$(lang).$(arch)) 
 
 .PHONY: stflash
-stflash:: bin
+stflash: bin
 	st-flash write $(TGTDIR)/$(PKG_NM).bin 0x8000000
 

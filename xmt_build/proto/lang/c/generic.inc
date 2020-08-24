@@ -95,10 +95,10 @@ LIB_PFX.$(lang)		= lib
 LIB_SFX.$(lang)		= .a
 EXE_PFX.$(lang)		= 
 EXE_SFX.$(lang)		= .elf
-CFLAGS.$(lang)		= -c -o $@ 
-ARFLAGS.$(lang)		= -rscDv
-LDFLAGS.$(lang)		= -o $@
-LINTFLAGS.$(lang)	= 
-DOCFLAGS.$(lang)	= $(PROJECT)/proto/Doxyfile
+CFLAGS.$(lang)		+= -c -o $@ 
+ARFLAGS.$(lang)		+= -rscDv
+LDFLAGS.$(lang)		+= -o $@
+LINTFLAGS.$(lang)	+= 
+DOCFLAGS.$(lang)	+= $(PROJECT)/proto/Doxyfile
 
 ## Define recipes in $(XMTBUILD)/proto/lang/$(LANGUAGE)/$(ARCH)

@@ -94,10 +94,10 @@ DOCFLAGS	= $(PROJECT)/proto/Doxyfile
 
 
 .PHONY: all
-all::	$(PKG_TGT)
+all:	$(PKG_TGT)
 
 .PHONY: depend
-depend::	
+depend:	
 	(cd $(SRCDIR);                                                                  \
 	$(makedepend) -Y -p$(TGTDIR)/ -o.$(LANGUAGE).$(OBJ_SFX.$(LANGUAGE).$(ARCH)) --  \
 	$(CFLAGS) $(CFLAGS.$(LANGUAGE))                                                 \
@@ -105,35 +105,35 @@ depend::
 	>/dev/null 2>&1 )
 
 .PHONY: clean
-clean::
+clean:
 	-$(CMCLEANER.$(LANGUAGE).$(ARCH))
 
 .PHONY: sources
-sources::
+sources:
 	(cd $(SRCDIR); $(CMSOURCER.$(LANGUAGE).$(ARCH)))
 
 .PHONY: analyze
-analyze::	analyze.$(LANGUAGE).$(ARCH)
+analyze:	analyze.$(LANGUAGE).$(ARCH)
 .PHONY: docs
-docs::	docs.$(LANGUAGE).$(ARCH)
+docs:	docs.$(LANGUAGE).$(ARCH)
 .PHONY: lib
-lib::	lib.$(LANGUAGE).$(ARCH)
+lib:	lib.$(LANGUAGE).$(ARCH)
 .PHONY: exe
-exe::	exe.$(LANGUAGE).$(ARCH)
+exe:	exe.$(LANGUAGE).$(ARCH)
 .PHONY: bin
-bin::	bin.$(LANGUAGE).$(ARCH)
+bin:	bin.$(LANGUAGE).$(ARCH)
 .PHONY: hex
-hex::	hex.$(LANGUAGE).$(ARCH)
+hex:	hex.$(LANGUAGE).$(ARCH)
 .PHONY: objs
-objs::	$(objs.$(LANGUAGE)) $(EXTRA_OBJS)
+objs:	$(objs.$(LANGUAGE)) $(EXTRA_OBJS)
 
 
 ifneq "$(tgtdir)" "$(srcdir)"
-$(tgtdir)/%	::	$(srcdir)/%	; /bin/mv $< $@
+$(tgtdir)/%	:	$(srcdir)/%	; /bin/mv $< $@
 endif
 
 ifneq "$(docdir)" "$(srcdir)"
-$(docdir)/%	::	$(srcdir)/%	; /bin/mv $< $@
+$(docdir)/%	:	$(srcdir)/%	; /bin/mv $< $@
 endif
 
 #**********************************************************************
@@ -150,7 +150,7 @@ $(BUILD_PKGS):
 	$(MAKE) -w --always-make  -C $@ PWD=$@ build;
 
 .PHONY: build
-build::	$(BUILD_PKGS)
+build:	$(BUILD_PKGS)
 	$(MAKE) -w --always-make $(BUILD_TGT)
 
 #**********************************************************************
@@ -158,7 +158,7 @@ build::	$(BUILD_PKGS)
 # and flags to be used for the specified language and architecture.
 #**********************************************************************
 .PHONY: show printflags
-show printflags::	
+show printflags:	
 	@echo LANGUAGE          = $(LANGUAGE)
 	@echo ARCH              = $(ARCH)
 	@echo BUILD_CFG	        = $(XMTBUILD_CONFIG)
@@ -205,6 +205,6 @@ show printflags::
 
 # print the value of all variable MAKE knows about
 .PHONY: printall 
-printall ::
+printall :
 	@$(foreach V,$(sort $(.VARIABLES)), $(warning $V=$($V) ($(value $V))))
 

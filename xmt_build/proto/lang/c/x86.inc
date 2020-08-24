@@ -30,7 +30,7 @@ arch := x86
 DOCER.$(lang).$(arch)	= $(DOCER.$(lang))
 LINTER.$(lang).$(arch)	= $(LINTER.$(lang))
 COMPILER.$(lang).$(arch)= /usr/bin/gcc
-LINKER.$(lang).$(arch)= /usr/bin/ld
+LINKER.$(lang).$(arch)	= /usr/bin/ld
 ARCHIVER.$(lang).$(arch)= /usr/bin/ar
 OBJCOPY.$(lang).$(arch)	= echo no objcopy for $(arch)
 LIB_PFX.$(lang).$(arch)	= $(LIB_PFX).$(lang)
@@ -42,62 +42,62 @@ EXE_SFX.$(lang).$(arch)	=
 # This is the place to define default flags and recipes
 # that are specific to THIS target platform for THIS language.
 #**********************************************************************
-CFLAGS.$(lang).$(arch)= -Wall -Wno-strict-aliasing -Wno-write-strings 		\
+CFLAGS.$(lang).$(arch) += -Wall -Wno-strict-aliasing -Wno-write-strings 		\
 	-Wno-attributes -Wno-unused-function -Wno-unused-const-variable 			\
 	-std=gnu99 -g -MMD -MP														\
 	-isystem /usr/include/x86_64-linux-gnu
 
-LDFLAGS.$(lang).$(arch)		= -m32
-ARFLAGS.$(lang).$(arch)		= -r
-LINTFLAGS.$(lang).$(arch)	= 
-DOCFLAGS.$(lang).$(arch)	= 
+LDFLAGS.$(lang).$(arch)		+= -m32
+ARFLAGS.$(lang).$(arch)		+= -r
+LINTFLAGS.$(lang).$(arch)	+= 
+DOCFLAGS.$(lang).$(arch)	+= 
 
 .PHONY: bin.$(lang).$(arch)
-bin.$(lang).$(arch):: exe.$(lang).$(arch)
+bin.$(lang).$(arch): exe.$(lang).$(arch)
 	$(OBJCOPY.$(lang).$(arch)) -O binary $(TGTDIR)/$(EXE_NM) $(TGTDIR)/$(PKG_NM).bin
 
 .PHONY: hex.$(lang).$(arch)
-hex.$(lang).$(arch):: exe.$(lang).$(arch)
+hex.$(lang).$(arch): exe.$(lang).$(arch)
 	$(OBJCOPY.$(lang).$(arch)) -O ihex $(TGTDIR)/$(EXE_NM) $(TGTDIR)/$(PKG_NM).hex
 
 .PHONY: analyze.$(lang).$(arch) 
-analyze.$(lang).$(arch) ::
+analyze.$(lang).$(arch) :
 	$(LINTER.$(LANGUAGE).$(ARCH))	\
 		$(LINTFLAGS) $(LINTFLAGS.$(LANGUAGE)) $(LINTFLAGS.$(LANGUAGE).$(ARCH))  \
 		$(srcs.$(lang)) $(hdrs.$(lang))
 
 .PHONY: docs.$(lang).$(arch) 
-docs.$(lang).$(arch) ::
+docs.$(lang).$(arch) :
 	$(DOCER.$(LANGUAGE).$(ARCH))	\
 		$(DOCFLAGS) $(DOCFLAGS.$(LANGUAGE)) $(DOCFLAGS.$(LANGUAGE).$(ARCH))
 
-$(OBJDIR)/%.o	:: %.s
+$(OBJDIR)/%.o	: %.s
 	@mkdir -p $(@D)
 	@echo $(CFLAGS) $(CFLAGS.$(lang)) $(CFLAGS.$(lang).$(arch)) > $@.cflags ; 
 	$(COMPILER.$(lang).$(arch)) @$@.cflags $< 
 
-$(OBJDIR)/%.o	:: %.$(lang)
+$(OBJDIR)/%.o	: %.$(lang)
 	@mkdir -p $(@D)
 	@echo $(CFLAGS) $(CFLAGS.$(lang)) $(CFLAGS.$(lang).$(arch)) > $@.cflags ; 
 	$(COMPILER.$(lang).$(arch)) @$@.cflags $< 
 
-$(OBJDIR)/%.i	:: $(SRCDIR)/%.$(lang)
+$(OBJDIR)/%.i	: $(SRCDIR)/%.$(lang)
 	@mkdir -p $(@D)
 	@echo -E $(CFLAGS) $(CFLAGS.$(lang)) $(CFLAGS.$(lang).$(arch)) > $@.cflags ; 
 	$(COMPILER.$(lang).$(arch)) @$@.cflags $< 
 
 .PHONY: lib.$(lang).$(arch)
-lib.$(lang).$(arch)::	$(TGTDIR)/$(LIB_NM)
-$(LIB_NM):: $(TGTDIR)/$(LIB_NM)
-$(TGTDIR)/$(LIB_NM):: $(objs.$(lang)) $(EXTRA_OBJS)
+lib.$(lang).$(arch):	$(TGTDIR)/$(LIB_NM)
+$(LIB_NM): $(TGTDIR)/$(LIB_NM)
+$(TGTDIR)/$(LIB_NM): $(objs.$(lang)) $(EXTRA_OBJS)
 	@mkdir -p $(@D)
 	@echo 	$(ARFLAGS) $(ARFLAGS.$(lang)) $(ARFLAGS.$(lang).$(arch)) > $@.arflags;
 	$(ARCHIVER.$(lang).$(arch)) @$@.arflags $@ $^ 	
 
 .PHONY: exe.$(lang).$(arch)
-exe.$(lang).$(arch)::	$(TGTDIR)/$(EXE_NM)
-$(EXE_NM):: $(TGTDIR)/$(EXE_NM)
-$(TGTDIR)/$(EXE_NM):: $(objs.$(lang)) $(EXTRA_OBJS) 
+exe.$(lang).$(arch):	$(TGTDIR)/$(EXE_NM)
+$(EXE_NM): $(TGTDIR)/$(EXE_NM)
+$(TGTDIR)/$(EXE_NM): $(objs.$(lang)) $(EXTRA_OBJS) 
 	@mkdir -p $(@D)
 	@echo $(LDFLAGS) $(LDFLAGS.$(lang)) $(LDFLAGS.$(lang).$(arch)) > $@.ldflags;
 	$(LINKER.$(lang).$(arch)) @$@.ldflags $^ \

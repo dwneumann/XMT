@@ -33,34 +33,34 @@ arch := android
 #**********************************************************************
 DOCER.$(lang).$(arch)	= $(DOCER.$(lang))
 LINTER.$(lang).$(arch)	= $(LINTER.$(lang))
-COMPILER.$(lang).$(arch)	= $(COMPILER.$(lang))
+COMPILER.$(lang).$(arch)= $(COMPILER.$(lang))
 LINKER.$(lang).$(arch)	= $(LINKER.$(lang))
-ARCHIVER.$(lang).$(arch)	= $(ARCHIVER.$(lang))
+ARCHIVER.$(lang).$(arch)= $(ARCHIVER.$(lang))
 OBJCOPY.$(lang).$(arch)	= $(OBJCOPY.$(lang))
 
 #**********************************************************************
 # This is the place to define flags that are specific to THIS language
 # when compiled for THIS architecture.
 #**********************************************************************
-CFLAGS.$(lang).$(arch)		= -cp .:$(OBJDIR):$(ANDROID_HOME)/platforms/android-$(MIN_ANDROID_API)/android.jar
-LDFLAGS.$(lang).$(arch)		= 
-ARFLAGS.$(lang).$(arch)		= 
-LINTFLAGS.$(lang).$(arch)	= 
-DOCFLAGS.$(lang).$(arch)	= 
+CFLAGS.$(lang).$(arch)		+= -cp .:$(OBJDIR):$(ANDROID_HOME)/platforms/android-$(MIN_ANDROID_API)/android.jar
+LDFLAGS.$(lang).$(arch)		+= 
+ARFLAGS.$(lang).$(arch)		+= 
+LINTFLAGS.$(lang).$(arch)	+= 
+DOCFLAGS.$(lang).$(arch)	+= 
 LIB_PFX.$(lang).$(arch)		:= 
 LIB_SFX.$(lang).$(arch)		:= .jar
 EXE_PFX.$(lang).$(arch)		:= 
 EXE_SFX.$(lang).$(arch)		:= 
 
-$(JAVA_PKGROOT)/%.class:: $(SRCDIR)/$(JAVA_PKGROOT)/%.$(lang)
+$(JAVA_PKGROOT)/%.class: $(SRCDIR)/$(JAVA_PKGROOT)/%.$(lang)
 	@mkdir -p $(@D)
 	@mkdir -p $(OBJDIR)/$(JAVA_PKGROOT);
 	@echo	$(CFLAGS) $(CFLAGS.$(lang)) $(CFLAGS.$(lang).$(arch)) > $(OBJDIR)/$@.cflags ;
 	$(COMPILER.$(lang).$(arch))	@$(OBJDIR)/$@.cflags $<
 
-lib.$(lang).$(arch)::	$(TGTDIR)/$(LIB_NM)
-exe.$(lang).$(arch)::	$(TGTDIR)/$(LIB_NM)
-$(TGTDIR)/$(LIB_NM):: $(objs.$(lang)) 
+lib.$(lang).$(arch):	$(TGTDIR)/$(LIB_NM)
+exe.$(lang).$(arch):	$(TGTDIR)/$(LIB_NM)
+$(TGTDIR)/$(LIB_NM): $(objs.$(lang)) 
 	@mkdir -p $(@D)
 	(cd $(OBJDIR);  \
 	echo $(ARFLAGS) $(ARFLAGS.$(lang)) $(ARFLAGS.$(lang).$(arch)) > $(LIB_NM).arflags;\
@@ -68,7 +68,7 @@ $(TGTDIR)/$(LIB_NM):: $(objs.$(lang))
 	-/bin/mv $(OBJDIR)/$(LIB_NM) $(TGTDIR)/$(LIB_NM)
 
 .PHONY: docs.$(lang).$(arch) 
-docs.$(lang).$(arch) ::
+docs.$(lang).$(arch) :
 	$(DOCER.$(LANGUAGE).$(ARCH))	\
 		$(DOCFLAGS) $(DOCFLAGS.$(LANGUAGE)) $(DOCFLAGS.$(LANGUAGE).$(ARCH))
 

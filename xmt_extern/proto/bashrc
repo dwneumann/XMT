@@ -31,8 +31,9 @@
 export XMTEXT="${XMT}/xmt_extern"
 
 # additional paths installed under $XMTEXT, as described in $XMTEXT/README.md
+export GCCROOT=$XMTEXT/site/opt/gcc-arm-none-eabi
 export PYTHONPATH="${PYTHONPATH}:$XMTEXT/site/usr"
-export PATH="${PATH}:$XMTEXT/site/opt/gcc-arm-none-eabi-9-2020-q2-update/arm-none-eabi/bin:$XMTEXT/site/opt/gcc-arm-none-eabi-9-2020-q2-update/bin:$XMTEXT/site/usr/bin:$XMTEXT/site/usr/share/clang/scan-build-py-9/bin:$XMTEXT/site/usr/share/clang/scan-view-9/bin:$XMTEXT/site/usr/share/clang/scan-build-9/bin:$XMTEXT/site/usr/lib/llvm-9/bin"
-export LD_LIBRARY_PATH="${LD_LIBRARY_PATH}:$XMTEXT/site/opt/gcc-arm-none-eabi-9-2020-q2-update/lib:$XMTEXT/site/opt/gcc-arm-none-eabi-9-2020-q2-update/lib/gcc/arm-none-eabi/9.3.1:$XMTEXT/site/opt/gcc-arm-none-eabi-9-2020-q2-update/lib/gcc/arm-none-eabi/9.3.1/plugin:$XMTEXT/site/usr/lib/x86_64-linux-gnu:$XMTEXT/site/usr/lib/llvm-9/lib"
-export MANPATH="${MANPATH}:$XMTEXT/site/opt/gcc-arm-none-eabi-9-2020-q2-update/share/doc/gcc-arm-none-eabi/man:$XMTEXT/site/usr/share/man:$XMTEXT/site/usr/share/clang/scan-build-9/man:$XMTEXT/site/usr/lib/llvm-9/share/man"
-export MANPATH="${MANPATH}:$XMTEXT/site/opt/gcc-arm-none-eabi-9-2020-q2-update/share/doc/gcc-arm-none-eabi/man:$XMTEXT/site/usr/share/man:$XMTEXT/site/usr/share/clang/scan-build-9/man:$XMTEXT/site/usr/lib/llvm-9/share/man"
+
+export PATH=$XMTEXT/site/opt/gcc-arm-none-eabi-9-2020-q2-update/arm-none-eabi/bin:$XMTEXT/site/opt/gcc-arm-none-eabi-9-2020-q2-update/bin:$XMTEXT/site/usr/bin:$XMTEXT/site/usr/share/clang/scan-build-py-9/bin:$XMTEXT/site/usr/share/clang/scan-view-9/bin:$XMTEXT/site/usr/share/clang/scan-build-9/bin:$XMTEXT/site/usr/lib/llvm-9/bin:${PATH}
+export LD_LIBRARY_PATH=$XMTEXT/site/opt/SEGGER/JLink_V680:$XMTEXT/site/opt/SEGGER/JLink_V680/GDBServer:$XMTEXT/site/opt/SEGGER/JLink_V680/x86:$XMTEXT/site/opt/SEGGER/JLink_V680/ThirdParty:$XMTEXT/site/opt/gcc-arm-none-eabi-9-2020-q2-update/lib:$XMTEXT/site/opt/gcc-arm-none-eabi-9-2020-q2-update/lib/gcc/arm-none-eabi/9.3.1:$XMTEXT/site/opt/gcc-arm-none-eabi-9-2020-q2-update/lib/gcc/arm-none-eabi/9.3.1/plugin:$XMTEXT/site/usr/lib/x86_64-linux-gnu:$XMTEXT/site/usr/lib/llvm-9/lib:${LD_LIBRARY_PATH}
+export MANPATH=$XMTEXT/site/opt/gcc-arm-none-eabi-9-2020-q2-update/share/doc/gcc-arm-none-eabi/man:$XMTEXT/site/usr/share/man:$XMTEXT/site/usr/share/clang/scan-build-9/man:$XMTEXT/site/usr/lib/llvm-9/share/man:${MANPATH}

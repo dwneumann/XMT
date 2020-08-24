@@ -1,7 +1,7 @@
 #************************************************************************
-#*   Package	: xmt_build
-#*   Synopsis	: include $(XMTBUILD)/proto/Makefile.top
-#*   Purpose	: 
+#*   Package	:	xmt_build
+#*   Synopsis	:	include $(XMTBUILD)/proto/Makefile.top
+#*   Purpose	:	
 #*              This Makefile contains top-level standard make rules
 #*              and flags; ie those which are imposed upon all
 #*              projects undertaken within this organization. It is
@@ -35,8 +35,7 @@
 #   := assignements are evaluated once during lexical scan;
 #    = assignemnts are recursively evaluated during recipe execution
 #**********************************************************************
-shell		:= /bin/bash
-make		:= make
+SHELL		:= /bin/bash
 makedepend	:= makedepend
 supp_langs	:= $(notdir $(wildcard $(XMTBUILD)/proto/lang/*))
 allsrcs		= $(sort $(foreach e,$(supp_langs),$(srcs.$(e))))
@@ -69,8 +68,6 @@ LIB_NM      = $(LIB_PFX.$(LANGUAGE).$(ARCH))$(PKG_NM)$(LIB_SFX.$(LANGUAGE).$(ARC
 EXE_NM      = $(EXE_PFX.$(LANGUAGE).$(ARCH))$(PKG_NM)$(EXE_SFX.$(LANGUAGE).$(ARCH))
 LANGUAGE	= c
 BUILD_TGT	= all
-.DEFAULT	= build
-default:	build
 
 #**********************************************************************
 # This is the place to define flags that are common to ALL 
@@ -79,8 +76,9 @@ default:	build
 CFLAGS		=		
 LDFLAGS		=		
 ARFLAGS		=
-LINTFLAGS	=
+LINTFLAGS	= 
 DOCFLAGS	= $(PROJECT)/proto/Doxyfile
+
 
 #**********************************************************************
 # Now include:
@@ -89,61 +87,78 @@ DOCFLAGS	= $(PROJECT)/proto/Doxyfile
 # package-level ./Makefile.pkg
 # recursive variables are evaluated when a matching recipe is found.
 #**********************************************************************
-
 -include ./Makefile.pkg	
 -include $(PROJECT)/proto/Makefile.top
 -include $(XMTBUILD)/proto/lang/$(LANGUAGE)/generic.inc
 -include $(XMTBUILD)/proto/lang/$(LANGUAGE)/$(ARCH).inc
 
-all: $(PKG_TGT)
-depend: 
+
+.PHONY: all
+all::	$(PKG_TGT)
+
+.PHONY: depend
+depend::	
 	(cd $(SRCDIR);                                                                  \
 	$(makedepend) -Y -p$(TGTDIR)/ -o.$(LANGUAGE).$(OBJ_SFX.$(LANGUAGE).$(ARCH)) --  \
 	$(CFLAGS) $(CFLAGS.$(LANGUAGE))                                                 \
 	$(CFLAGS.$(LANGUAGE).$(ARCH)) $(notdir $(srcs.$(LANGUAGE)))                     \
 	>/dev/null 2>&1 )
 
-clean:
+.PHONY: clean
+clean::
 	-$(CMCLEANER.$(LANGUAGE).$(ARCH))
 
-sources:	
+.PHONY: sources
+sources::
 	(cd $(SRCDIR); $(CMSOURCER.$(LANGUAGE).$(ARCH)))
 
-lint: lint.$(LANGUAGE).$(ARCH)
-
-docs: docs.$(LANGUAGE).$(ARCH)
-
-objs:   $(objs.$(LANGUAGE)) $(EXTRA_OBJS)
-lib:	.lib.$(LANGUAGE)
-exe:	.exe.$(LANGUAGE)
+.PHONY: analyze
+analyze::	analyze.$(LANGUAGE).$(ARCH)
+.PHONY: docs
+docs::	docs.$(LANGUAGE).$(ARCH)
+.PHONY: lib
+lib::	lib.$(LANGUAGE).$(ARCH)
+.PHONY: exe
+exe::	exe.$(LANGUAGE).$(ARCH)
+.PHONY: bin
+bin::	bin.$(LANGUAGE).$(ARCH)
+.PHONY: hex
+hex::	hex.$(LANGUAGE).$(ARCH)
+.PHONY: objs
+objs::	$(objs.$(LANGUAGE)) $(EXTRA_OBJS)
 
 
 ifneq "$(tgtdir)" "$(srcdir)"
-$(tgtdir)/%	:: $(srcdir)/%	; /bin/mv $< $@
+$(tgtdir)/%	::	$(srcdir)/%	; /bin/mv $< $@
 endif
+
 ifneq "$(docdir)" "$(srcdir)"
-$(docdir)/%	:: $(srcdir)/%	; /bin/mv $< $@
+$(docdir)/%	::	$(srcdir)/%	; /bin/mv $< $@
 endif
 
 #**********************************************************************
 # "build" recursively makes all packages upon which a package
-# depends, (as specified by the variable $(BUILD_PKGS),  then makes
-# the target defined by variable $(BUILD_TGT) in the package
-# itself.
+# depends, (those listed in variable $(BUILD_PKGS),  then makes
+# that target defined by variable $(BUILD_TGT) in the package itself.
+# This is how you build an arbitrarily deep project heirarchy 
+# with one top-level "make build".
 #**********************************************************************
 ifneq "$(strip $(BUILD_PKGS))" ""
-reqd_pkgs := $(BUILD_PKGS)
-$(reqd_pkgs):
-	$(make) -w --always-make  -C $@ PWD=$@ build;
+	reqd_pkgs := $(BUILD_PKGS)
 endif
-build: $(reqd_pkgs)
-	$(make) -w --always-make $(BUILD_TGT)
+$(BUILD_PKGS):
+	$(MAKE) -w --always-make  -C $@ PWD=$@ build;
+
+.PHONY: build
+build::	$(BUILD_PKGS)
+	$(MAKE) -w --always-make $(BUILD_TGT)
 
 #**********************************************************************
 # "printflags" (or "show") simply echoes the value of the programs
 # and flags to be used for the specified language and architecture.
 #**********************************************************************
-show printflags: 
+.PHONY: show printflags
+show printflags::	
 	@echo LANGUAGE          = $(LANGUAGE)
 	@echo ARCH              = $(ARCH)
 	@echo BUILD_CFG	        = $(XMTBUILD_CONFIG)
@@ -189,5 +204,7 @@ show printflags:
 	@echo
 
 # print the value of all variable MAKE knows about
-printall :
+.PHONY: printall 
+printall ::
 	@$(foreach V,$(sort $(.VARIABLES)), $(warning $V=$($V) ($(value $V))))
+

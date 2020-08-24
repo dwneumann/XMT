@@ -2,9 +2,9 @@
 #*   Package	: xmt_build
 #*   Synopsis	: included by $(XMTBUILD)/proto/Makefile.top
 #*   Purpose	: 
-#*              This Makefile segment adds language support to
-#*              $(XMTBUILD)/proto/Makefile.top
-#*              It is intended to be included by that file only.
+#*			  This Makefile segment adds language support to
+#*			  $(XMTBUILD)/proto/Makefile.top
+#*			  It is intended to be included by that file only.
 #*
 #*   To add support for a new target architecture,  clone any existing
 #*   <architecture>.inc file & alter program paths & flags appropriately.
@@ -25,7 +25,7 @@
 #************************************************************************
 
 #   := assignements are evaluated during lexical scan;
-#    = assignments are recursively expanded during rule parsing
+#	= assignments are recursively expanded during rule parsing
 override lang	:= java
 
 srcs.$(lang)	= $(wildcard $(SRCDIR)/$(JAVA_PKGROOT)/*.$(lang))
@@ -38,17 +38,16 @@ lnts.$(lang)	=
 # This is the place to define default flags that are common to ALL 
 # supported architectures for THIS language.
 #**********************************************************************
-DOCER.$(lang)       = $(DOCER)
-LINTER.$(lang)      = 
-COMPILER.$(lang)    = /usr/bin/javac
-LINKER.$(lang)      = /bin/true
-ARCHIVER.$(lang)    = /usr/bin/jar
-OBJCOPY.$(lang)     = echo no objcopy for $(lang)
-CFLAGS.$(lang)	    = -g -d $(OBJDIR) 
-LDFLAGS.$(lang)	    = 
-ARFLAGS.$(lang)	    = cf 
+DOCER.$(lang)		= $(DOCER)
+LINTER.$(lang)		= 
+COMPILER.$(lang)	= /usr/bin/javac
+LINKER.$(lang)		= /bin/true
+ARCHIVER.$(lang)	= /usr/bin/jar
+OBJCOPY.$(lang)		= echo no objcopy for $(lang)
+CFLAGS.$(lang)		= -g -d $(OBJDIR) 
+LDFLAGS.$(lang)		= 
+ARFLAGS.$(lang)		= cf 
 LINTFLAGS.$(lang)	= 
 DOCFLAGS.$(lang)	= $(PROJECT)/proto/Doxyfile
 
 ## Define recipes in $(XMTBUILD)/proto/lang/$(LANGUAGE)/$(ARCH)
-## after variables are further defined there 

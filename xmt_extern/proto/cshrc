@@ -33,9 +33,14 @@ endif
 if ( ! $?MANPATH ) then
      setenv MANPATH /usr/share/man
 endif
+if ( ! $?PYTHONPATH ) then
+     setenv PYTHONPATH "/usr/lib/python2.7"
+endif
 setenv XMTEXT	        "$XMT/xmt_extern"
 
 # additional paths installed under $XMTEXT, as described in $XMTEXT/README.md
-setenv PATH "${PATH}:$XMTEXT/usr/bin:$XMTEXT/usr/share/clang/scan-build-py-9/bin:$XMTEXT/usr/share/clang/scan-view-9/bin:$XMTEXT/usr/share/clang/scan-build-9/bin:$XMTEXT/usr/lib/llvm-9/bin"
-setenv LD_LIBRARY_PATH "${LD_LIBRARY_PATH}:$XMTEXT/usr/lib/x86_64-linux-gnu:$XMTEXT/usr/lib/llvm-9/lib"
-setenv MANPATH "${LD_LIBRARY_PATH}:$XMTEXT/usr/share/man:$XMTEXT/usr/share/clang/scan-build-9/man:$XMTEXT/usr/lib/llvm-9/share/man"
+setenv PYTHONPATH "${PYTHONPATH}:$XMTEXT/site/usr"
+setenv PATH "${PATH}:$XMTEXT/site/opt/gcc-arm-none-eabi-9-2020-q2-update/arm-none-eabi/bin:$XMTEXT/site/opt/gcc-arm-none-eabi-9-2020-q2-update/bin:$XMTEXT/site/usr/bin:$XMTEXT/site/usr/share/clang/scan-build-py-9/bin:$XMTEXT/site/usr/share/clang/scan-view-9/bin:$XMTEXT/site/usr/share/clang/scan-build-9/bin:$XMTEXT/site/usr/lib/llvm-9/bin"
+setenv LD_LIBRARY_PATH "${LD_LIBRARY_PATH}:$XMTEXT/site/opt/gcc-arm-none-eabi-9-2020-q2-update/lib:$XMTEXT/site/opt/gcc-arm-none-eabi-9-2020-q2-update/lib/gcc/arm-none-eabi/9.3.1:$XMTEXT/site/opt/gcc-arm-none-eabi-9-2020-q2-update/lib/gcc/arm-none-eabi/9.3.1/plugin:$XMTEXT/site/usr/lib/x86_64-linux-gnu:$XMTEXT/site/usr/lib/llvm-9/lib"
+setenv MANPATH "${LD_LIBRARY_PATH}:$XMTEXT/site/opt/gcc-arm-none-eabi-9-2020-q2-update/share/doc/gcc-arm-none-eabi/man:$XMTEXT/site/usr/share/man:$XMTEXT/site/usr/share/clang/scan-build-9/man:$XMTEXT/site/usr/lib/llvm-9/share/man"
+setenv MANPATH "${LD_LIBRARY_PATH}:$XMTEXT/site/opt/gcc-arm-none-eabi-9-2020-q2-update/share/doc/gcc-arm-none-eabi/man:$XMTEXT/site/usr/share/man:$XMTEXT/site/usr/share/clang/scan-build-9/man:$XMTEXT/site/usr/lib/llvm-9/share/man"

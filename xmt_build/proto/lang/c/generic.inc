@@ -2,8 +2,8 @@
 #*   Package	: xmt_build
 #*   Synopsis	: included by $(XMTBUILD)/proto/Makefile.top
 #*   Purpose	: 
-#*              This Makefile segment adds language support to
-#*              $(XMTBUILD)/proto/Makefile.top
+#*			  This Makefile segment adds language support to
+#*			  $(XMTBUILD)/proto/Makefile.top
 #*
 #*   To add support for a new target architecture,  clone any existing
 #*   <architecture>.inc file & alter program paths & flags appropriately.
@@ -25,8 +25,8 @@
 
 
 #   := assignements are evaluated during lexical scan;
-#    = assignments are recursively evaluated during rule parsing
-override lang	:= c
+#	= assignments are recursively evaluated during rule parsing
+lang	:= c
 
 # we specifically do NOT want to recursively search below SRCDIR for sources
 # because there may be platform-specific code in different subdirectories
@@ -84,17 +84,17 @@ endif
 # Language-specific values inherit from global (language-independent) defines
 # by default, but can be overridden in a project or package level Makefile
 #**********************************************************************
-DOCER.$(lang)       = $(DOCER)
-LINTER.$(lang)      = $(LINTER)
-gnuroot			    := /opt/gcc-arm-none-eabi-9-2019-q4-major/bin
-COMPILER.$(lang)    = $(gnuroot)/arm-none-eabi-gcc
+DOCER.$(lang)		= $(DOCER)
+LINTER.$(lang)		= $(LINTER)
+gnuroot				:= $(XMTEXT)/site/opt/gcc-arm-none-eabi/bin
+COMPILER.$(lang)	= $(gnuroot)/arm-none-eabi-gcc
 LINKER.$(lang)  	= $(gnuroot)/arm-none-eabi-gcc
 ARCHIVER.$(lang)  	= $(gnuroot)/arm-none-eabi-ar
-OBJCOPY.$(lang)     = $(gnuroot)/arm-none-eabi-objcopy
-LIB_PFX.$(lang)     = lib
-LIB_SFX.$(lang)     = .a
-EXE_PFX.$(lang)     = 
-EXE_SFX.$(lang)     = 
+OBJCOPY.$(lang)		= $(gnuroot)/arm-none-eabi-objcopy
+LIB_PFX.$(lang)		= lib
+LIB_SFX.$(lang)		= .a
+EXE_PFX.$(lang)		= 
+EXE_SFX.$(lang)		= .elf
 CFLAGS.$(lang)		= -c -o $@ 
 ARFLAGS.$(lang)		= -rscDv
 LDFLAGS.$(lang)		= -o $@
@@ -102,4 +102,3 @@ LINTFLAGS.$(lang)	=
 DOCFLAGS.$(lang)	= $(PROJECT)/proto/Doxyfile
 
 ## Define recipes in $(XMTBUILD)/proto/lang/$(LANGUAGE)/$(ARCH)
-## after variables are further defined there 

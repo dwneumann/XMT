@@ -14,27 +14,10 @@
 "*  See the License for the specific language governing permissions and
 "*  limitations under the License. 
 "************************************************************************
-so $XMTEDIT/proto/vim/c.vim
+so $XMTEDIT/proto/vim/ctrl-X.vim
 
 "************************************************************************
 " In addition to standard ^X mappings:
 " Command mode key mappings:            Insert mode key mappings:
-"************************************************************************
-"************************************************************************
-" unmap mappings inherited from c.vim but not used in Perl
-"************************************************************************
-unmap  <C-X>#
-unmap  <C-X><C-A>
-unmap  <C-X><C-L>
-unmap  <C-X>e
-unmap  <C-X>f
-
-unmenu XMT.Renumber\ Constants
-unmenu XMT.Alphebetize\ Declarations
-unmenu XMT.Function
-unmenu XMT.Cscope
-
-"************************************************************************
-" remap these differently than c.vim
 "************************************************************************
 imap <C-X>c	<CR>#<CR># <CR>#<ESC>-A

@@ -15,6 +15,7 @@
 "*  limitations under the License. 
 "************************************************************************
 so $XMTEDIT/proto/vim/ctrl-X.vim
+set expandtab
 set wm=0 ai
 ab #d 	#define
 ab #e 	#endif

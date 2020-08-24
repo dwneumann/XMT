@@ -2,8 +2,8 @@
 #*   Package	: xmt_build
 #*   Synopsis	: included by $(XMTBUILD)/proto/lang/<language>/generic.inc
 #*   Purpose	: 
-#*              This Makefile segment adds architecture support to
-#*              $(XMTBUILD)/proto/lang/<language>/generic.inc
+#*			  This Makefile segment adds architecture support to
+#*			  $(XMTBUILD)/proto/lang/<language>/generic.inc
 #*
 #*   To add support for a new target architecture,  clone any existing
 #*   <architecture>.inc file & alter program paths & flags appropriately.
@@ -23,15 +23,14 @@
 #*  limitations under the License. 
 #************************************************************************
 
-override lang := c
-override arch := SunOS-sparc
+arch := SunOS-sparc
 #**********************************************************************
 # define program paths...
 #**********************************************************************
 DOCER.$(lang).$(arch)	= $(DOCER.$(lang))
 LINTER.$(lang).$(arch)	= $(LINTER.$(lang))
 COMPILER.$(lang).$(arch)= /usr/local/bin/gcc
-LINKER.$(lang).$(arch)  = /usr/local/bin/gcc
+LINKER.$(lang).$(arch)= /usr/local/bin/gcc
 ARCHIVER.$(lang).$(arch)= /usr/local/bin/gcc
 OBJCOPY.$(lang).$(arch)	= echo no objcopy for $(arch)
 LIB_PFX.$(lang).$(arch)	= $(LIB_PFX).$(lang)
@@ -44,53 +43,64 @@ EXE_SFX.$(lang).$(arch)	=
 # platform and THIS language.
 #**********************************************************************
 
-CFLAGS.$(lang).$(arch)	    = -Wall -Wno-attributes -Wno-unused-function -Wno-unused-const-variable -fpic 
-LDFLAGS.$(lang).$(arch)	    = 
-ARFLAGS.$(lang).$(arch)	    = -shared 
+CFLAGS.$(lang).$(arch)		= -Wall -Wno-attributes -Wno-unused-function -Wno-unused-const-variable -fpic 
+LDFLAGS.$(lang).$(arch)		= 
+ARFLAGS.$(lang).$(arch)		= -shared 
 LINTFLAGS.$(lang).$(arch)	= 
 DOCFLAGS.$(lang).$(arch)	= 
 
-lint.$(lang).$(arch) :
-	$(LINTER.$(LANGUAGE).$(ARCH))    \
-        $(LINTFLAGS) $(LINTFLAGS.$(LANGUAGE)) $(LINTFLAGS.$(LANGUAGE).$(ARCH))  \
-        $(srcs.$(lang)) $(hdrs.$(lang))
-    
-docs.$(lang).$(arch) :
-	$(DOCER.$(LANGUAGE).$(ARCH))    \
-        $(DOCFLAGS) $(DOCFLAGS.$(LANGUAGE)) $(DOCFLAGS.$(LANGUAGE).$(ARCH))
+.PHONY: bin.$(lang).$(arch)
+bin.$(lang).$(arch):: exe.$(lang).$(arch)
+	$(OBJCOPY.$(lang).$(arch)) -O binary $(TGTDIR)/$(EXE_NM) $(TGTDIR)/$(PKG_NM).bin
 
-$(OBJDIR)/%.o	: %.s
+.PHONY: hex.$(lang).$(arch)
+hex.$(lang).$(arch):: exe.$(lang).$(arch)
+	$(OBJCOPY.$(lang).$(arch)) -O ihex $(TGTDIR)/$(EXE_NM) $(TGTDIR)/$(PKG_NM).hex
+
+.PHONY: analyze.$(lang).$(arch) 
+analyze.$(lang).$(arch) ::
+	$(LINTER.$(LANGUAGE).$(ARCH))	\
+		$(LINTFLAGS) $(LINTFLAGS.$(LANGUAGE)) $(LINTFLAGS.$(LANGUAGE).$(ARCH))  \
+		$(srcs.$(lang)) $(hdrs.$(lang))
+
+.PHONY: docs.$(lang).$(arch) 
+docs.$(lang).$(arch) ::
+	$(DOCER.$(LANGUAGE).$(ARCH))	\
+		$(DOCFLAGS) $(DOCFLAGS.$(LANGUAGE)) $(DOCFLAGS.$(LANGUAGE).$(ARCH))
+
+$(OBJDIR)/%.o	:: %.s
 	@mkdir -p $(@D)
 	@echo $(CFLAGS) $(CFLAGS.$(lang)) $(CFLAGS.$(lang).$(arch)) > $@.cflags ; 
 	$(COMPILER.$(lang).$(arch)) @$@.cflags $< 
 
-$(OBJDIR)/%.o	: %.$(lang)
+$(OBJDIR)/%.o	:: %.$(lang)
 	@mkdir -p $(@D)
 	@echo $(CFLAGS) $(CFLAGS.$(lang)) $(CFLAGS.$(lang).$(arch)) > $@.cflags ; 
 	$(COMPILER.$(lang).$(arch)) @$@.cflags $< 
 
-$(OBJDIR)/%.i	: $(SRCDIR)/%.$(lang)
+$(OBJDIR)/%.i	:: $(SRCDIR)/%.$(lang)
 	@mkdir -p $(@D)
 	@echo -E $(CFLAGS) $(CFLAGS.$(lang)) $(CFLAGS.$(lang).$(arch)) > $@.cflags ; 
 	$(COMPILER.$(lang).$(arch)) @$@.cflags $< 
 
-$(DOCDIR)/%.html: $(SRCDIR)/%.$(lang)
-	@mkdir -p $(@D)
-	@echo $(DOCFLAGS) $(DOCFLAGS.$(lang)) $(DOCFLAGS.$(lang).$(arch)) > $@.docflags ; 
-	$(DOC.$(lang).$(arch)) @$@.docflags $< 
-
-.lib.$(lang):	$(TGTDIR)/$(LIB_NM)
-$(LIB_NM): $(TGTDIR)/$(LIB_NM)
-$(TGTDIR)/$(LIB_NM): $(objs.$(lang)) $(EXTRA_OBJS)
+.PHONY: lib.$(lang).$(arch)
+lib.$(lang).$(arch)::	$(TGTDIR)/$(LIB_NM)
+$(LIB_NM):: $(TGTDIR)/$(LIB_NM)
+$(TGTDIR)/$(LIB_NM):: $(objs.$(lang)) $(EXTRA_OBJS)
 	@mkdir -p $(@D)
 	@echo 	$(ARFLAGS) $(ARFLAGS.$(lang)) $(ARFLAGS.$(lang).$(arch)) > $@.arflags;
 	$(ARCHIVER.$(lang).$(arch)) @$@.arflags $@ $^ 	
 
-.exe.$(lang):	$(TGTDIR)/$(EXE_NM)
-$(EXE_NM): $(TGTDIR)/$(EXE_NM)
-$(TGTDIR)/$(EXE_NM): $(objs.$(lang)) $(EXTRA_OBJS) 
+.PHONY: exe.$(lang).$(arch)
+exe.$(lang).$(arch)::	$(TGTDIR)/$(EXE_NM)
+$(EXE_NM):: $(TGTDIR)/$(EXE_NM)
+$(TGTDIR)/$(EXE_NM):: $(objs.$(lang)) $(EXTRA_OBJS) 
 	@mkdir -p $(@D)
 	@echo $(LDFLAGS) $(LDFLAGS.$(lang)) $(LDFLAGS.$(lang).$(arch)) > $@.ldflags;
 	$(LINKER.$(lang).$(arch)) @$@.ldflags $^ \
-	    $(LIBS) $(LIBS.$(lang)) $(LIBS.$(lang).$(arch)) 
+		$(LIBS) $(LIBS.$(lang)) $(LIBS.$(lang).$(arch)) 
+
+.PHONY: stflash
+stflash:: bin
+	st-flash write $(TGTDIR)/$(PKG_NM).bin 0x8000000
 

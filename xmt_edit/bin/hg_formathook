@@ -13,7 +13,7 @@ use strict;
 use Getopt::Long;
 use Env;
 
-my $cmd = 'clang-format -i --verbose';
+my $cmd = 'clang-format -i ';
 my $ptn = '.*\.(c|h|cpp)$';      # format only these file types
 
 my @allfiles = split ' ', `hg log -r$HG_NODE --template="{files}\n"`;

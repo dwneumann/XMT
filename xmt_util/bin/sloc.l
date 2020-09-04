@@ -19,6 +19,7 @@
 #define FALSE 0
 
 int	num_cmts	= 0;
+int	num_logs	= 0;
 int	num_diags	= 0;
 int	num_asserts	= 0;
 int	num_slocs	= 0;
@@ -29,13 +30,17 @@ int	in_cmt		= 0;
 
 %%
 
-\/\*		{ in_cmt = TRUE; ++num_cmts; }
-\*\/		{ in_cmt = FALSE; } 
-\/\/.*		{ ++num_cmts; }
-"ML_LOG_MSG"|"ML_LOG_ERROR_MSG"		{ if ( !in_cmt ) ++num_diags; }
-"ML_ASSERT_MSG"|"ML_ASSERT_MSG_FMT"	{ if ( !in_cmt ) ++num_asserts; }
-";"		{ if ( !in_cmt ) ++num_slocs; }
-\n		{ ++total_lines; }
+\/\*		        { in_cmt = TRUE; ++num_cmts; }
+\*\/		        { in_cmt = FALSE; } 
+\/\/.*		        { ++num_cmts; }
+"LogAlarm"|"LogEvent"|"LogError"|"LogException"|"LogMessage"    { if ( !in_cmt ) ++num_logs; }
+"LogCallback"|"Log::format"|"LogStreamEvent"                    { if ( !in_cmt ) ++num_logs; }
+"Logf"|"LogHex"|"LogV"|"DoLog"|"AppLog"|"ilog_Log"|"ilog_Error"	{ if ( !in_cmt ) ++num_logs; }
+"IapiLog"|"Log"	{ if ( !in_cmt ) ++num_logs; }
+"DIAG_TRACE"        { if ( !in_cmt ) ++num_diags; }
+"ASSERT"|"assert"	{ if ( !in_cmt ) ++num_asserts; }
+";"		            { if ( !in_cmt ) ++num_slocs; }
+\n		            { ++total_lines; }
 .		;
 
 %%
@@ -45,31 +50,29 @@ yywrap()
 extern char csv_mode;
     if ( csv_mode )
     {
-	printf( "%d,%d,%d,%d,%d,%.1f,%.1f,%.1f\n", 
-	    num_slocs, num_cmts, num_diags, num_asserts, total_lines, 
-		( num_slocs == 0 ? 0 :
-		((float) num_cmts / (float) num_slocs ) * 1000 ),
-		( num_slocs == 0 ? 0 :
-		((float) num_diags / (float) num_slocs ) * 1000 ),
-		( num_slocs == 0 ? 0 :
-		((float) num_asserts / (float) num_slocs ) * 1000 ) );
+	printf( "%d,%d,%d,%d,%d,%d,%.1f,%.1f,%.1f,%.1f\n", 
+	    num_slocs, num_cmts, num_logs, num_diags, num_asserts, total_lines, 
+		( num_slocs == 0 ? 0 : ((float) num_cmts / (float) num_slocs ) * 1000 ),
+		( num_slocs == 0 ? 0 : ((float) num_logs / (float) num_slocs ) * 1000 ),
+		( num_slocs == 0 ? 0 : ((float) num_diags / (float) num_slocs ) * 1000 ),
+		( num_slocs == 0 ? 0 : ((float) num_asserts / (float) num_slocs ) * 1000 ) );
     }
     else
     {
 	printf( "Source Lines of Code:\t\t%d\n", num_slocs );
 	printf( "comments:\t\t\t%d\n", num_cmts );
+	printf( "run-time logging stmts:\t\t%d\n", num_logs );
 	printf( "run-time diagnostics:\t\t%d\n", num_diags );
 	printf( "assertions:\t\t\t%d\n", num_asserts );
-	printf( "total lines:\t\t%d\n", total_lines );
+	printf( "total lines:\t\t\t%d\n", total_lines );
 	printf( "comments per thousand SLOCs:\t%.1f\n", 
-		( num_slocs == 0 ? 0 :
-		((float) num_cmts / (float) num_slocs ) * 1000 ));
+		( num_slocs == 0 ? 0 : ((float) num_cmts / (float) num_slocs ) * 1000 ));
+	printf( "logging statements per thousand SLOCs:\t%.1f\n", 
+		( num_slocs == 0 ? 0 : ((float) num_logs / (float) num_slocs ) * 1000 ));
 	printf( "diagnostics per thousand SLOCs:\t%.1f\n", 
-		( num_slocs == 0 ? 0 :
-		((float) num_diags / (float) num_slocs ) * 1000 ));
+		( num_slocs == 0 ? 0 : ((float) num_diags / (float) num_slocs ) * 1000 ));
 	printf( "assertions per thousand SLOCs:\t%.1f\n", 
-		( num_slocs == 0 ? 0 :
-		((float) num_asserts / (float) num_slocs ) * 1000 ));
+		( num_slocs == 0 ? 0 : ((float) num_asserts / (float) num_slocs ) * 1000 ));
 
     }
     return( 1 );

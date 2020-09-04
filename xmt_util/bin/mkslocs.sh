@@ -20,4 +20,4 @@
 flex sloc.l
 perl sloc.pl < lex.yy.c > sloc.c
 gcc sloc.c -o sloc
-mv sloc.exe sloc
+[ -e sloc.exe  ] && mv sloc.exe sloc

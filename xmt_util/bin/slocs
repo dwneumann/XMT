@@ -2,12 +2,16 @@
 #************************************************************************
 #*   $Version:$
 #*   Package	: xmt_util
-#*   Synopsis	: slocs [-v] [-csv] [-f <filespec>] <dir> ...
+#*   Synopsis	: slocs [-v] [-csv] [-fi <regex>] [-fx <regex>] [-cx <regex>] [-fl <file>] <dir> ...
 #*		 e.g.  slocs -f '*.java' src/
 #*   Purpose	: 
 #*	Perform source code metrics counts on all files matching the 
-#*	pattern <filespec> in each directory <dir> and all subdirectories 
-#*	recursively.  If omitted, <filespec> defaults to "*"
+#*	pattern -f <regex> in each directory <dir> and all subdirectories 
+#*  recursively, excluding those files and directories that match the regex
+#*  pattern specified by -xf.  If -f and -xf are omitted,  all .c, .h, .cpp
+#*  and .hpp files that do not include "test" in the basename are included.
+#*  If -xc <regex> is specified all files which contain the pattern <regex> within
+#*  their content are also excluded (e.g. -xc "GNU General Public License").
 #*	If [-v] is specified each file and its metrics is echoed to stdout.
 #*	If [-csv] is specified metrics are output in csv format.
 #*
@@ -26,74 +30,114 @@
 
 use Getopt::Long;
 use Cwd;
+use List::Util 'sum';
 
 ($pgmname = $0) =~ s{.*/}{};
-my $usage		= "usage: $pgmname [-v] [-csv] [-f '<filespec>'] <dir> ...\n";
+my $usage		= "usage: $pgmname [-v] [-csv] [-fi <regex>] [-fx <regex>] [-cx <regex>] [-fl <file>] <dir> ...\n";
 my $help		= <<"END_HELP";
 	$usage
-	Perform source code metrics counts on all files matching the 
-	perl regex pattern <filespec> in each directory <dir> and all subdirectories 
-	recursively.   Aggregated statistics are written to stdout.
-	If omitted, <filespec> defaults to '\.(c|h|cpp|hpp)$'
+	Aggregate source code metrics on all files matching the 
+	pattern -fi <regex> in each directory <dir> and all subdirectories 
+	recursively, excluding those files and directories that match the regex
+	pattern specified by -fx.  
+	-fi <regex> defaults to '\.(c|h|cpp|hpp)$' 
+	-fx <regex> defaults to 'test'.
+	(i.e. all .c, .h, .cpp and .hpp files that do not include "test" in the basename).
+	If -cx <regex> is specified all files which contain the pattern <regex> within
+	their content are also excluded (e.g. -cx "GNU General Public License").
+	If -fl <file> is specified, the list of files to process is read from the specified file
+	(e.g. find . -name "*.[ch]" -o -name "test" -prune > files.txt;  slocs -fl files.txt)
+	Aggregated statistics are written to stdout.
 	If [-v] is specified each file and its metrics is echoed to stdout (unaggregated).
 	If [-csv] is specified the output is generated in csv format.
 END_HELP
 
-undef $opt_u;		# unnecessary but shuts up -w
-undef $opt_help;	# unnecessary but shuts up -w
-undef $opt_v;		# unnecessary but shuts up -w
-undef $opt_csv;		# unnecessary but shuts up -w
+# unnecessary but shuts up -w
+undef $opt_u;		
+undef $opt_help;	
+undef $opt_v;		
+undef $opt_csv;		
+undef $opt_cx;		
+undef $opt_fl;		
+undef $opt_fi;		
+undef $opt_fx;		
 
-$opt_fileptn	= '\.(c|h|cpp|hpp)$';
-
-GetOptions( "u", "v", "help", "csv", "f=s" ) || die $usage;
+GetOptions( "u", "v", "help", "csv", "fl=s", "fi=s", "fx=s", "cx=s" ) || die $usage;
 die $usage if defined $opt_u;
 die $help if defined $opt_help;
-die $usage if $#ARGV < 0;
+die "cannot specify both -fl and -fi\n" if defined $opt_fl and defined $opt_fi;
+die "cannot specify both -fl and -fx\n" if defined $opt_fl and defined $opt_fx;
 STDOUT->autoflush(1);
 
+my $opt_fi	= '\.(c|h|cpp|hpp)$' if !defined $opt_fi;
+my $opt_fx	= 'test';
 my $cmd = ( defined $opt_csv ? "sloc -csv" : "sloc" );
-my $field_separator = ( defined $opt_csv ? "," : ":\n" );
+my $field_separator = ( defined $opt_csv ? "," : ":" );
 my $csv_headings = 'File,' . `sloc < /dev/null`;
 $csv_headings =~ s/:[^\n]*\n/,/sg;
 $csv_headings =~ s/,\n//;
+my (%filecounts, @dirs, @srcs);
 
-@dirs = @ARGV;		# initial directory list
-while ( $#dirs >= 0 )
+# read files from filelist or recursively scan directories in ARGV ...
+if (defined $opt_fl)
 {
-    my $d = $dirs[0];
-    @dirents = glob( "$d/*" );
-    foreach $f ( @dirents )
-	{
-		push( @dirs, $f ) if ( -d $f && $f !~ /^\.+$/ );# append subdirs to recurse into
-	}
-    push( @srcs, grep /$opt_fileptn/, glob("$d/*") );# append matching filenames to @srcs
-    shift @dirs;
+    open my $fl, '<', $opt_fl or die "$opt_fl: $!\n";
+	chomp(@srcs = <$fl>);
+	close $fl;
 }
-
+else
+{
+	die $usage if $#ARGV < 0;
+	@dirs = @ARGV;	
+	while ( $#dirs >= 0 )
+	{
+		my $d = $dirs[0];
+		@dirents = glob( "$d/*" );
+		foreach my $f ( @dirents )
+		{
+			# save directories to recurse into or files to scan
+			push( @dirs, $f ) and next if ( -d $f && $f !~ /^\.+$/ && $f !~ /$opt_fx/i );
+			push( @srcs, $f ) if $f =~ /$opt_fi/ && $f !~ /$opt_fx/;	
+		}
+		shift @dirs;
+	}
+}
 exit 0 if ($#srcs < 0);
+
 open( CMD, "|$cmd" ) or die("$cmd: $!\n");	# spawn sloc cmd
 print STDOUT "$csv_headings\n" if (defined $opt_csv);
-foreach $f ( @srcs )
+while ( $#srcs >= 0 )
 {
+	my $f = $srcs[0];
     if ( -T $f )
 	{
-		printf( STDOUT "$f%s", $field_separator) if defined $opt_v;
 		open(BUF, $f) || warn("$f: $!\n");
 		undef $/;
 		$buf = <BUF>;			# read src file
-		print CMD $buf;	 		# and write to sloc's stdin
-		close(BUF);
+		shift @srcs and next if (defined $opt_cx && $buf =~ /$opt_cx/);	
 
-		# if verbose, close & respawn sloc cmd for each file
+		(my $extension = $f) =~ s/.*\.//;
+		$filecounts{$extension}++;
+		printf( STDOUT "\n$f%s\n", $field_separator) if defined $opt_v;
+		print CMD $buf;  # write to sloc's stdin
+		close(BUF);				
+
+		# if verbose mode, close & respawn sloc cmd for each file
 		if ( defined $opt_v )
 		{
-			close(CMD);
+			close(CMD);			# generate sloc's output
 			open( CMD, "|$cmd" ) or die("$cmd: $!\n");	# spawn sloc cmd
 		}
 	}
+	shift @srcs;
 }
+close(CMD);	# generate sloc's output
 
-close(CMD);
+# output summary statistics of files processed
+printf( STDOUT "\n%d files processed\n", sum values %filecounts ); 
+foreach my $k (keys %filecounts)
+{
+	printf( STDOUT ".%s%s\t%d\n", $k, $field_separator, $filecounts{$k} ); 
+}
 exit 0;
 

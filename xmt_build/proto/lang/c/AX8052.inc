@@ -23,12 +23,12 @@
 #*  limitations under the License. 
 #************************************************************************
 
-arch := AX8052
+arch = AX8052
 #**********************************************************************
 # define program paths...
 #**********************************************************************
-axsdb					:= "c:\Programs\AXSEM\AXSDB"
-ccroot					:= "c:\Programs\SDCC"
+axsdb					= "c:\Programs\AXSEM\AXSDB"
+ccroot					= "c:\Programs\SDCC"
 DOCER.$(lang).$(arch)	= $(DOCER.$(lang))
 LINTER.$(lang).$(arch)	= $(LINTER.$(lang))
 COMPILER.$(lang).$(arch)= "$(ccroot)\sdcc"

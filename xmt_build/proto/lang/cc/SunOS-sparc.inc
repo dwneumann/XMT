@@ -23,15 +23,16 @@
 #*  limitations under the License. 
 #************************************************************************
 
-arch := SunOS-sparc
+arch = SunOS-sparc
 #**********************************************************************
 # define program paths...
 #**********************************************************************
+GCCROOT					= /usr/local
 DOCER.$(lang).$(arch)	= $(DOCER.$(lang))
 LINTER.$(lang).$(arch)	= $(LINTER.$(lang))
-COMPILER.$(lang).$(arch)= /usr/local/bin/g++
-LINKER.$(lang).$(arch)	= /usr/local/bin/g++
-ARCHIVER.$(lang).$(arch)= /usr/local/bin/g++
+COMPILER.$(lang).$(arch)= $(GCCROOT)/bin/g++
+LINKER.$(lang).$(arch)	= $(GCCROOT)/bin/g++
+ARCHIVER.$(lang).$(arch)= $(GCCROOT)/bin/g++
 OBJCOPY.$(lang).$(arch)	= echo no objcopy for $(arch)
 LIB_PFX.$(lang).$(arch)	= $(LIB_PFX).$(lang)
 LIB_SFX.$(lang).$(arch)	= .so
@@ -43,7 +44,9 @@ EXE_SFX.$(lang).$(arch)	=
 # platform and THIS language.
 #**********************************************************************
 
-CFLAGS.$(lang).$(arch)		+= -Wall -Wno-attributes -Wno-unused-function -Wno-unused-const-variable -fpic 
+CFLAGS.$(lang).$(arch)		+= -Wall -Wno-attributes -Wno-unused-function 	\
+	-Wno-unused-const-variable -fpic 										\
+	-isystem $(GCCROOT)/include
 LDFLAGS.$(lang).$(arch)		+= 
 ARFLAGS.$(lang).$(arch)		+= -shared 
 LINTFLAGS.$(lang).$(arch)	+= 

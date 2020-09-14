@@ -17,7 +17,8 @@
 #   limitations under the License. 
 #************************************************************************
 
+export PATH="/usr/bin:${PATH}"
 flex sloc.l
 perl sloc.pl < lex.yy.c > sloc.c
-gcc sloc.c -o sloc
+/usr/bin/gcc sloc.c -o sloc
 [ -e sloc.exe  ] && mv sloc.exe sloc

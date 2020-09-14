@@ -23,20 +23,20 @@
 #*  limitations under the License. 
 #************************************************************************
 
-arch := STM32F4
+arch = STM32F4
 #**********************************************************************
 # define program paths...
 #**********************************************************************
-DOCER.$(lang).$(arch)	:= $(DOCER.$(lang))
-LINTER.$(lang).$(arch)	:= $(LINTER.$(lang))
-COMPILER.$(lang).$(arch):= $(COMPILER.$(lang))
-LINKER.$(lang).$(arch)	:= $(LINKER.$(lang))
-ARCHIVER.$(lang).$(arch):= $(ARCHIVER.$(lang))
-OBJCOPY.$(lang).$(arch)	:= $(OBJCOPY.$(lang))
-LIB_PFX.$(lang).$(arch)	:= $(LIB_PFX.$(lang))
-LIB_SFX.$(lang).$(arch)	:= $(LIB_SFX.$(lang))
-EXE_PFX.$(lang).$(arch)	:= $(EXE_PFX.$(lang))
-EXE_SFX.$(lang).$(arch)	:= .elf
+DOCER.$(lang).$(arch)	= $(DOCER.$(lang))
+LINTER.$(lang).$(arch)	= $(LINTER.$(lang))
+COMPILER.$(lang).$(arch)= $(COMPILER.$(lang))
+LINKER.$(lang).$(arch)	= $(LINKER.$(lang))
+ARCHIVER.$(lang).$(arch)= $(ARCHIVER.$(lang))
+OBJCOPY.$(lang).$(arch)	= $(OBJCOPY.$(lang))
+LIB_PFX.$(lang).$(arch)	= $(LIB_PFX.$(lang))
+LIB_SFX.$(lang).$(arch)	= $(LIB_SFX.$(lang))
+EXE_PFX.$(lang).$(arch)	= $(EXE_PFX.$(lang))
+EXE_SFX.$(lang).$(arch)	= .elf
 
 #**********************************************************************
 # This is the place to define default flags and recipes
@@ -50,7 +50,8 @@ CFLAGS.$(lang).$(arch)+= -Wall -Wno-strict-aliasing -Wno-write-strings 			\
 	$(MCU) --specs=nano.specs --specs=nosys.specs 			 					\
 	-DSTM32F4xx -DARM_MATH_CM4 -DCORE_M4 -mlittle-endian 						\
 	-fstack-usage -fdata-sections -ffunction-sections -fmessage-length=0		\
-	-fno-builtin -fsingle-precision-constant 
+	-fno-builtin -fsingle-precision-constant 									\
+	-isystem $(GCCROOT)/include
 
 LDFLAGS.$(lang).$(arch)	+= $(MCU) -Wl,-Map=$(TGTDIR)/$(PKG_NM).map				\
 	-Wl,--cref -Wl,--gc-sections 												\

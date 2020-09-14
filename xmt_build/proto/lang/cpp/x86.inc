@@ -23,15 +23,16 @@
 #*  limitations under the License. 
 #************************************************************************
 
-arch := x86
+arch = x86
 #**********************************************************************
 # define program paths...
 #**********************************************************************
+GCCROOT					= /usr
 DOCER.$(lang).$(arch)	= $(DOCER.$(lang))
 LINTER.$(lang).$(arch)	= $(LINTER.$(lang))
-COMPILER.$(lang).$(arch)= /usr/bin/g++
-LINKER.$(lang).$(arch)	= /usr/bin/g++
-ARCHIVER.$(lang).$(arch)= /usr/bin/ar
+COMPILER.$(lang).$(arch)= $(GCCROOT)/bin/g++
+LINKER.$(lang).$(arch)	= $(GCCROOT)/bin/g++
+ARCHIVER.$(lang).$(arch)= $(GCCROOT)/bin/ar
 OBJCOPY.$(lang).$(arch)	= echo no objcopy for $(arch)
 LIB_PFX.$(lang).$(arch)	= $(LIB_PFX).$(lang)
 LIB_SFX.$(lang).$(arch)	= .so
@@ -44,7 +45,7 @@ EXE_SFX.$(lang).$(arch)	=
 #**********************************************************************
 CFLAGS.$(lang).$(arch)+= -Wall -Wno-strict-aliasing -Wno-write-strings 			\
 	-Wno-attributes -Wno-unused-function -Wno-unused-const-variable 			\
-	-std=gnu99 -g -MMD -MP														\
+	-std=gnu99 -g -MMD -MP -m32													\
 	-isystem /usr/include/x86_64-linux-gnu
 
 LDFLAGS.$(lang).$(arch)		+= -m32

@@ -29,7 +29,7 @@ if ( $?prompt ) then
     a ls	ls -cF
     a so	source
     a f		find -L . -name \"\!:1\"
-    a fsrc 	'find -L . -name "*.[ch]" -o -name "*.[ch]pp" -print | xargs  grep '
+    a fsrc 	'find -L . \( -name "*.[ch]" -o -name "*.[ch]pp" \) -print | xargs  grep '
     a fstr 	'find -L . -type f -print | xargs  grep '
     a vstr	'vi `grep -r -l \!:1 \!:2*`'
 

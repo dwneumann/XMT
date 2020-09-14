@@ -33,7 +33,10 @@ int	in_cmt		= 0;
 \/\*		        { in_cmt = TRUE; ++num_cmts; }
 \*\/		        { in_cmt = FALSE; } 
 \/\/.*		        { ++num_cmts; }
-"err_push"    { if ( !in_cmt ) ++num_logs; }
+"LogAlarm"|"LogEvent"|"LogError"|"LogException"|"LogMessage"    { if ( !in_cmt ) ++num_logs; }
+"LogCallback"|"Log::format"|"LogStreamEvent"                    { if ( !in_cmt ) ++num_logs; }
+"Logf"|"LogHex"|"LogV"|"DoLog"|"AppLog"|"ilog_Log"|"ilog_Error"	{ if ( !in_cmt ) ++num_logs; }
+"IapiLog"|"Log"	{ if ( !in_cmt ) ++num_logs; }
 "DIAG_TRACE"        { if ( !in_cmt ) ++num_diags; }
 "ASSERT"|"assert"	{ if ( !in_cmt ) ++num_asserts; }
 ";"		            { if ( !in_cmt ) ++num_slocs; }

@@ -23,15 +23,16 @@
 #*  limitations under the License. 
 #************************************************************************
 
-arch := cygwin
+arch = cygwin
 #**********************************************************************
 # define program paths...
 #**********************************************************************
+GCCROOT					= /usr
 DOCER.$(lang).$(arch)	= $(DOCER.$(lang))
 LINTER.$(lang).$(arch)	= $(LINTER.$(lang))
-COMPILER.$(lang).$(arch)= /usr/bin/gcc
-LINKER.$(lang).$(arch)  = /usr/bin/gcc
-ARCHIVER.$(lang).$(arch)= /usr/bin/ar
+COMPILER.$(lang).$(arch)= $(GCCROOT)/bin/gcc
+LINKER.$(lang).$(arch)  = $(GCCROOT)/bin/gcc
+ARCHIVER.$(lang).$(arch)= $(GCCROOT)/bin/ar
 OBJCOPY.$(lang).$(arch)	= echo no objcopy for $(arch)
 LIB_PFX.$(lang).$(arch)	= $(LIB_PFX).$(lang)
 LIB_SFX.$(lang).$(arch)	= .a
@@ -42,7 +43,9 @@ EXE_SFX.$(lang).$(arch)	=
 # This is the place to define default flags that are specific to THIS 
 # platform and THIS language.
 #**********************************************************************
-CFLAGS.$(lang).$(arch)  += -Wall -Wno-attributes -Wno-unused-function -Wno-unused-const-variable
+CFLAGS.$(lang).$(arch)  += -Wall -Wno-attributes -Wno-unused-function 	\
+	-Wno-unused-const-variable											\
+	-isystem $(GCCROOT)/include
 LDFLAGS.$(lang).$(arch)	+= $(CFLAGS.$(lang).$(arch)) 
 ARFLAGS.$(lang).$(arch)	+= -r
 LINTFLAGS.$(lang).$(arch)	+= $(CFLAGS.$(lang).$(arch))

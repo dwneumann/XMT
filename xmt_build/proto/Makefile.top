@@ -46,13 +46,13 @@ pkg_dir		= $(CURDIR)
 # or these defaults may be overridden in any project-level 
 # or package-level Makefile.pkg.
 #**********************************************************************
-DOCER       = $(XMTEXT)/usr/bin/doxygen
-LINTER      = $(XMTEXT)/usr/lib/llvm-9/bin/clang-tidy
+DOCER       = $(XMTEXT)/site/usr/bin/doxygen
+LINTER      = $(XMTEXT)/site/usr/lib/llvm-9/bin/clang-tidy
 CMSOURCER	= echo "use hg update to retrieve sources from repo"
 CMCLEANER   = /bin/rm -f $(OBJDIR)/* $(TGTDIR)/*
-COMPILER    = $(XMTEXT)/bin/gcc
-LINKER      = $(XMTEXT)/bin/ld
-ARCHIVER    = $(XMTEXT)/bin/ar
+COMPILER    = $(GCCROOT)/bin/gcc
+LINKER      = $(GCCROOT)/bin/ld
+ARCHIVER    = $(GCCROOT)/bin/ar
 ARCH		= $(XMTBUILD_DFLT_ARCH)
 BUILD_CFG	= $(XMTBUILD_CONFIG)
 JAVA_PKGTREE= .
@@ -87,10 +87,10 @@ DOCFLAGS	= $(PROJECT)/proto/Doxyfile
 # package-level ./Makefile.pkg
 # recursive variables are evaluated when a matching recipe is found.
 #**********************************************************************
--include ./Makefile.pkg	
--include $(PROJECT)/proto/Makefile.top
 -include $(XMTBUILD)/proto/lang/$(LANGUAGE)/generic.inc
 -include $(XMTBUILD)/proto/lang/$(LANGUAGE)/$(ARCH).inc
+-include $(PROJECT)/proto/Makefile.top
+-include ./Makefile.pkg	
 
 
 .PHONY: all

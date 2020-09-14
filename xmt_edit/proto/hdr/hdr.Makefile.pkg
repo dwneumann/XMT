@@ -27,8 +27,9 @@ qq{#************************************************************************
 #   $cm->{rev}
 #   $copyright
 #
-#   Synopsis	: included automatically by \$(XMTBUILD)/proto/Makefile.top
+#   Synopsis: included automatically by \$(XMTBUILD)/proto/Makefile.top
 #   Purpose	: Customize make environment for the current package.
+#			see \$(XMTBUILD)/proto/Makefile.pkg.help  for help.
 #************************************************************************
 };
 

@@ -23,7 +23,7 @@
 #*  limitations under the License. 
 #************************************************************************
 
-arch := SunOS-sparc
+arch = SunOS-sparc
 #**********************************************************************
 # define program paths...
 #**********************************************************************
@@ -43,7 +43,9 @@ EXE_SFX.$(lang).$(arch)	=
 # platform and THIS language.
 #**********************************************************************
 
-CFLAGS.$(lang).$(arch)		+= -Wall -Wno-attributes -Wno-unused-function -Wno-unused-const-variable -fpic 
+CFLAGS.$(lang).$(arch)		+= -Wall -Wno-attributes -Wno-unused-function 	\
+	-Wno-unused-const-variable -fpic 										\
+	-isystem $(GCCROOT)/include
 LDFLAGS.$(lang).$(arch)		+= 
 ARFLAGS.$(lang).$(arch)		+= -shared 
 LINTFLAGS.$(lang).$(arch)	+= 

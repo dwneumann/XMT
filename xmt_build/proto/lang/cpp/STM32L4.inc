@@ -24,18 +24,19 @@
 #*  limitations under the License. 
 #************************************************************************
 
-arch := STM32L4
+arch = STM32L4
 #**********************************************************************
-DOCER.$(lang).$(arch)	:= $(DOCER.$(lang))
-LINTER.$(lang).$(arch)	:= $(LINTER.$(lang))
-COMPILER.$(lang).$(arch):= $(gnuroot)/arm-none-eabi-g++
-LINKER.$(lang).$(arch)	:= $(gnuroot)/arm-none-eabi-g++
-ARCHIVER.$(lang).$(arch):= $(gnuroot)/arm-none-eabi-ar
-OBJCOPY.$(lang).$(arch)	:= $(OBJCOPY.$(lang))
-LIB_PFX.$(lang).$(arch)	:= $(LIB_PFX.$(lang))
-LIB_SFX.$(lang).$(arch)	:= $(LIB_SFX.$(lang))
-EXE_PFX.$(lang).$(arch)	:= $(EXE_PFX.$(lang))
-EXE_SFX.$(lang).$(arch)	:= .elf
+GCCROOT					= $(XMTEXT)/site/opt/gcc-arm-none-eabi/arm-none-eabi
+DOCER.$(lang).$(arch)	= $(DOCER.$(lang))
+LINTER.$(lang).$(arch)	= $(LINTER.$(lang))
+COMPILER.$(lang).$(arch)= $(GCCROOT)/bin/arm-none-eabi-g++
+LINKER.$(lang).$(arch)	= $(GCCROOT)/bin/arm-none-eabi-g++
+ARCHIVER.$(lang).$(arch)= $(GCCROOT)/bin/arm-none-eabi-ar
+OBJCOPY.$(lang).$(arch)	= $(OBJCOPY.$(lang))
+LIB_PFX.$(lang).$(arch)	= $(LIB_PFX.$(lang))
+LIB_SFX.$(lang).$(arch)	= $(LIB_SFX.$(lang))
+EXE_PFX.$(lang).$(arch)	= $(EXE_PFX.$(lang))
+EXE_SFX.$(lang).$(arch)	= .elf
 
 #**********************************************************************
 # This is the place to define default flags and recipes
@@ -49,7 +50,8 @@ CFLAGS.$(lang).$(arch)+= -Wall -Wno-strict-aliasing -Wno-write-strings 			\
 	$(MCU) --specs=nano.specs --specs=nosys.specs 			 					\
 	-DSTM32L4xx -DARM_MATH_CM4 -DCORE_M4 -mlittle-endian 						\
 	-fstack-usage -fdata-sections -ffunction-sections -fmessage-length=0		\
-	-fno-builtin -fsingle-precision-constant 
+	-fno-builtin -fsingle-precision-constant 									\
+	-isystem $(GCCROOT)/include
 
 LDFLAGS.$(lang).$(lang)	+= $(MCU) -Wl,-Map=$(TGTDIR)/$(PKG_NM).map				\
 	-Wl,--cref -Wl,--gc-sections 												\

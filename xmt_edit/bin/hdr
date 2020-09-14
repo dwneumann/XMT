@@ -98,7 +98,7 @@ die "$usage" if defined $opt_u;
 $ARGV[0] =~ tr :\\:/:;
 @dirs = (split '/',  getcwd() . '/' . $ARGV[0] );
 $filename = $dirs[-1];
-$module->{pkg} = $dirs[-3];
+$module->{pkg} = $dirs[-2];
 ($module->{name}, $suffix) = (split /\./, $filename);
 ($filename_ = $filename) =~ tr/\./_/;
 

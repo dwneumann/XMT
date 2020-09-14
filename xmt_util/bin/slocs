@@ -69,8 +69,8 @@ die "cannot specify both -fl and -fi\n" if defined $opt_fl and defined $opt_fi;
 die "cannot specify both -fl and -fx\n" if defined $opt_fl and defined $opt_fx;
 STDOUT->autoflush(1);
 
-my $opt_fi	= '\.(c|h|cpp|hpp)$' if !defined $opt_fi;
-my $opt_fx	= 'test';
+$opt_fi	= '\.(c|h|cpp|hpp)$' unless defined $opt_fi;
+$opt_fx	= 'test' unless defined $opt_fx;
 my $cmd = ( defined $opt_csv ? "sloc -csv" : "sloc" );
 my $field_separator = ( defined $opt_csv ? "," : ":" );
 my $csv_headings = 'File,' . `sloc < /dev/null`;
@@ -118,7 +118,7 @@ while ( $#srcs >= 0 )
 
 		(my $extension = $f) =~ s/.*\.//;
 		$filecounts{$extension}++;
-		printf( STDOUT "\n$f%s\n", $field_separator) if defined $opt_v;
+		printf( STDOUT "$f%s", $field_separator) if defined $opt_v;
 		print CMD $buf;  # write to sloc's stdin
 		close(BUF);				
 
@@ -134,10 +134,13 @@ while ( $#srcs >= 0 )
 close(CMD);	# generate sloc's output
 
 # output summary statistics of files processed
-printf( STDOUT "\n%d files processed\n", sum values %filecounts ); 
-foreach my $k (keys %filecounts)
+if (!defined $opt_v)
 {
-	printf( STDOUT ".%s%s\t%d\n", $k, $field_separator, $filecounts{$k} ); 
+	printf( STDOUT "\n%d files processed\n", sum values %filecounts ); 
+	foreach my $k (keys %filecounts)
+	{
+		printf( STDOUT ".%s\t%d\n", $k, $filecounts{$k} ); 
+	}
 }
 exit 0;
 

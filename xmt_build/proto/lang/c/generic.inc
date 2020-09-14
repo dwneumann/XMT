@@ -24,9 +24,9 @@
 #************************************************************************
 
 
-#   := assignements are evaluated during lexical scan;
+#   = assignements are evaluated during lexical scan;
 #	= assignments are recursively evaluated during rule parsing
-lang	:= c
+lang	= c
 
 # we specifically do NOT want to recursively search below SRCDIR for sources
 # because there may be platform-specific code in different subdirectories
@@ -86,11 +86,11 @@ endif
 #**********************************************************************
 DOCER.$(lang)		= $(DOCER)
 LINTER.$(lang)		= $(LINTER)
-gnuroot				:= $(XMTEXT)/site/opt/gcc-arm-none-eabi/bin
-COMPILER.$(lang)	= $(gnuroot)/arm-none-eabi-gcc
-LINKER.$(lang)  	= $(gnuroot)/arm-none-eabi-gcc
-ARCHIVER.$(lang)  	= $(gnuroot)/arm-none-eabi-ar
-OBJCOPY.$(lang)		= $(gnuroot)/arm-none-eabi-objcopy
+GCCROOT				= $(XMTEXT)/site/opt/gcc-arm-none-eabi/arm-none-eabi
+COMPILER.$(lang)	= $(GCCROOT)/bin/arm-none-eabi-gcc
+LINKER.$(lang)  	= $(GCCROOT)/bin/arm-none-eabi-gcc
+ARCHIVER.$(lang)  	= $(GCCROOT)/bin/arm-none-eabi-ar
+OBJCOPY.$(lang)		= $(GCCROOT)/bin/arm-none-eabi-objcopy
 LIB_PFX.$(lang)		= lib
 LIB_SFX.$(lang)		= .a
 EXE_PFX.$(lang)		= 

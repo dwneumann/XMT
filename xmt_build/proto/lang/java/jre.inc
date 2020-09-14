@@ -25,9 +25,8 @@
 #*  limitations under the License. 
 #************************************************************************
 
-
-override lang := java
-override arch := jre
+lang = java
+arch = jre
 
 #**********************************************************************
 # define program paths...
@@ -48,10 +47,10 @@ LDFLAGS.$(lang).$(arch)		+=
 ARFLAGS.$(lang).$(arch)		+= 
 LINTFLAGS.$(lang).$(arch)	+= 
 DOCFLAGS.$(lang).$(arch)	+= 
-LIB_PFX.$(lang).$(arch)		:= 
-LIB_SFX.$(lang).$(arch)		:= .jar
-EXE_PFX.$(lang).$(arch)		:= 
-EXE_SFX.$(lang).$(arch)		:= 
+LIB_PFX.$(lang).$(arch)		= 
+LIB_SFX.$(lang).$(arch)		= .jar
+EXE_PFX.$(lang).$(arch)		= 
+EXE_SFX.$(lang).$(arch)		= 
 
 $(JAVA_PKGROOT)/%.class: $(SRCDIR)/$(JAVA_PKGROOT)/%.$(lang)
 	@mkdir -p $(@D)

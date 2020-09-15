@@ -92,6 +92,8 @@ DOCFLAGS	= $(PROJECT)/proto/Doxyfile
 -include $(PROJECT)/proto/Makefile.top
 -include ./Makefile.pkg	
 
+# There may be several gcc installs.  Ensure that we use the one GCCROOT points to.
+export PATH := $(GCCROOT)/bin:$(PATH)
 
 .PHONY: all
 all:	$(PKG_TGT)

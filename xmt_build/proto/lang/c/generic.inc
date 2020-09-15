@@ -24,9 +24,9 @@
 #************************************************************************
 
 
-#   = assignements are evaluated during lexical scan;
+#   := assignements are evaluated during lexical scan;
 #	= assignments are recursively evaluated during rule parsing
-lang	= c
+lang	:= c
 
 # we specifically do NOT want to recursively search below SRCDIR for sources
 # because there may be platform-specific code in different subdirectories
@@ -86,7 +86,7 @@ endif
 #**********************************************************************
 DOCER.$(lang)		= $(DOCER)
 LINTER.$(lang)		= $(LINTER)
-GCCROOT				= $(XMTEXT)/site/opt/gcc-arm-none-eabi/arm-none-eabi
+GCCROOT				= $(XMTEXT)/site/opt/gcc-arm-none-eabi
 COMPILER.$(lang)	= $(GCCROOT)/bin/arm-none-eabi-gcc
 LINKER.$(lang)  	= $(GCCROOT)/bin/arm-none-eabi-gcc
 ARCHIVER.$(lang)  	= $(GCCROOT)/bin/arm-none-eabi-ar

@@ -26,7 +26,7 @@
 
 #   := assignements are evaluated during lexical scan;
 #	= assignments are recursively expanded during rule parsing
-lang	= java
+lang	:= java
 
 srcs.$(lang)	= $(wildcard $(SRCDIR)/$(JAVA_PKGROOT)/*.$(lang))
 hdrs.$(lang)	= 

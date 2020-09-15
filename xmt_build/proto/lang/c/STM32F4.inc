@@ -23,10 +23,11 @@
 #*  limitations under the License. 
 #************************************************************************
 
-arch = STM32F4
+arch := STM32F4
 #**********************************************************************
 # define program paths...
 #**********************************************************************
+GCCROOT					= $(XMTEXT)/site/opt/gcc-arm-none-eabi
 DOCER.$(lang).$(arch)	= $(DOCER.$(lang))
 LINTER.$(lang).$(arch)	= $(LINTER.$(lang))
 COMPILER.$(lang).$(arch)= $(COMPILER.$(lang))
@@ -49,6 +50,7 @@ CFLAGS.$(lang).$(arch)+= -Wall -Wno-strict-aliasing -Wno-write-strings 			\
 	-std=gnu99 -g -MMD -MP														\
 	$(MCU) --specs=nano.specs --specs=nosys.specs 			 					\
 	-DSTM32F4xx -DARM_MATH_CM4 -DCORE_M4 -mlittle-endian 						\
+	-D__forceinline=inline														\
 	-fstack-usage -fdata-sections -ffunction-sections -fmessage-length=0		\
 	-fno-builtin -fsingle-precision-constant 									\
 	-isystem $(GCCROOT)/include

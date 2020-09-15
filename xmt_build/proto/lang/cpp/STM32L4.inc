@@ -24,9 +24,9 @@
 #*  limitations under the License. 
 #************************************************************************
 
-arch = STM32L4
+arch := STM32L4
 #**********************************************************************
-GCCROOT					= $(XMTEXT)/site/opt/gcc-arm-none-eabi/arm-none-eabi
+GCCROOT					= $(XMTEXT)/site/opt/gcc-arm-none-eabi
 DOCER.$(lang).$(arch)	= $(DOCER.$(lang))
 LINTER.$(lang).$(arch)	= $(LINTER.$(lang))
 COMPILER.$(lang).$(arch)= $(GCCROOT)/bin/arm-none-eabi-g++

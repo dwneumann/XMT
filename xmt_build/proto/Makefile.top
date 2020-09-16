@@ -87,10 +87,10 @@ DOCFLAGS	= $(PROJECT)/proto/Doxyfile
 # package-level ./Makefile.pkg
 # recursive variables are evaluated when a matching recipe is found.
 #**********************************************************************
--include $(XMTBUILD)/proto/lang/$(LANGUAGE)/generic.inc
--include $(XMTBUILD)/proto/lang/$(LANGUAGE)/$(ARCH).inc
 -include $(PROJECT)/proto/Makefile.top
 -include ./Makefile.pkg	
+-include $(XMTBUILD)/proto/lang/$(LANGUAGE)/generic.inc
+-include $(XMTBUILD)/proto/lang/$(LANGUAGE)/$(ARCH).inc
 
 # There may be several gcc installs.  Ensure that we use the one GCCROOT points to.
 export PATH := $(GCCROOT)/bin:$(PATH)

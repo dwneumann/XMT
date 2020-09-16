@@ -34,7 +34,7 @@ COMPILER.$(lang).$(arch)= $(GCCROOT)/bin/gcc
 LINKER.$(lang).$(arch)  = $(GCCROOT)/bin/gcc
 ARCHIVER.$(lang).$(arch)= $(GCCROOT)/bin/ar
 OBJCOPY.$(lang).$(arch)	= echo no objcopy for $(arch)
-LIB_PFX.$(lang).$(arch)	= $(LIB_PFX).$(lang)
+LIB_PFX.$(lang).$(arch)	= $(LIB_PFX.$(lang))
 LIB_SFX.$(lang).$(arch)	= .a
 EXE_PFX.$(lang).$(arch)	= 
 EXE_SFX.$(lang).$(arch)	= 
@@ -47,7 +47,7 @@ CFLAGS.$(lang).$(arch)  += -Wall -Wno-attributes -Wno-unused-function 	\
 	-Wno-unused-const-variable											\
 	-isystem $(GCCROOT)/include
 LDFLAGS.$(lang).$(arch)	+= $(CFLAGS.$(lang).$(arch)) 
-ARFLAGS.$(lang).$(arch)	+= -r
+ARFLAGS.$(lang).$(arch)	+= 
 LINTFLAGS.$(lang).$(arch)	+= $(CFLAGS.$(lang).$(arch))
 DOCFLAGS.$(lang).$(arch)	+= 
 

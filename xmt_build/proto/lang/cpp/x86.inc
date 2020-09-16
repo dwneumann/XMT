@@ -34,7 +34,7 @@ COMPILER.$(lang).$(arch)= $(GCCROOT)/bin/g++
 LINKER.$(lang).$(arch)	= $(GCCROOT)/bin/g++
 ARCHIVER.$(lang).$(arch)= $(GCCROOT)/bin/ar
 OBJCOPY.$(lang).$(arch)	= echo no objcopy for $(arch)
-LIB_PFX.$(lang).$(arch)	= $(LIB_PFX).$(lang)
+LIB_PFX.$(lang).$(arch)	= $(LIB_PFX.$(lang))
 LIB_SFX.$(lang).$(arch)	= .so
 EXE_PFX.$(lang).$(arch)	= 
 EXE_SFX.$(lang).$(arch)	= 
@@ -49,7 +49,7 @@ CFLAGS.$(lang).$(arch)+= -Wall -Wno-strict-aliasing -Wno-write-strings 			\
 	-isystem /usr/include/x86_64-linux-gnu
 
 LDFLAGS.$(lang).$(arch)		+= -m32
-ARFLAGS.$(lang).$(arch)		+= -r
+ARFLAGS.$(lang).$(arch)		+= 
 LINTFLAGS.$(lang).$(arch)	+= 
 DOCFLAGS.$(lang).$(arch)	+= 
 

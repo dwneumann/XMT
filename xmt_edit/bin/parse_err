@@ -14,18 +14,22 @@ my $fpath;
 while (<>)
 {
     (my $fname = $_) =~ s/:.*//; chomp $fname;
-    if (-r "./$fname")
-    {
-	$fpath = "./$fname";
-    }
-    elsif (-r "$PROJECT/cscope.files")
-    {
-	my $found = `fgrep $fname $PROJECT/cscope.files`;
-	if ($found !~ /^\s*$/)
+    if (-r "$fname")
 	{
-	    $fpath = $found;
+		$fpath = "$fname";
 	}
-    }
+    elsif (-r "./$fname")
+	{
+		$fpath = "./$fname";
+	}
+    elsif (-r "$PROJECT/cscope.files")
+	{
+		my $found = `fgrep $fname $PROJECT/cscope.files`;
+		if ($found !~ /^\s*$/)
+		{
+			$fpath = $found;
+		}
+	}
     (my $cmd = $_) =~ s{^.*?([^\s:]+):([\d]+):.*}{:e! +$2 $fpath};
     print $cmd;
 }

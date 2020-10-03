@@ -60,11 +60,12 @@ bin.$(lang).$(arch): exe.$(lang).$(arch)
 hex.$(lang).$(arch): exe.$(lang).$(arch)
 	$(OBJCOPY.$(lang).$(arch)) -O ihex $(TGTDIR)/$(EXE_NM) $(TGTDIR)/$(PKG_NM).hex
 
-.PHONY: analyze.$(lang).$(arch) 
-analyze.$(lang).$(arch) :
+.PHONY: lint.$(lang).$(arch) 
+lint.$(lang).$(arch) :
 	$(LINTER.$(LANGUAGE).$(ARCH))	\
 		$(LINTFLAGS) $(LINTFLAGS.$(LANGUAGE)) $(LINTFLAGS.$(LANGUAGE).$(ARCH))  \
-		$(srcs.$(lang)) $(hdrs.$(lang))
+		$(srcs.$(lang)) $(hdrs.$(lang)) -- 										\
+		$(filter -D% -I%, $(CFLAGS) $(CFLAGS.$(lang)) $(CFLAGS.$(lang).$(arch)))
 
 .PHONY: docs.$(lang).$(arch) 
 docs.$(lang).$(arch) :

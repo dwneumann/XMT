@@ -29,10 +29,12 @@
 lang	:= c
 
 # we specifically do NOT want to recursively search below SRCDIR for sources
-# because there may be platform-specific code in different subdirectories
-# that we need to include or exclude at the package level.
+# because there may be platform-specific code in different subdirectories.
+# So we search $SRCDIR and recursively below $SRCDIR/$ARCH for sources
 srcs.$(lang)	= $(wildcard $(SRCDIR)/*.$(lang))
+srcs.$(lang)	+= $(sort $(shell find -L $(SRCDIR)/$(ARCH) -name "*.$(lang)"))
 hdrs.$(lang)	= $(wildcard $(SRCDIR)/*.h)
+hdrs.$(lang)	+= $(sort $(shell find -L $(SRCDIR)/$(ARCH) -name "*.h"))
 objs.$(lang)	= $(patsubst $(SRCDIR)/%.$(lang),$(OBJDIR)/%.o,$(srcs.$(lang)))
 docs.$(lang)	= $(patsubst $(SRCDIR)/%.$(lang),$(DOCDIR)/%.html,$(srcs.$(lang)))
 lnts.$(lang)	= $(patsubst $(SRCDIR)/%.$(lang),$(OBJDIR)/%.ln,$(srcs.$(lang)))
@@ -85,21 +87,21 @@ endif
 # Language-specific values inherit from global (language-independent) defines
 # by default, but can be overridden in a project or package level Makefile
 #**********************************************************************
-DOCER.$(lang)		= $(DOCER)
-LINTER.$(lang)		= $(LINTER)
+DOCER.$(lang)		= $(XMTEXT)/site/usr/bin/doxygen
+DOCFLAGS.$(lang)	+= $(PROJECT)/proto/Doxyfile
+LINTER.$(lang)		= $(XMTEXT)/site/usr/lib/llvm-9/bin/clang-tidy
+LINTFLAGS.$(lang)	+= --quiet
 GCCROOT				= $(XMTEXT)/site/opt/gcc-arm-none-eabi
 COMPILER.$(lang)	= $(GCCROOT)/bin/arm-none-eabi-gcc
+CFLAGS.$(lang)		+= -c -o $@ 
 LINKER.$(lang)  	= $(GCCROOT)/bin/arm-none-eabi-gcc
+LDFLAGS.$(lang)		+= -o $@
 ARCHIVER.$(lang)  	= $(GCCROOT)/bin/arm-none-eabi-ar
+ARFLAGS.$(lang)		+= -rscDv
 OBJCOPY.$(lang)		= $(GCCROOT)/bin/arm-none-eabi-objcopy
 LIB_PFX.$(lang)		= lib
 LIB_SFX.$(lang)		= .a
 EXE_PFX.$(lang)		= 
 EXE_SFX.$(lang)		= .elf
-CFLAGS.$(lang)		+= -c -o $@ 
-ARFLAGS.$(lang)		+= -rscDv
-LDFLAGS.$(lang)		+= -o $@
-LINTFLAGS.$(lang)	+= 
-DOCFLAGS.$(lang)	+= $(PROJECT)/proto/Doxyfile
 
 ## Define recipes in $(XMTBUILD)/proto/lang/$(LANGUAGE)/$(ARCH)

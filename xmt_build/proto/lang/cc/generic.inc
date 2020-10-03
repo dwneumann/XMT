@@ -85,21 +85,21 @@ endif
 # by default, but can be overridden in a project or package level Makefile
 #**********************************************************************
 DOCER.$(lang)	= $(DOCER)
+DOCFLAGS.$(lang)	+= $(PROJECT)/proto/Doxyfile
 LINTER.$(lang)	= $(LINTER)
+LINTFLAGS.$(lang)	+= --quiet
 GCCROOT			= $(XMTEXT)/site/opt/gcc-arm-none-eabi
 COMPILER.$(lang)= $(GCCROOT)/bin/arm-none-eabi-gcc
+CFLAGS.$(lang)	+= -c -o -I $(GCCROOT)/include $@
 LINKER.$(lang)	= $(GCCROOT)/bin/arm-none-eabi-gcc
+LDFLAGS.$(lang)	+= -o $@
 ARCHIVER.$(lang)= $(GCCROOT)/bin/arm-none-eabi-ar
+ARFLAGS.$(lang)	+= -rscDv
 OBJCOPY.$(lang)	= $(GCCROOT)/bin/arm-none-eabi-objcopy
 LIB_PFX.$(lang)	= lib
 LIB_SFX.$(lang)	= .a
 EXE_PFX.$(lang)	=
 EXE_SFX.$(lang)	=
-CFLAGS.$(lang)	+= -c -o -I $(GCCROOT)/include $@
-ARFLAGS.$(lang)	+= -rscDv
-LDFLAGS.$(lang)	+= -o $@
-LINTFLAGS.$(lang)	+= 
-DOCFLAGS.$(lang)	+= $(PROJECT)/proto/Doxyfile
 
 ## Define recipes in $(XMTBUILD)/proto/lang/$(LANGUAGE)/$(ARCH)
 

@@ -114,8 +114,10 @@ clean:
 sources:
 	(cd $(SRCDIR); $(CMSOURCER.$(LANGUAGE).$(ARCH)))
 
-.PHONY: analyze
-analyze:	analyze.$(LANGUAGE).$(ARCH)
+.PHONY: lint
+lint:	lint.$(LANGUAGE).$(ARCH)
+.PHONY: misra-check
+misra-check:	misra-check.$(LANGUAGE).$(ARCH)
 .PHONY: docs
 docs:	docs.$(LANGUAGE).$(ARCH)
 .PHONY: lib

@@ -39,6 +39,11 @@ LIB_SFX.$(lang).$(arch)	= .a
 EXE_PFX.$(lang).$(arch)	= 
 EXE_SFX.$(lang).$(arch)	= .hex
 
+LINTFLAGS.$(lang).$(arch)	+= 
+PVS_CFG					= $(PROJECT)/.pvs-studio.cfg
+PVS_LOG					= $(TGTDIR)/pvs-studio.log
+PVS_OUT					= $(TGTDIR)/pvs-studio.out
+
 
 # SDCC doesn't grok .o file extension.  Must redefine rules & variables to use .rel
 objs.$(lang)	= $(patsubst $(SRCDIR)/%.$(lang),$(OBJDIR)/%.rel,$(srcs.$(lang)))
@@ -105,11 +110,18 @@ bin.$(lang).$(arch): exe.$(lang).$(arch)
 hex.$(lang).$(arch): exe.$(lang).$(arch)
 	$(OBJCOPY.$(lang).$(arch)) -O ihex $(TGTDIR)/$(EXE_NM) $(TGTDIR)/$(PKG_NM).hex
 
-.PHONY: analyze.$(lang).$(arch) 
-analyze.$(lang).$(arch) :
+.PHONY: lint.$(lang).$(arch) 
+lint.$(lang).$(arch) :
 	$(LINTER.$(LANGUAGE).$(ARCH))	\
 		$(LINTFLAGS) $(LINTFLAGS.$(LANGUAGE)) $(LINTFLAGS.$(LANGUAGE).$(ARCH))  \
-		$(srcs.$(lang)) $(hdrs.$(lang))
+		$(srcs.$(lang)) $(hdrs.$(lang)) -- 										\
+		$(filter -D% -I%, $(CFLAGS) $(CFLAGS.$(lang)) $(CFLAGS.$(lang).$(arch)))
+
+.PHONY: misra-check.$(lang).$(arch) 
+misra-check.$(lang).$(arch) :
+		pvs-studio-analyzer trace -- make $(PKG_TGT);
+		-pvs-studio-analyzer analyze --disableLicenseExpirationCheck -o $(PVS_LOG);
+		plog-converter -a MISRA -t tasklist -o $(PVS_OUT) $(PVS_LOG)
 
 .PHONY: docs.$(lang).$(arch) 
 docs.$(lang).$(arch) :

@@ -84,7 +84,7 @@ lint.$(lang).$(arch) :
 .PHONY: misra-check.$(lang).$(arch) 
 misra-check.$(lang).$(arch) :
 		pvs-studio-analyzer trace -- make $(PKG_TGT);
-		-pvs-studio-analyzer analyze --disableLicenseExpirationCheck -o $(PVS_LOG);
+		-pvs-studio-analyzer analyze --analysis-mode 32 --disableLicenseExpirationCheck -o $(PVS_LOG);
 		plog-converter -a MISRA -t tasklist -o $(PVS_OUT) $(PVS_LOG)
 
 .PHONY: docs.$(lang).$(arch) 

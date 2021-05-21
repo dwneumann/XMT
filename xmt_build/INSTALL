@@ -1,6 +1,6 @@
 xmt_build
 =========
-xmt_build is a package within the Extensible Mangement (XMT) collection.
+xmt_build is a package within the Extensible Management Toolkit (XMT) collection.
 xmt_build is framework for building software in a multi-platform,
 multi-language environment.  xmt_build can compile complex trees of C, C++, Java
 or Go software for multiple target architectures with a small simple Makefile

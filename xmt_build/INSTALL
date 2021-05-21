@@ -2,9 +2,9 @@ xmt_build
 =========
 xmt_build is a package within the Extensible Mangement (XMT) collection.
 xmt_build is framework for building software in a multi-platform,
-multi-language environment.  xmt_build can compile complex trees of C, C++
-or Java software for multiple target architectures with a small simpe Makefile
-and Makefile.pkg in each source directory, that include a heirarchy of other
+multi-language environment.  xmt_build can compile complex trees of C, C++, Java
+or Go software for multiple target architectures with a small simple Makefile
+and Makefile.pkg in each source directory. That Makefile includes a heirarchy of other
 Makefiles that define things that don't change from directory to directory, like
 target recipes and compiler paths.
 - $XMTBUILD/proto/Makefile.top :
@@ -17,6 +17,7 @@ target recipes and compiler paths.
 		language-specific, architecture-specific stuff: compile flags etc.
 - ./Makefile.pkg :
 		package-specific oerrides only
+
 See $XMTBUILD/proto/Makefile.pkg.help for a complete description of defined
 variables tht can be overridden.
 

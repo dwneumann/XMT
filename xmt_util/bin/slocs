@@ -73,7 +73,7 @@ $opt_fi	= '\.(c|h|cpp|hpp)$' unless defined $opt_fi;
 $opt_fx	= 'test' unless defined $opt_fx;
 my $cmd = ( defined $opt_csv ? "sloc -csv" : "sloc" );
 my $field_separator = ( defined $opt_csv ? "," : ":" );
-my $csv_headings = 'File,' . `sloc < /dev/null`;
+my $csv_headings = `sloc < /dev/null`;
 $csv_headings =~ s/:[^\n]*\n/,/sg;
 $csv_headings =~ s/,\n//;
 my (%filecounts, @dirs, @srcs);
@@ -105,6 +105,7 @@ else
 exit 0 if ($#srcs < 0);
 
 open( CMD, "|$cmd" ) or die("$cmd: $!\n");	# spawn sloc cmd
+print STDOUT "File," if (defined $opt_csv && defined $opt_v);
 print STDOUT "$csv_headings\n" if (defined $opt_csv);
 while ( $#srcs >= 0 )
 {

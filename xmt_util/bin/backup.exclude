@@ -1,50 +1,54 @@
-# exclude all files that match these patterns:
-# "hidden" & ephemeral directories
-.android/
-.cache/
-.cpan/
-.dbus/
-.gimp*/
-.gnupg/
-.matplotlib/
-.mozilla/
-.openshot*/
-.p2/
-.p4*/
-.Trash*/
-.vagrant/machines/
-.vagrant.d/gems/
-.vagrant.d/boxes/
-
-# explicitly excluded non-hidden directories
-AppData/
-Application\ Data/
-AutoSave/
-cache/
-crashes/
-Cookies/
-Crash/
-Crash\ Reports/
-Google\ Drive/
-google-chrome/
-minidump*/
-tmp/
-Temporary\ Internet\ Files/
-webCache/
-Windows/
-
-#  junk & regeneratable files
+# exclude all files that match these patterns
+*/Music
+*/.android
+*/.cache
+*/.cpan
+*/.dbus
+*/.gimp*
+*/.gnupg
+*/.matplotlib
+*/.openshot*
+*/.p2
+*/.p4*
+*/.Trash*
+*/http%3a%2f%2f*
+*/Adobe
+*/AppData
+*/Application\ Data
+*/AutoSave
+*/cache
+*/crashes
+*/Cookies
+*/Cloud\ Storage
+*/Crash
+*/Crash\ Reports
+*/Google\ Drive
+*/google-chrome
+*/KiCad
+*/Kutools\ for\ Excel
+*/LTspiceXVII
+*/minidump*
+*/Malaspina
+*/p4_repo
+*/STM32F4-Discovery_FW_*
+*/STM32Cube_FW*
+*/SX126xDevKit_*
+*/tmp
+*/Temporary\ Internet\ Files
+*/webCache
+*/Windows
 *~
-__pycache__
+*/__pycache__
 *.cflags
 .DS_Store
 *.ERRS
 *.gcda
 *.gcno
 *.la
-*.lck
 *.ldflags
 .libs
+*.lck
+*.lock
 *.log
 *.o
 *.pyc

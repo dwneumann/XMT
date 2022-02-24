@@ -4,7 +4,8 @@
 #  usage: backup -[0|1] [--dest=<dstpath>] srcpath 
 #  Create a tar archive of the specified srcpath to the specified dstpath.
 #  If -0 is specified a level 0 archive is created.
-#  If -1 is specified a level 1 listed-incremental archive is created.
+#  If -1 is specified an incremental archive is created consisting of files
+#  	newer than the timestamp of the last level 0 found in the <dstpath> directory.
 #  In all cases we exclude files matching patterns specified in ./backup.exclude
 #  The command is logged to /var/logs/backup.log
 #
@@ -63,7 +64,7 @@ print $LOG "\n\n______________________________________________________________\n
 print $LOG "level $level backup of $srcpath started $today at $timenow \n";
 my $dstpath = "$dstroot/$hostname.$basename.$today.$level";
 my @fullbackups = glob( "$dstroot/$hostname.$basename.*.0.tgz");
-my $last0 = $fullbackups[0];
+my $last0 = $fullbackups[$#fullbackups];
 backup($srcpath, $dstpath, $excludes, $last0);
 my $timenow = strftime("%X", localtime);
 print $LOG "... ended at $timenow \n";

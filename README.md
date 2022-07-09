@@ -10,7 +10,7 @@ The following packages are included in the collection:
 - xmt_build :
    utilities and vim mappings to automate cross-language, cross-platform software building.     
    C, C++, and Java languages are supported.     
-   linux_x86, Sparc, Linux-x86, AX8052, and STM32 platforms are supported.
+   linux_x86, Sparc, AX8052 and STM32 platforms are supported.
 
 - xmt_cicd :
    utilities functions for automating various CI/CD pipeline functions

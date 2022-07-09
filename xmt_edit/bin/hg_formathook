@@ -29,6 +29,6 @@ foreach my $f (@allfiles)
 my $rc = 0;
 if (@allfiles)
 {
-    $rc = system( "echo $cmd " . join ' ', @filtered_list );
+    $rc = system( "$cmd " . join ' ', @filtered_list );
 }
 exit $rc;

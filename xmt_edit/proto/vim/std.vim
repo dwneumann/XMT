@@ -19,7 +19,7 @@ set ruler showmode
 set tabstop=8 shiftwidth=4 shiftround
 set tags=tags,$PROJECT/tags
 set softtabstop=0 
-set more nocompatible notitle tildeop 
+set more notitle tildeop 
 set backspace=indent,eol,start
 set cpoptions=aABceFsu
 set guioptions=afimgtr

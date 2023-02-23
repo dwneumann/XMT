@@ -82,8 +82,8 @@ sub DESTROY { }
 #************************************************************************
 sub run
 {
-    my $self = shift;		# visible insude eval blocks
-    local @nested_cmds; 	# visible insude eval blocks
+    my $self = shift;		# visible inside eval blocks
+    local @nested_cmds; 	# visible inside eval blocks
 
     # test file has been parsed into a sequence of blocks to be eval'd.
     # now iterate through the sequence & execute them.

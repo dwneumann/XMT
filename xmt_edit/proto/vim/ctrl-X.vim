@@ -50,7 +50,7 @@ map <C-X><	mh%<%dd'hdd
 map <C-X><	>%<<%<<%
 map <> 		<%>>%>>%
 map >< 		>%<<%<<%
-map F		!} fmt -80 -c<CR>
+map F		!}fmt -80 -c<CR>
 map g		:%
 map , 		:'s,'e
 imap {}		{}<ESC>i

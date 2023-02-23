@@ -22,12 +22,12 @@ setenv PATH	"${PATH}:$XMTUTIL/bin"
 
 if ( $?prompt ) then
     alias a alias
-    a cwdcmd	'set prompt="$cwd:t/ \! >"; tooltitle $cwd'
+    a cwdcmd	'set prompt="$cwd:t/ \! >"; '
     a cdb	'cd "$owd"'
     a vi        vim
     a c		clear
     a hi 	history
-    a ls	ls -F
+    a ls	ls -Fh
     a so	source
     a f		find . -name \"\!:1\"
     a fsrc 	'find . -name "*.[ch]" | xargs  grep '
@@ -40,4 +40,5 @@ if ( $?prompt ) then
     set filec
     set owd = `echo $cwd | sed 's://:/:g'`
     cd "$owd"
+    #tooltitle "xterm"
 endif

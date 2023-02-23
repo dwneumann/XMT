@@ -16,7 +16,6 @@
 "*  limitations under the License. 
 "************************************************************************
 
-set nocompatible
 so $XMTEDIT/proto/vim/std.vim
 set title 
 set nohlsearch

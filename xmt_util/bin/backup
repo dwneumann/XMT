@@ -7,7 +7,7 @@
 #  If -1 is specified an incremental archive is created consisting of files
 #  	newer than the timestamp of the last level 0 found in the <dstpath> directory.
 #  In all cases we exclude files matching regex patterns specified in ./backup.exclude
-#  In all cases we write a manifest of the contents of the tar archive in teh same
+#  In all cases we write a manifest of the contents of the tar archive in the same
 #  directory as the archive.
 #  The command is logged to /var/logs/backup.log
 #

@@ -1,8 +1,6 @@
 {
 #************************************************************************
-#   $Version:$
 #   Package	: xmt_edit
-#   Synopsis	:
 #   Purpose	: Perl block which, when eval'ed, prints the desired
 # 		function header block for K&R 'C' functions.
 #
@@ -21,28 +19,32 @@
 
 print qq{
 /************************************************************************
-*   Synopsis:
-*	$funcs[0]->{proto}
+*   \fn $funcs[0]->{proto}
+*   \@brief <synopsis>
 *
-*   Purpose:
-*	<purpose>
+*   <description>
 * 
 *   Parameters: 
 };
 
 foreach $i ( 0 .. $#args )
 {
-    print qq{*\t$args[$i]->{type}\t$args[$i]->{name}\t: <meaning>\n};
+    print qq{*   \@param[in]\t$args[$i]->{type}\t$args[$i]->{name}\t <meaning>\n};
 }
 
 print 
 qq{* 
-*   Values Returned: 
+*   Preconditions:
+*   \@pre\t<description>
 };
 
+print 
+qq{* 
+*   \@returns\t<description>
+};
 foreach $i ( 0 .. $#rtnvals )
 {
-    print qq{*\t$rtnvals[$i]->{val}\t: $rtnvals[$i]->{meaning}\n};
+    print qq{*   \@retval\t$rtnvals[$i]->{val}\t$rtnvals[$i]->{meaning}\n};
 }
 
 print 

@@ -2,8 +2,9 @@
 #************************************************************************
 #   $Version:$
 #   Package	: 
-#   Synopsis	: gdbgui <pgm.elf>
-#   Purpose	: spawn openocd, launch gdbgui, connect to target, debug <pgm.elf>.
+#   Synopsis	: gdbocd [options] <pgm.elf>
+#   Purpose	: spawn openocd or JLinkGDBServer, launch gdb or gdbgui, 
+#			connect to target, debug <pgm.elf>.
 #
 #   Copyright 2018 Visionary Research Inc.  
 #   Licensed under the Apache License, Version 2.0 (the "License");
@@ -17,43 +18,115 @@
 #   limitations under the License. 
 #************************************************************************
 
+use strict;
+use Getopt::Long;
+use File::Basename;
 $SIG{INT} 	= \&cleanup;
 $SIG{TERM}	= \&cleanup;
 use Env;
 
-# note: when executing on Windows gdbgui needs a Windows-style path to gdb
-my $gdb		= "$GCCROOT/bin/arm-none-eabi-gdb";
-my $gdb_args	= "--quiet " 
-		. "-ex 'target remote :3333' "	# openocd's gdbserver port
-		. "-ex 'monitor reset halt' "	# halt ARM's execution
-		. "-ex 'monitor reset init' "	# reset pgm counter to start
-		. "-ex 'monitor arm semihosting enable' " # enable semihosting
-		. "-ex 'break main' "		# break at first instruction of main
-		. "-ex 'load' "			# force reflash to board
-		. "-ex 'continue' ";		# run to break at main
+(my $pgmname = $0) =~ s{.*/}{};
+my $usage 	= "$pgmname [-nogui] [-jlink|stlink] -board <board_name> <pgm.elf>";
+undef my $opt_u;	# unnecessary, but it shuts up -w
+undef my $nogui;	# unnecessary, but it shuts up -w
+undef my $jlink;	# unnecessary, but it shuts up -w
+undef my $stlink;	# unnecessary, but it shuts up -w
+my $link = 'jlink';	# unnecessary, but it shuts up -w
+my $board = 'st.*[fl]4.*';	# by default, filter the options to just STM32 boards
+GetOptions( "jlink"=>\$jlink, "stlink"=>\$stlink, 
+	    "board=s" =>\$board, "nogui"=>\$nogui, "u"=>\$opt_u ) || die $usage;
+die "$usage" if defined $opt_u;
+$link = 'stlink' if defined $stlink;
+my $elf = $ARGV[0];
+die "no executable $elf" if (! -x $elf);
 
-my $gdbgui	= "$ENV{'HOME'}/.local/bin/gdbgui";
-my $gdbgui_args	= "-g $gdb --gdb-args=\"$gdb_args\"";
+my $gdbsrvr	= `which JLinkGDBServer`; chomp $gdbsrvr;
+my $gdbsrvr_args= "";
+my $gdb_args;
+my @devices = ();
 
-# note: openocd needs a Windows-style path to its config file
-my $openocd	= `which openocd`; chomp $openocd;
-my $ocd_args	= "/usr/share/openocd/scripts/board/st_nucleo_l476rg.cfg";
+if ($link eq 'jlink') # use JLink & JlinkGDBserver
+{
+    my $JLINK	= "/opt/SEGGER/JLink";
+    my $dev_list= "$JLINK/devices.txt";
+    my $RTOSlib	= "$JLINK/GDBServer/RTOSPlugin_FreeRTOS.so";
+    # hack here to cull the list
+    $board = 'STM32(F411VE|L476RG).*';
+    open(FILE, $dev_list);
+    my @devlist =  <FILE>;
+    @devices =  grep( /${board}/i, @devlist);
+    map {s/.*?,.*?"(.*?)".*?\n/$1/} @devices;
+    $gdbsrvr		= `which JLinkGDBServer`; chomp $gdbsrvr;
+    $gdbsrvr_args	= "-if SWD -silent -halt -rtos $RTOSlib "
+    			. '-device ' . get_board_selection(@devices);
+    # initial commands sent by gdb to JLinkGDBServer
+    $gdb_args	= "--quiet " 
+		. "-ex 'target remote :2331' "	# gdbsrvr port
+		. "-ex 'monitor speed auto' "	
+		. "-ex 'monitor endian little' "
+		. "-ex 'monitor reset' "
+		. "-ex 'load $elf' "
+		. "-ex 'break main' ";
+}
+else # use STlink & openocd
+{
+    # note: on Windows openocd needs a Windows-style path 
+    my $dev_dir	= "/usr/share/openocd/scripts/board";
+    @devices =  sort grep( /${board}/i, glob qq("${dev_dir}/*.cfg"));
+    @devices = map (basename($_, '.cfg'), @devices);
+    $gdbsrvr		= `which openocd`; chomp $gdbsrvr;
+    $gdbsrvr_args	= sprintf("-f %s/%s.cfg", $dev_dir, get_board_selection(@devices));
+    # initial commands sent by gdb to openocd
+    $gdb_args	= "--quiet " 
+		. "-ex 'target remote :3333' "
+		. "-ex 'monitor reset halt' "
+		. "-ex 'monitor reset init' "
+		. "-ex 'load' "	
+		. "-ex 'break main' ";	
+}
 
 # launch openocd & leave running as a background process
-system( "$openocd -f $ocd_args 1>/dev/null 2>&1 &" );
+system( "$gdbsrvr $gdbsrvr_args &" );
 
-# launch gdbgui, it spawns gdb, gdb connects to openocd ...
-# then gdb reads its startup commands.
-system( "$gdbgui $gdbgui_args --args $ARGV[0]") or die "$gdbgui: $!\n";
+# note: on Windows gdbgui needs a Windows-style path 
+my $gdb		= "$GCCROOT/bin/arm-none-eabi-gdb";
+my $gdbgui	= "$ENV{'HOME'}/.local/bin/gdbgui";
+my $gdb_cmd	= "$gdb $gdb_args";
+if (defined $nogui)	# use commandline gdb
+{
+    system( "$gdb_cmd $elf") or die "$gdb: $!\n";
+}
+else	# use gdbgui
+{
+    # launch gdbgui, it spawns gdb, gdb connects to openocd ...
+    # then gdb reads its startup commands.
+    my $gdbgui_args	= "-g $gdb --gdb-args=\"$gdb_args\"";
+    system( "$gdbgui $gdbgui_args --args $elf") or die "$gdbgui: $!\n";
+}
 
 END {
     cleanup();
 }
 
+sub get_board_selection
+{
+    die "no devices found" if (scalar(@devices) == 0);
+    return $devices[0] if (scalar(@devices) == 1);
+
+    foreach my $i ( 0 .. scalar(@devices) -1)
+    {
+        printf("[%d]\t%s\n", $i, $devices[$i]);
+    }
+    printf("Select device: ");
+    $| = 1; 		# flush our print
+    $_ = <STDIN>;	# read user's input
+    die "invalid choice" if ($_ > scalar(@devices));
+    return $devices[$_];
+}
+
 sub cleanup
 {
-    print "killing child processes...\n";
-    system("pkill --echo --full $openocd	> /dev/null 2>&1");
+    system("pkill --echo --full $gdbsrvr	> /dev/null 2>&1");
     system("pkill --echo --full $gdb		> /dev/null 2>&1");
     system("pkill --echo --full $gdbgui		> /dev/null 2>&1");
 }

@@ -1,0 +1,34 @@
+#!/usr/bin/env perl 
+#************************************************************************
+#   Package	: xmt_edit
+#   Synopsis	: hg_formathook 
+#   Purpose	: run clang-format as a Mercurial hook on the list of
+#                 files about to be comitted.
+#
+#    Copyright 2019 Visionary Research Inc.   All rights reserved.  
+#			   legal@visionary-research.com
+#************************************************************************
+
+use strict;
+use Getopt::Long;
+use Env;
+
+my $cmd = 'clang-format -i ';
+my $ptn = '.*\.(c|h|cpp)$';      # format only these file types
+
+my @allfiles = split ' ', `hg log -r$HG_NODE --template="{files}\n"`;
+my @filtered_list;
+foreach my $f (@allfiles)
+{
+    if ($f =~ /$ptn/)
+    {
+        push @filtered_list, $f;
+    }
+}
+
+my $rc = 0;
+if (@allfiles)
+{
+    $rc = system( "$cmd " . join ' ', @filtered_list );
+}
+exit $rc;

@@ -16,10 +16,10 @@
 "************************************************************************
 
 set ruler showmode 
-set tabstop=8 shiftwidth=4 shiftround
+set tabstop=4 shiftwidth=4 softtabstop=0 shiftround
 set tags=tags,$PROJECT/tags
 set softtabstop=0 
-set more notitle tildeop 
+set more nocompatible notitle tildeop 
 set backspace=indent,eol,start
 set cpoptions=aABceFsu
 set guioptions=afimgtr
@@ -30,30 +30,33 @@ set lines=51 columns=100
 set number
 color xmt
 syntax on
+
 so $XMT/xmt_edit/proto/vim/ctrl-X.vim
 
-"" define autocmds based upon suffix of base file type
-au BufNewFile,BufRead *.txt		so $XMTEDIT/proto/vim/ctrl-X.vim
-au BufNewFile,BufRead *.c,*.h		so $XMTEDIT/proto/vim/c.vim
-au BufNewFile,BufRead *.sh		so $XMTEDIT/proto/vim/sh.vim
-au BufNewFile,BufRead *.perl		so $XMTEDIT/proto/vim/perl.vim
-au BufNewFile,BufRead *.html		so $XMTEDIT/proto/vim/html.vim
-au BufNewFile,BufRead *.cpp,*.hpp	so $XMTEDIT/proto/vim/cpp.vim
-au BufNewFile,BufRead *.java		so $XMTEDIT/proto/vim/java.vim
+" define autocmds based upon suffix of base file type
+for f in split(globpath('$XMTEDIT/proto/vim', '*.vim'), '\n')
+    let e = fnamemodify(f, ':t')
+    let e = fnamemodify(e, ':r')
+    execute 'au BufNewFile,BufRead *.' . e . ' so ' . f
+endfor
 
 " map derived filetypes to base file types
-au BufNewFile,BufRead *.l,*.y			doautocmd BufRead %.c
-au BufNewFile,BufRead *.csh,*.ksh		doautocmd BufRead %.sh
-au BufNewFile,BufRead *.pl,*.pm			doautocmd BufRead %.perl
-au BufNewFile,BufRead *.cc,*.cxx,*.c++		doautocmd BufRead %.cpp
-au BufNewFile,BufRead *.hh,*.hxx,*.h++		doautocmd BufRead %.cpp
+au BufNewFile,BufRead *.txt,*.md				doautocmd BufRead %.html
+au BufNewFile,BufRead *.h,*.l,*.y				doautocmd BufRead %.c
+au BufNewFile,BufRead *.csh					doautocmd BufRead %.sh
+au BufNewFile,BufRead *.ksh					doautocmd BufRead %.sh
+au BufNewFile,BufRead *.pkg					doautocmd BufRead %.sh
+au BufNewFile,BufRead *.top					doautocmd BufRead %.sh
+au BufNewFile,BufRead *.inc					doautocmd BufRead %.sh
+au BufNewFile,BufRead *.pl,*.pm					doautocmd BufRead %.perl
+au BufNewFile,BufRead *.cc,*.cxx,*.c++,*.cs			doautocmd BufRead %.cpp
+au BufNewFile,BufRead *.hh,*.hxx,*.h++				doautocmd BufRead %.cpp
 
 " auto-create new files from template based upon file suffix
 au BufNewFile *	0r !$XMTEDIT/bin/hdr %
 
 " set window extra wide for editing makefile output
 if @% =~# '.ERRS'
-set lines=40 columns=130
-so $XMT/xmt_edit/proto/vim/c.vim
+set lines=50 columns=130
 endif
 

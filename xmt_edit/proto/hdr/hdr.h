@@ -1,8 +1,6 @@
 {
 #************************************************************************
-#   $Version:$
 #   Package	: xmt_edit
-#   Synopsis	:
 #   Purpose	: Perl block which, when eval'ed, prints the desired
 # 		file header for C & C++ public interface files.
 #
@@ -23,20 +21,15 @@ $copyright =~ s/\n*$//;
 $copyright =~ s/\n/\n*  /g; 
 print 
 qq{/************************************************************************
-*   Package	: $module->{pkg}
-*   $cm->{rev}
-*   $copyright
+*   \@file	${filename}
+*   \@brief	Public interface to the $module->{name} module.
 *
-*   Purpose	: Public interface to the $module->{pkg}::$module->{name} module.
+*   $copyright
 *************************************************************************/
 
 #ifndef __${filename_}
 #define __${filename_}
-
-#ifdef EMBED_REVISION_STRINGS
-static const char ${filename_}_id[] = "@(#) $module->{pkg}::${filename}\t$cm->{rev}";
-#endif
-
+#define __${filename_}_VERSION   "$cm->{rev}";
 
 #endif /* __${filename_}	*/
 };

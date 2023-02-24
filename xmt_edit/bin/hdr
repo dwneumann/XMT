@@ -69,6 +69,18 @@ use Hdr;
 			'committer'	=> "\$" . "Committer:" . "\$",
 			'signer'	=> "\$" . "Signer:" . "\$",
 			'sigStatus'	=> "\$" . "SigStatus:" . "\$",
+			'tag'		=> "\$" . "Tag:" . "\$" },
+
+	    'hg'    => {'rev'		=> "\$" . "Version:" . "\$",
+			'id'		=> "\$" . "CommitId:" . "\$",
+			'abbrevId'	=> "\$" . "AbbrevId:" . "\$",
+			'lcd'		=> "\$" . "CommitDate:" . "\$",
+			'msg'		=> "\$" . "CommitSubject:" . "\$",
+			'branch'	=> "\$" . "Branch:" . "\$",
+			'build'		=> "\$" . "BuildNum:" . "\$",
+			'committer'	=> "\$" . "Committer:" . "\$",
+			'signer'	=> "\$" . "Signer:" . "\$",
+			'sigStatus'	=> "\$" . "SigStatus:" . "\$",
 			'tag'		=> "\$" . "Tag:" . "\$" }
 	);
 
@@ -86,7 +98,7 @@ die "$usage" if defined $opt_u;
 $ARGV[0] =~ tr :\\:/:;
 @dirs = (split '/',  getcwd() . '/' . $ARGV[0] );
 $filename = $dirs[-1];
-$module->{pkg} = $dirs[-3];
+$module->{pkg} = $dirs[-2];
 ($module->{name}, $suffix) = (split /\./, $filename);
 ($filename_ = $filename) =~ tr/\./_/;
 
@@ -101,11 +113,14 @@ $dflt_ext	= $XMTEDIT_DFLT_SRC if defined $XMTEDIT_DFLT_SRC;
 $copyright_fn	= ( defined $XMTEDIT_COPYRIGHT	? "$XMTEDIT_COPYRIGHT"
 		: "$XMTEDIT/proto/dflt_copyright" );
 
-open( TMP, "<$copyright_fn" ) || die( "$copyright_fn: $!" );
-undef $/;
-$copyright = <TMP>;
-close( TMP ) || die ( "TMP: $!" );
-$/ = "\n";
+$copyright = "";
+if (open( TMP, "<$copyright_fn" ))
+{
+    undef $/;
+    $copyright = <TMP>;
+    close( TMP ) || die ( "TMP: $!" );
+    $/ = "\n";
+}
 
 #************************************************************************
 #  generate a list of available templates

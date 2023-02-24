@@ -22,15 +22,14 @@ export PATH="${XMTUTIL}/bin:${PATH}"
 
 if [[ $- == *i* ]]; then
     alias a=alias
-    alias cwdcmd='set prompt="$cwd:t/ \! >"; tooltitle $cwd'
     alias vi=vim
     alias c=clear
     alias hi=history
     alias ls='ls -F'
     alias so=source
-    alias f='find . -name \"\!$1\"'
-    alias fsrc='find . -name "*.[ch]" | xargs  grep '
-    alias fstr='find . -type f | xargs  grep '
-    alias vstr='vi `fgrep -l \!:0 \!:2*`'
+    alias f='function _f(){ find . -name "$@"; };_f '
+    alias fsrc='find -L . \( -name "*.[ch]" -o -name "*.[ch]pp" \) -print | xargs  grep '
+    alias fstr='find . -type f -print | xargs  grep '
+    alias vstr='function _vstr(){ vi `fgrep -l $1  $@`; };_vstr '
     set history = 100
 fi

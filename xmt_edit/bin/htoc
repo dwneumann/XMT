@@ -1,0 +1,21 @@
+#!/usr/bin/env perl 
+#************************************************************************
+#   Package	: xmt_build
+#   Synopsis	: htoc <filename>
+#   Purpose	: echo <filename> with the file extension flipped between 
+#	.h and .c or .cc or .ccp (if more than one, whichever one glob() lists first).
+#
+#    Copyright 2019 Visionary Research Inc.   All rights reserved.
+#    			legal@visionary-research.com
+#************************************************************************
+
+use strict;
+use Env;
+
+die "usage: htoc <filename>" if $#ARGV < 0;
+
+(my $nm	= $ARGV[0]) =~ s/\.[hc]p*?$//;
+(my $ext= $ARGV[0]) =~ s/.*\.//;
+my @newname = glob("$nm.[ch]*");
+shift @newname if ($newname[0] eq $ARGV[0]);
+print ':e! ' . $newname[0];

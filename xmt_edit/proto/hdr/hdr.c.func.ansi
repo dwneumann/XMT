@@ -1,9 +1,7 @@
 {
 #************************************************************************
-#   $Version:$
-#   Package	: xmt_edit
-#   Synopsis	:
-#   Purpose	: Perl block which, when eval'ed, prints the desired
+#   @version
+#   @brief	: Perl block which, when eval'ed, prints the desired
 # 		function header block for ANSI 'C' functions.
 #
 #   Copyright (c) 1998	Neumann & Associates Information Systems Inc.
@@ -21,28 +19,33 @@
 
 print qq{
 /************************************************************************
-*   Synopsis:
-*	$funcs[0]->{proto}
+*   \@fn $funcs[0]->{proto}
 *
-*   Purpose:
-*	<purpose>
+*   \@brief <synopsis>
+*
+*   <description>
 * 
 *   Parameters: 
 };
 
 foreach $i ( 0 .. $#args )
 {
-    print qq{*\t$args[$i]->{type}\t$args[$i]->{name}\t: <meaning>\n};
+    print qq{*   \@param[in]\t$args[$i]->{type}\t $args[$i]->{name}\t <meaning>\n};
 }
 
 print 
 qq{* 
-*   Values Returned: 
+*   Preconditions:
+*   \@pre\t<description>
 };
 
+print 
+qq{* 
+*   \@returns\t<description>
+};
 foreach $i ( 0 .. $#rtnvals )
 {
-    print qq{*\t$rtnvals[$i]->{val}\t: $rtnvals[$i]->{meaning}\n};
+    print qq{*   \@retval\t$rtnvals[$i]->{val}\t $rtnvals[$i]->{desc}\n};
 }
 
 print 

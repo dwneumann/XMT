@@ -17,13 +17,14 @@
 "************************************************************************
 
 so $XMTEDIT/proto/vim/std.vim
-set title 
 set nohlsearch
-auto BufEnter * let &titlestring = expand("%")
-let $FQN = expand("%")
-let &titleold=getcwd()
+auto BufEnter * let &titlestring = expand("%:p")
 let $TMP="/tmp"
 set magic
+set cscoperelative
+set title 
+set tabstop=8
+set shiftwidth=4
 
 " shell escapes should run bash open in the working directory
 " Without --login, Cygwin won't mount some directories such as /usr/bin/

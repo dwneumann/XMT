@@ -1,10 +1,9 @@
 #************************************************************************
-#*   $Version:$
 #*   Package	: xmt_build
 #*   Synopsis	: included by $(XMTBUILD)/proto/lang/<language>/generic.inc
 #*   Purpose	: 
-#*              This Makefile segment adds architecture support to
-#*              $(XMTBUILD)/proto/lang/<language>/generic.inc
+#*			  This Makefile segment adds architecture support to
+#*			  $(XMTBUILD)/proto/lang/<language>/generic.inc
 #*
 #*   To add support for a new target architecture,  clone any existing
 #*   <architecture>.inc file & alter program paths & flags appropriately.
@@ -24,82 +23,124 @@
 #*  limitations under the License. 
 #************************************************************************
 
-
+arch := STM32L4
 #**********************************************************************
-# define program paths...
-#**********************************************************************
-GNUROOT			:= arm-none-eabi
-COMPILE.c.STM32L4	:= $(GNUROOT)-gcc
-LD.c.STM32L4		:= $(GNUROOT)-gcc
-AR.c.STM32L4		:= $(GNUROOT)-ar
-DOC.c.STM32L4		:= $(XMTBUILD)/bin/srcdoc 
-LINT.c.STM32L4		:= echo lint not installed
-OBJCOPY.c.STM32L4	:= $(GNUROOT)-objcopy
-LIB_PFX.c.STM32L4	:= lib
-LIB_SFX.c.STM32L4	:= .a
-EXE_PFX.c.STM32L4	:= 
-EXE_SFX.c.STM32L4	:= .elf
+GCCROOT					= $(XMTEXT)/site/opt/gcc-arm-none-eabi
+DOCER.$(lang).$(arch)	= $(DOCER.$(lang))
+LINTER.$(lang).$(arch)	= $(LINTER.$(lang))
+COMPILER.$(lang).$(arch)= $(COMPILER.$(lang))
+LINKER.$(lang).$(arch)	= $(LINKER.$(lang))
+ARCHIVER.$(lang).$(arch)= $(ARCHIVER.$(lang))
+OBJCOPY.$(lang).$(arch)	= $(OBJCOPY.$(lang))
+LIB_PFX.$(lang).$(arch)	= $(LIB_PFX.$(lang))
+LIB_SFX.$(lang).$(arch)	= $(LIB_SFX.$(lang))
+EXE_PFX.$(lang).$(arch)	= $(EXE_PFX.$(lang))
+EXE_SFX.$(lang).$(arch)	= .elf
+PVS_CFG					= $(PROJECT)/.pvs-studio.cfg
+PVS_LOG					= $(TGTDIR)/pvs-studio.log
+PVS_OUT					= $(TGTDIR)/pvs-studio.out
 
 #**********************************************************************
 # This is the place to define default flags and recipes
-# that are always true for THIS target platform for THIS language.
+# that are specific to THIS target platform for THIS language.
 #**********************************************************************
-CFLAGS.c.STM32L4 += -Wall -Wno-unused-const-variable -mlittle-endian -mthumb	\
-	-mcpu=cortex-m4 -mthumb-interwork -mfloat-abi=hard -mfpu=fpv4-sp-d16	\
-	-fstack-usage -fdata-sections -ffunction-sections 			\
-	-DUSE_HAL_DRIVER -DSTM32L476xx -DARM_MATH_CM4 -D__FPU_PRESENT=1 	
 
-LDFLAGS.c.STM32L4	+= $(CFLAGS.c.STM32L4) -Wl,-Map=$(TGTDIR)/$(PKG_NM).map \
-	-Wl,--cref -Wl,--gc-sections --specs=nano.specs -lc -lm 
+MCU	= -mcpu=cortex-m4 -mthumb -mfpu=fpv4-sp-d16 -mfloat-abi=hard 
+CFLAGS.$(lang).$(arch) += -Wall -Wno-strict-aliasing -Wno-write-strings 		\
+	-Wno-attributes -Wno-unused-function -Wno-unused-const-variable 			\
+	-std=gnu99 -g -MMD -MP														\
+	$(MCU) --specs=nano.specs --specs=nosys.specs 			 					\
+	-DSTM32L4xx -DARM_MATH_CM4 -DCORE_M4 -mlittle-endian 						\
+	-D__forceinline=inline														\
+	-fstack-usage -fdata-sections -ffunction-sections -fmessage-length=0		\
+	-fno-builtin -fsingle-precision-constant 									\
+	-isystem $(GCCROOT)/include
 
-ARFLAGS.c.STM32L4	+= -rscDv
-LINTFLAGS.c.STM32L4	+= $(CFLAGS.c.STM32L4)
-DOCFLAGS.c.STM32L4	+= 
+LDFLAGS.$(lang).$(arch)	+= $(MCU) -Wl,-Map=$(TGTDIR)/$(PKG_NM).map				\
+	-Wl,--cref -Wl,--gc-sections 												\
+	--specs=nano.specs --specs=nosys.specs 
+ 			
+ARFLAGS.$(lang).$(arch)		+= 
+LINTFLAGS.$(lang).$(arch)	+= 
+DOCFLAGS.$(lang).$(arch)	+= 
 
+.PHONY: bin.$(lang).$(arch)
+bin.$(lang).$(arch): exe.$(lang).$(arch)
+	$(OBJCOPY.$(lang).$(arch)) -O binary $(TGTDIR)/$(EXE_NM) $(TGTDIR)/$(PKG_NM).bin
 
-bin: exe
-	$(OBJCOPY.c.STM32L4) -O binary $(TGTDIR)/$(EXE_NM) $(TGTDIR)/$(PKG_NM).bin
+.PHONY: hex.$(lang).$(arch)
+hex.$(lang).$(arch): exe.$(lang).$(arch)
+	$(OBJCOPY.$(lang).$(arch)) -O ihex $(TGTDIR)/$(EXE_NM) $(TGTDIR)/$(PKG_NM).hex
 
-hex: exe
-	$(OBJCOPY.c.STM32L4) -O ihex $(TGTDIR)/$(EXE_NM) $(TGTDIR)/$(PKG_NM).hex
+.PHONY: lint.$(lang).$(arch) 
+lint.$(lang).$(arch) :
+	$(LINTER.$(LANGUAGE).$(ARCH))	\
+		$(LINTFLAGS) $(LINTFLAGS.$(LANGUAGE)) $(LINTFLAGS.$(LANGUAGE).$(ARCH))  \
+		$(srcs.$(lang)) $(hdrs.$(lang)) -- 										\
+		$(filter -D% -I%, $(CFLAGS) $(CFLAGS.$(lang)) $(CFLAGS.$(lang).$(arch)))
 
+.PHONY: misra-check.$(lang).$(arch) 
+misra-check.$(lang).$(arch) :
+		pvs-studio-analyzer trace -- make $(PKG_TGT);
+		-pvs-studio-analyzer analyze --disableLicenseExpirationCheck -o $(PVS_LOG);
+		plog-converter -a MISRA -t tasklist -o $(PVS_OUT) $(PVS_LOG)
 
-
-$(OBJDIR)/%.o	: %.S
-	@echo $(CFLAGS) $(CFLAGS.c) $(CFLAGS.c.$(ARCH)) > $@.cflags ; 
-	$(COMPILE.c.$(ARCH)) @$@.cflags $< 
+.PHONY: doc.$(lang).$(arch) 
+docs.$(lang).$(arch) :
+	$(DOCER.$(LANGUAGE).$(ARCH))	\
+		$(DOCFLAGS) $(DOCFLAGS.$(LANGUAGE)) $(DOCFLAGS.$(LANGUAGE).$(ARCH))
 
 $(OBJDIR)/%.o	: %.s
-	@echo $(CFLAGS) $(CFLAGS.c) $(CFLAGS.c.$(ARCH)) > $@.cflags ; 
-	$(COMPILE.c.$(ARCH)) @$@.cflags $< 
+	@mkdir -p $(@D)
+	@echo $(CFLAGS) $(CFLAGS.$(lang)) $(CFLAGS.$(lang).$(arch)) > $@.cflags ; 
+	$(COMPILER.$(lang).$(arch)) @$@.cflags $< 
 
-$(OBJDIR)/%.o	: %.c
-	@echo $(CFLAGS) $(CFLAGS.c) $(CFLAGS.c.$(ARCH)) > $@.cflags ; 
-	$(COMPILE.c.$(ARCH)) @$@.cflags $< 
+$(OBJDIR)/%.o	: %.$(lang)
+	@mkdir -p $(@D)
+	@echo $(CFLAGS) $(CFLAGS.$(lang)) $(CFLAGS.$(lang).$(arch)) > $@.cflags ; 
+	$(COMPILER.$(lang).$(arch)) @$@.cflags $< 
 
-$(OBJDIR)/%.i	: /%.c
-	@echo -E $(CFLAGS) $(CFLAGS.c) $(CFLAGS.c.$(ARCH)) > $@.cflags ; 
-	$(COMPILE.c.$(ARCH)) @$@.cflags $< 
+$(OBJDIR)/%.i	: $(SRCDIR)/%.$(lang)
+	@mkdir -p $(@D)
+	@echo -E $(CFLAGS) $(CFLAGS.$(lang)) $(CFLAGS.$(lang).$(arch)) > $@.cflags ; 
+	$(COMPILER.$(lang).$(arch)) @$@.cflags $< 
 
-$(OBJDIR)/%.ln	: %.c
-	@echo $(LINTFLAGS) $(LINTFLAGS.c) $(LINTFLAGS.c.$(ARCH)) > $@.lintflags ; 
-	$(LINT.c.$(ARCH)) @$@.lintflags $< 
-
-$(DOCDIR)/%.html: $(SRCDIR)/%.c
-	@echo $(DOCFLAGS) $(DOCFLAGS.c) $(DOCFLAGS.c.$(ARCH)) > $@.docflags ; 
-	$(DOC.c.$(ARCH)) @$@.docflags $< 
-
-.lib.$(LANGUAGE):	$(TGTDIR)/$(LIB_NM)
+.PHONY: lib.$(lang).$(arch)
+lib.$(lang).$(arch):	$(TGTDIR)/$(LIB_NM)
 $(LIB_NM): $(TGTDIR)/$(LIB_NM)
-$(TGTDIR)/$(LIB_NM): $(objs.$(LANGUAGE)) $(EXTRA_OBJS)
-	@echo 	$(ARFLAGS) $(ARFLAGS.$(LANGUAGE)) $(ARFLAGS.$(LANGUAGE).$(ARCH)) > $@.arflags;
-	$(AR.$(LANGUAGE).$(ARCH)) @$@.arflags $@ $^ 	
+$(TGTDIR)/$(LIB_NM): $(objs.$(lang)) $(EXTRA_OBJS)
+	@mkdir -p $(@D)
+	@echo 	$(ARFLAGS) $(ARFLAGS.$(lang)) $(ARFLAGS.$(lang).$(arch)) > $@.arflags;
+	$(ARCHIVER.$(lang).$(arch)) @$@.arflags $@ $^ 	
 
-.exe.$(LANGUAGE):	$(TGTDIR)/$(EXE_NM)
+.PHONY: exe.$(lang).$(arch)
+exe.$(lang).$(arch):	$(TGTDIR)/$(EXE_NM)
 $(EXE_NM): $(TGTDIR)/$(EXE_NM)
-$(TGTDIR)/$(EXE_NM): $(objs.$(LANGUAGE)) $(EXTRA_OBJS) 
-	@echo $(LDFLAGS) $(LDFLAGS.$(LANGUAGE)) $(LDFLAGS.$(LANGUAGE).$(ARCH)) > $@.ldflags;
-	$(LD.$(LANGUAGE).$(ARCH)) @$@.ldflags $^ \
-	    $(LIBS) $(LIBS.$(LANGUAGE)) $(LIBS.$(LANGUAGE).$(ARCH)) 
+$(TGTDIR)/$(EXE_NM): $(objs.$(lang)) $(EXTRA_OBJS) 
+	@mkdir -p $(@D)
+	@echo $(LDFLAGS) $(LDFLAGS.$(lang)) $(LDFLAGS.$(lang).$(arch)) > $@.ldflags;
+	$(LINKER.$(lang).$(arch)) @$@.ldflags $^ \
+		$(LIBS) $(LIBS.$(lang)) $(LIBS.$(lang).$(arch)) 
 
+# use STLink to reflash the board
+.PHONY: stflash
+stflash: bin
+	st-flash write $(TGTDIR)/$(PKG_NM).bin 0x8000000
+
+# use JLink to reflash the board
+.PHONY: jflash
+jflash: hex
+	echo "r" > $(TGTDIR)/$(PKG_NM).jflash
+	echo "loadfile $(TGTDIR)/$(PKG_NM).hex" >> $(TGTDIR)/$(PKG_NM).jflash
+	echo "q" >> $(TGTDIR)/$(PKG_NM).jflash
+	JLinkExe -device STM32F411VE -if SWD -speed 4000 \
+		-autoconnect 1 -CommanderScript $(TGTDIR)/$(PKG_NM).jflash
+
+# apply fixes to CubeMX auto-generated code
+.PHONY: fixMX
+fixMX:
+	find $(THIRDPARTY_SRCS) -name "*.[ch]" |	\
+	xargs -n 1 perl -i -p 				\
+		-e 's/Error_Handler\( *\);/Error_Handler(__LINE__);/;' \
+		-e 's/void Error_Handler\(void\)/void Error_Handler(int line)/;'
 

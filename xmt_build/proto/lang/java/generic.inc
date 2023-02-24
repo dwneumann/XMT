@@ -1,11 +1,10 @@
 #************************************************************************
-#*   $Version:$
 #*   Package	: xmt_build
 #*   Synopsis	: included by $(XMTBUILD)/proto/Makefile.top
 #*   Purpose	: 
-#*              This Makefile segment adds language support to
-#*              $(XMTBUILD)/proto/Makefile.top
-#*              It is intended to be included by that file only.
+#*			  This Makefile segment adds language support to
+#*			  $(XMTBUILD)/proto/Makefile.top
+#*			  It is intended to be included by that file only.
 #*
 #*   To add support for a new target architecture,  clone any existing
 #*   <architecture>.inc file & alter program paths & flags appropriately.
@@ -25,25 +24,30 @@
 #*  limitations under the License. 
 #************************************************************************
 
-
 #   := assignements are evaluated during lexical scan;
-#    = assignments are recursively expanded during rule parsing
-srcs.java	:= $(wildcard $(SRCDIR)/$(JAVA_PKGROOT)/*.java)
-hdrs.java	:= 
-#srcs.java	:= $(shell find $(SRCDIR)/ -type f -name '*.java')
-objs.java	:= $(patsubst $(SRCDIR)/$(JAVA_PKGROOT)/%.java,$(JAVA_PKGROOT)/%.class,$(srcs.java))
-docs.java	:= $(patsubst $(SRCDIR)/$(JAVA_PKGROOT)/%.java,$(DOCDIR)/%.html,$(srcs.java))
-lnts.java	:= 
+#	= assignments are recursively expanded during rule parsing
+lang	:= java
+
+srcs.$(lang)	= $(wildcard $(SRCDIR)/$(JAVA_PKGROOT)/*.$(lang))
+hdrs.$(lang)	= 
+objs.$(lang)	= $(patsubst $(SRCDIR)/$(JAVA_PKGROOT)/%.$(lang),$(JAVA_PKGROOT)/%.class,$(srcs.$(lang)))
+docs.$(lang)	= $(patsubst $(SRCDIR)/$(JAVA_PKGROOT)/%.$(lang),$(DOCDIR)/%.html,$(srcs.$(lang)))
+lnts.$(lang)	= 
 
 #**********************************************************************
 # This is the place to define default flags that are common to ALL 
 # supported architectures for THIS language.
 #**********************************************************************
-CFLAGS.java	+= -g -d $(OBJDIR) 
-LDFLAGS.java	= 
-ARFLAGS.java	= cf 
-LINTFLAGS.java	= 
-DOCFLAGS.java	= 
+DOCER.$(lang)		= $(DOCER)
+LINTER.$(lang)		= 
+COMPILER.$(lang)	= /usr/bin/javac
+LINKER.$(lang)		= /bin/true
+ARCHIVER.$(lang)	= /usr/bin/jar
+OBJCOPY.$(lang)		= echo no objcopy for $(lang)
+CFLAGS.$(lang)		+= -g -d $(OBJDIR) 
+LDFLAGS.$(lang)		+= 
+ARFLAGS.$(lang)		+= cf 
+LINTFLAGS.$(lang)	+= 
+DOCFLAGS.$(lang)	+= $(PROJECT)/proto/Doxyfile
 
 ## Define recipes in $(XMTBUILD)/proto/lang/$(LANGUAGE)/$(ARCH)
-## after variables are further defined there 

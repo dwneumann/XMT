@@ -78,6 +78,10 @@ print $LOG "... ended at $timenow \n";
 exit 0;
 
 
+#************************************************************************
+# sub create_manifest :  create a manifest file of all files that are (will be)
+# present in the backup we are about to create.
+#************************************************************************
 sub create_manifest
 {
     my ($srcpath, $excludes, $manifest, $last0) = @_;
@@ -111,6 +115,11 @@ sub create_manifest
     close $fh;
 }
 
+#************************************************************************
+# sub backup : create a compressed tarfile containing all files 
+# listed in the manifest.
+# Print checkpoint lines to backup.log every 10GB.
+#************************************************************************
 sub backup
 {
     my ($srcpath, $dstpath, $manifest) = @_;

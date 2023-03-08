@@ -14,7 +14,7 @@
 "*  See the License for the specific language governing permissions and
 "*  limitations under the License. 
 "************************************************************************
-so $XMTEDIT/proto/vim/ctrl-X.vim
+so $XMT/xmt_edit/proto/vim/ctrl-X.vim
 set wm=5 ai
 
 "************************************************************************

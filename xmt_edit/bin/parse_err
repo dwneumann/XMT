@@ -1,0 +1,35 @@
+#!/usr/bin/env perl 
+#************************************************************************
+#   Package	: xmt_edit
+#   Synopsis	: invoked from vim macro <C-X>E  
+#   Purpose	: transform stdin into an ex command to go to an error 
+#
+#   Copyright (c)  2020 Malaspina Labs (Barbados) Inc. - info@malaspina-labs.com
+#************************************************************************
+
+use strict;
+use Env;
+
+my $fpath;
+while (<>)
+{
+    (my $fname = $_) =~ s/:.*//; chomp $fname;
+    if (-r "$fname")
+	{
+		$fpath = "$fname";
+	}
+    elsif (-r "./$fname")
+	{
+		$fpath = "./$fname";
+	}
+    elsif (-r "$PROJECT/cscope.files")
+	{
+		my $found = `fgrep $fname $PROJECT/cscope.files`;
+		if ($found !~ /^\s*$/)
+		{
+			$fpath = $found;
+		}
+	}
+    (my $cmd = $_) =~ s{^.*?([^\s:]+):([\d]+):.*}{:e! +$2 $fpath};
+    print $cmd;
+}

@@ -20,6 +20,17 @@
 #************************************************************************
 
 LANGUAGE	= c
-ARCH		= STM32L4
-BUILD_TGT	= exe
+ARCH		= $(XMTBUILD_DFLT_ARCH)
+BUILD_CFG	= $(XMTBUILD_CONFIG)
+PKG_TGT		= lib
+BUILD_TGT	= $(PKG_TGT)
 
+# extra objects (such as thridparty code) to build and link
+EXTRA_OBJS  +=
+
+#  libraries to link when building an executable.
+#  If library A needs a symbol from library B, then A must precede B in the order.
+LIBS        +=
+
+# prerequisite packages to recursively compile for a "make build"
+BUILD_PKGS  += 

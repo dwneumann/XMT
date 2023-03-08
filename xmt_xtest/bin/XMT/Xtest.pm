@@ -22,6 +22,7 @@ use Expect;
 use Path::Tiny qw(path);
 use Carp;
 use Digest::CRC qw(crc16);
+use File::Find;
 
 sub version 
 {
@@ -82,8 +83,8 @@ sub DESTROY { }
 #************************************************************************
 sub run
 {
-    my $self = shift;		# visible insude eval blocks
-    local @nested_cmds; 	# visible insude eval blocks
+    my $self = shift;		# visible inside eval blocks
+    local @nested_cmds; 	# visible inside eval blocks
 
     # test file has been parsed into a sequence of blocks to be eval'd.
     # now iterate through the sequence & execute them.
@@ -140,6 +141,37 @@ sub run
     return $Xtest::PASS;
 }
 
+
+#************************************************************************
+# class method resolve searches recursively within the $PROJECT directory
+# for the specified file,  and will return the line number containing the
+# first occurrence of the regular expression <pattern>
+#************************************************************************
+sub resolve
+{
+    my ($fn, $ptn) = @_;
+    our @fpaths;
+    if (-e $fn ) # check if $fn is an absolute path
+    {
+        push(@fpaths, $fn);
+    }
+    else        # resursively search in $PROJECT for matches of $fn
+    {
+        find( sub { push(@fpaths, $File::Find::name) if $File::Find::name =~ m{/$fn$}; }, $ENV{PROJECT} );
+        # warn if we find more than one match
+        carp "$fn : ambiguous: more than one match in \$PROJECT" if (scalar @fpaths > 1);
+    }
+    my $line_num = 0;
+    open (FH, "<$fpaths[0]") or carp "$fpaths[0]: $!\n" && return undef;
+    while (<FH>)
+    {
+        ++$line_num;
+        return $line_num if /$ptn/;
+    }
+    close FH;
+    return undef;
+}
+
 #************************************************************************
 # private method _parsetests reads a test file into an array of hashes.
 # Each hash entry contains the filename, line #, and a block  { ... } which 
@@ -160,8 +192,9 @@ sub _parsetestfile
 	my %seq = ('fn' =>$fn, 'seqnum'=>$i, 'buf'=>$buf);
 	push @array, \%seq;
 	$i++;
-    }
+   }
     return @array;
 }
+
 
 1;  # ensure class eval returns true;

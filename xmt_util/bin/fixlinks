@@ -1,0 +1,47 @@
+#!/usr/bin/env perl 
+#************************************************************************
+#   Package	: xmt_util
+#   Synopsis	: fixlinks <searchroot> <newroot>
+#   Purpose	    : find all "broken symbolic link" under <searchroot>/<brokenpath>
+#               and redirect them to <newroot>/<brokenpath> if that exists. 
+#
+#    Copyright 2019 Visionary Research Inc.   All rights reserved.
+#    			legal@visionary-research.com
+#************************************************************************
+
+use strict;
+use Getopt::Long;
+use Env;
+use File::Find;
+
+(my $pgmname = $0) =~ s{.*/}{};
+my $usage		= "usage: $pgmname [-u] <searchroot> <newroot>\n";
+undef my $opt_u;	# unnecessary, but it shuts up -w
+GetOptions( "u"=>\$opt_u ) || die $usage;
+die "$usage" if defined $opt_u;
+die "usage" if @ARGV != 2;
+my ($searchroot, $newroot) = @ARGV;
+my @fixlist;
+
+find( { wanted => \&dangling_links, 
+        no_chdir=>1, 
+        follow_skip => 2
+      }, $searchroot );
+
+foreach (@fixlist)
+{
+    next unless -l;		# skip if not a symbolic link
+    my $linkname = $_;
+    my $linkdest = readlink($linkname);
+	unlink($linkname);
+
+    # only relink links to paths that exist.
+	symlink("$newroot/$linkdest", $linkname) if -e "$newroot/$linkdest";
+}
+exit 0;
+
+sub dangling_links 
+{
+    -l && !-e && push( @fixlist, $File::Find::name);
+}
+

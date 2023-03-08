@@ -1,0 +1,73 @@
+#!/usr/bin/env perl 
+#************************************************************************
+#   Package	: xmt_edit
+#   Synopsis	: srclist [-full] [-x <ptn>] [-i <ptn>] <rootdir> ...
+#   Purpose	: find all srcfiles under all listed <rootdir>, 
+#	excluding all files or directories matching regex -x <ptn>
+#	including only those files or directories matching regex -i <ptn>.
+#	The -x and -i options may be repeated.
+#	Output relative paths unless -full is specified.
+#
+#	 Copyright 2019 Visionary Research Inc.   All rights reserved.
+#	 			legal@visionary-research.com
+#	 Licensed under the Apache License, Version 2.0 (the "License");
+#	 you may not use this file except in compliance with the License.
+#	 You may obtain a copy of the License at http://www.apache.org/licenses/LICENSE-2.0
+#	 
+#	 Unless required by applicable law or agreed to in writing, software
+#	 distributed under the License is distributed on an "AS IS" BASIS,
+#	 WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+#	 See the License for the specific language governing permissions and
+#	 limitations under the License. 
+#************************************************************************
+
+use strict;
+use Getopt::Long;
+use File::Find;
+use Cwd qw(getcwd realpath);
+use Env;
+
+(my $pgmname = $0) =~ s{.*/}{};
+my $usage		= "usage: $pgmname [-full] [-x <ptn>] [-i <ptn>] <rootdir> ...\n";
+undef my $opt_u;	# unnecessary, but it shuts up -w
+undef my $opt_full;	# unnecessary, but it shuts up -w
+undef my @exclude;	# unnecessary, but it shuts up -w
+undef my @include;	# unnecessary, but it shuts up -w
+GetOptions( "u"=>\$opt_u, "full"=>\$opt_full, 
+	    "x=s" => \@exclude, "i=s" => \@include ) || die $usage;
+die "$usage" if defined $opt_u;
+
+die "$usage" if $#ARGV < 0;
+my @found;
+my $cwd = getcwd();
+find({wanted=>\&match, follow=>1}, @ARGV);	# find all src files in each <rootdir>
+FILE: foreach my $f (@found)
+{
+    if (@exclude)
+    {
+	PRUNE: foreach (@exclude)
+	{
+	    next FILE if $f =~ m{$_};
+	}
+    }
+    if (@include)
+    {
+	foreach (@include)
+	{
+	    next FILE if $f !~ m{$_};
+	}
+    }
+    if (defined $opt_full && $f !~ m:^/:)
+    {
+        $f = realpath($cwd . "/" .$f);
+    }
+    print $f . "\n";	
+}
+
+sub match
+{
+    if ( /\.(c|h|cpp)$/ )
+    {
+	push(@found, $File::Find::name);
+    }
+}

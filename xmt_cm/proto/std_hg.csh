@@ -30,7 +30,7 @@ alias hgraft	'hg graft --log -r \!*'	# cherry pick specified rev from other bran
 alias hgrep	'hg grep \!*'		# search revision history for a pattern in specified files
 alias hdiff	'hg diff'		# show modified files not yet staged
 alias hheads	'hg heads'		# show head revisions of all branches
-alias hhi	'hg log'		# show concise commit history
+alias hhi	"hg log| sed '/^files:/ s/  */\n\t/g'"		# show concise commit history
 alias hid	'hg identify --id'	# show build identifier for working set
 alias hlogbr	'hg log --graph'	# show branch history
 alias hlsbr	'hg branches'		# list all branches

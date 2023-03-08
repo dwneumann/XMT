@@ -1,8 +1,7 @@
 #************************************************************************
-#*   $Version:$
-#*   Package	: build
-#*   Synopsis	: include $(XMTBUILD)/proto/Makefile.top
-#*   Purpose	: 
+#*   Package	:	xmt_build
+#*   Synopsis	:	include $(XMTBUILD)/proto/Makefile.top
+#*   Purpose	:	
 #*              This Makefile contains top-level standard make rules
 #*              and flags; ie those which are imposed upon all
 #*              projects undertaken within this organization. It is
@@ -32,40 +31,43 @@
 
 #**********************************************************************
 # lower-case variables are for internal use only;
-# these not intended to be user-changable...
-#   := assignements are evaluated during lexical scan;
-#    = assignemtns are recursively evaluated during rule parsing
+# these are not intended to be user-changable.
+#   := assignements are evaluated once during lexical scan;
+#    = assignemnts are recursively evaluated during recipe execution
 #**********************************************************************
-shell		= /bin/bash
-SHELL		= $(shell)
-pkg_dir		= $(shell cd ..;pwd)
-supp_langs	= $(notdir $(wildcard $(XMTBUILD)/proto/lang/*))
+SHELL		:= /bin/bash
+makedepend	:= makedepend
+supp_langs	:= $(notdir $(wildcard $(XMTBUILD)/proto/lang/*))
 allsrcs		= $(sort $(foreach e,$(supp_langs),$(srcs.$(e))))
+pkg_dir		= $(CURDIR)
 
 #**********************************************************************
-# Upper-case variables may be specified on the commandline or these
-# defaults may be overridden in individual project-level or
-# package-level Makefiles.
+# Upper-case variables may be specified on the commandline 
+# or these defaults may be overridden in any project-level 
+# or package-level Makefile.pkg.
 #**********************************************************************
-MAKE		= make
-MAKEDEPEND	= makedepend
+DOCER       = $(XMTEXT)/site/usr/bin/doxygen
+LINTER      = $(XMTEXT)/site/usr/lib/llvm-9/bin/clang-tidy
+CMSOURCER	= echo "use hg update to retrieve sources from repo"
+CMCLEANER   = /bin/rm -f $(OBJDIR)/* $(TGTDIR)/*
+COMPILER    = $(GCCROOT)/bin/gcc
+LINKER      = $(GCCROOT)/bin/ld
+ARCHIVER    = $(GCCROOT)/bin/ar
 ARCH		= $(XMTBUILD_DFLT_ARCH)
-SRCDIR		= ../src
-TESTDIR		= ../test
-DOCDIR		= ../doc
-DATADIR		= ../data
-CMSOURCES	= co -u SVN/*
-CMCLEAN		= svn update -P -d *
-JAVA_PKGTREE	= .
+BUILD_CFG	= $(XMTBUILD_CONFIG)
+JAVA_PKGTREE= .
 PKG_NM		= $(notdir $(pkg_dir))
-PKG_TGT         = lib
-OBJDIR		= ../obj/$(ARCH)
-TGTDIR		= ../tgt/$(ARCH)
-LIB_NM          = $(LIB_PFX.$(LANGUAGE).$(ARCH))$(PKG_NM)$(LIB_SFX.$(LANGUAGE).$(ARCH))
-EXE_NM          = $(EXE_PFX.$(LANGUAGE).$(ARCH))$(PKG_NM)$(EXE_SFX.$(LANGUAGE).$(ARCH))
+PKG_TGT     = lib
+SRCDIR		= src
+TESTDIR		= test
+DOCDIR		= doc
+DATADIR		= data
+OBJDIR		= obj/$(ARCH)/$(BUILD_CFG)
+TGTDIR		= tgt/$(ARCH)/$(BUILD_CFG)
+LIB_NM      = $(LIB_PFX.$(LANGUAGE).$(ARCH))$(PKG_NM)$(LIB_SFX.$(LANGUAGE).$(ARCH))
+EXE_NM      = $(EXE_PFX.$(LANGUAGE).$(ARCH))$(PKG_NM)$(EXE_SFX.$(LANGUAGE).$(ARCH))
 LANGUAGE	= c
 BUILD_TGT	= all
-.DEFAULT	= build
 
 #**********************************************************************
 # This is the place to define flags that are common to ALL 
@@ -74,8 +76,9 @@ BUILD_TGT	= all
 CFLAGS		=		
 LDFLAGS		=		
 ARFLAGS		=
-LINTFLAGS	=
-DOCFLAGS	=
+LINTFLAGS	= 
+DOCFLAGS	= $(PROJECT)/proto/Doxyfile
+
 
 #**********************************************************************
 # Now include:
@@ -84,90 +87,128 @@ DOCFLAGS	=
 # package-level ./Makefile.pkg
 # recursive variables are evaluated when a matching recipe is found.
 #**********************************************************************
-
--include ./Makefile.pkg	
 -include $(PROJECT)/proto/Makefile.top
+-include ./Makefile.pkg	
 -include $(XMTBUILD)/proto/lang/$(LANGUAGE)/generic.inc
 -include $(XMTBUILD)/proto/lang/$(LANGUAGE)/$(ARCH).inc
 
-all: $(PKG_TGT)
-depend: 
-	(cd $(SRCDIR); \
-	$(MAKEDEPEND) -Y -p$(TGTDIR)/ -o.$(LANGUAGE).$(OBJ_SFX.$(LANGUAGE).$(ARCH)) -- \
-	$(CFLAGS) $(CFLAGS.$(LANGUAGE)) \
-	$(CFLAGS.$(LANGUAGE).$(ARCH)) $(notdir $(srcs.$(LANGUAGE))) \
+# There may be several gcc installs.  Ensure that we use the one GCCROOT points to.
+export PATH := $(GCCROOT)/bin:$(PATH)
+
+.PHONY: all
+all:	$(PKG_TGT)
+
+.PHONY: depend
+depend:	
+	(cd $(SRCDIR);                                                                  \
+	$(makedepend) -Y -p$(TGTDIR)/ -o.$(LANGUAGE).$(OBJ_SFX.$(LANGUAGE).$(ARCH)) --  \
+	$(CFLAGS) $(CFLAGS.$(LANGUAGE))                                                 \
+	$(CFLAGS.$(LANGUAGE).$(ARCH)) $(notdir $(srcs.$(LANGUAGE)))                     \
 	>/dev/null 2>&1 )
 
+.PHONY: clean
 clean:
-	-/bin/rm $(OBJDIR)/* $(TGTDIR)/*
+	-$(CMCLEANER.$(LANGUAGE).$(ARCH))
 
-sources:	
-	(cd $(SRCDIR); $(CMSOURCES))
+.PHONY: sources
+sources:
+	(cd $(SRCDIR); $(CMSOURCER.$(LANGUAGE).$(ARCH)))
 
-lint:	$(lnts.$(LANGUAGE))
-doc:	$(docs.$(LANGUAGE))
-objs: $(objs.$(LANGUAGE)) $(EXTRA_OBJS)
-lib:	.lib.$(LANGUAGE)
-exe:	.exe.$(LANGUAGE)
+.PHONY: lint
+lint:	lint.$(LANGUAGE).$(ARCH)
+.PHONY: misra-check
+misra-check:	misra-check.$(LANGUAGE).$(ARCH)
+.PHONY: docs
+docs:	docs.$(LANGUAGE).$(ARCH)
+.PHONY: lib
+lib:	lib.$(LANGUAGE).$(ARCH)
+.PHONY: exe
+exe:	exe.$(LANGUAGE).$(ARCH)
+.PHONY: bin
+bin:	bin.$(LANGUAGE).$(ARCH)
+.PHONY: hex
+hex:	hex.$(LANGUAGE).$(ARCH)
+.PHONY: objs
+objs:	$(objs.$(LANGUAGE)) $(EXTRA_OBJS)
 
 
 ifneq "$(tgtdir)" "$(srcdir)"
-$(tgtdir)/%	:: $(srcdir)/%	; /bin/mv $< $@
+$(tgtdir)/%	:	$(srcdir)/%	; /bin/mv $< $@
 endif
+
 ifneq "$(docdir)" "$(srcdir)"
-$(docdir)/%	:: $(srcdir)/%	; /bin/mv $< $@
+$(docdir)/%	:	$(srcdir)/%	; /bin/mv $< $@
 endif
 
 #**********************************************************************
 # "build" recursively makes all packages upon which a package
-# depends, (as specified by the variable $(BUILD_PKGS),  then makes
-# the target defined by variable $(BUILD_TGT) in the package
-# itself.
+# depends, (those listed in variable $(BUILD_PKGS),  then makes
+# that target defined by variable $(BUILD_TGT) in the package itself.
+# This is how you build an arbitrarily deep project heirarchy 
+# with one top-level "make build".
 #**********************************************************************
 ifneq "$(strip $(BUILD_PKGS))" ""
-reqd_pkgs := $(BUILD_PKGS)
-$(reqd_pkgs):
-	$(MAKE) -w -C $@/src PWD=$@/src build;
+	reqd_pkgs := $(BUILD_PKGS)
 endif
-build: $(reqd_pkgs) $(BUILD_TGT)
+$(BUILD_PKGS):
+	$(MAKE) -w --always-make  -C $@ PWD=$@ build;
+
+.PHONY: build
+build:	$(BUILD_PKGS)
+	$(MAKE) -w --always-make $(BUILD_TGT)
 
 #**********************************************************************
-# "showflags" (or "show") simply echoes the value of the programs
+# "printflags" (or "show") simply echoes the value of the programs
 # and flags to be used for the specified language and architecture.
 #**********************************************************************
-show printflags: 
-	@echo LANGUAGE = $(LANGUAGE)
-	@echo ARCH = $(ARCH)
-	@echo srcs.$(LANGUAGE) = $(srcs.$(LANGUAGE))
-	@echo objs.$(LANGUAGE) = $(objs.$(LANGUAGE))
-	@echo lnts.$(LANGUAGE) = $(lnts.$(LANGUAGE))
-	@echo docs.$(LANGUAGE) = $(docs.$(LANGUAGE))
+.PHONY: show printflags
+show printflags:	
+	@echo LANGUAGE          = $(LANGUAGE)
+	@echo ARCH              = $(ARCH)
+	@echo BUILD_CFG	        = $(XMTBUILD_CONFIG)
+	@echo srcs.$(LANGUAGE)  = $(srcs.$(LANGUAGE))
+	@echo objs.$(LANGUAGE)  = $(objs.$(LANGUAGE))
+	@echo thirdparty_cdirs	= $(thirdparty_cdirs)
+	@echo thirdparty_hdirs	= $(thirdparty_hdirs)
+	@echo thirdparty_sdirs	= $(thirdparty_sdirs)
+	@echo thirdparty_Sdirs	= $(thirdparty_Sdirs)
+	@echo thirdparty_cfiles	= $(thirdparty_cfiles)
+	@echo thirdparty_hfiles	= $(thirdparty_hfiles)
+	@echo thirdparty_sfiles	= $(thirdparty_sfiles)
+	@echo thirdparty_Sfiles	= $(thirdparty_Sfiles)
+	@echo thirdparty_includes	= $(thirdparty_includes)
+	@echo thirdparty_objfiles	= $(thirdparty_objfiles)
 	@echo
-	@echo COMPILE.$(LANGUAGE).$(ARCH) =  $(COMPILE.$(LANGUAGE).$(ARCH))
+	@echo EXTRA_OBJS = $(EXTRA_OBJS)
+	@echo
+	@echo COMPILER.$(LANGUAGE).$(ARCH) =  $(COMPILER.$(LANGUAGE).$(ARCH))
 	@echo CFLAGS = $(CFLAGS)
 	@echo CFLAGS.$(LANGUAGE) = $(CFLAGS.$(LANGUAGE))
 	@echo CFLAGS.$(LANGUAGE).$(ARCH) = $(CFLAGS.$(LANGUAGE).$(ARCH))
 	@echo
-	@echo AR.$(LANGUAGE).$(ARCH) =  $(AR.$(LANGUAGE).$(ARCH))
+	@echo ARCHIVER.$(LANGUAGE).$(ARCH) =  $(ARCHIVER.$(LANGUAGE).$(ARCH))
 	@echo ARFLAGS = $(ARFLAGS)
 	@echo ARFLAGS.$(LANGUAGE) = $(ARFLAGS.$(LANGUAGE))
 	@echo ARFLAGS.$(LANGUAGE).$(ARCH) = $(ARFLAGS.$(LANGUAGE).$(ARCH))
 	@echo
-	@echo LD.$(LANGUAGE).$(ARCH) =  $(LD.$(LANGUAGE).$(ARCH))
+	@echo LINKER.$(LANGUAGE).$(ARCH) =  $(LINKER.$(LANGUAGE).$(ARCH))
 	@echo LDFLAGS = $(LDFLAGS)
 	@echo LDFLAGS.$(LANGUAGE)  = $(LDFLAGS.$(LANGUAGE) )
 	@echo LDFLAGS.$(LANGUAGE).$(ARCH) = $(LDFLAGS.$(LANGUAGE).$(ARCH))
 	@echo
-	@echo LINT.$(LANGUAGE).$(ARCH) =  $(LINT.$(LANGUAGE).$(ARCH))
+	@echo LINTER.$(LANGUAGE).$(ARCH) =  $(LINTER.$(LANGUAGE).$(ARCH))
 	@echo LINTFLAGS = $(LINTFLAGS)
 	@echo LINTFLAGS.$(LANGUAGE) = $(LINTFLAGS.$(LANGUAGE))
 	@echo LINTFLAGS.$(LANGUAGE).$(ARCH) = $(LINTFLAGS.$(LANGUAGE).$(ARCH))
 	@echo
-	@echo DOC.$(LANGUAGE).$(ARCH) =  $(DOC.$(LANGUAGE).$(ARCH))
+	@echo DOCER.$(LANGUAGE).$(ARCH) =  $(DOCER.$(LANGUAGE).$(ARCH))
 	@echo DOCFLAGS = $(DOCFLAGS)
 	@echo DOCFLAGS.$(LANGUAGE) = $(DOCFLAGS.$(LANGUAGE))
 	@echo DOCFLAGS.$(LANGUAGE).$(ARCH) = $(DOCFLAGS.$(LANGUAGE).$(ARCH))
 	@echo
 
-printvars:
+# print the value of all variable MAKE knows about
+.PHONY: printall 
+printall :
 	@$(foreach V,$(sort $(.VARIABLES)), $(warning $V=$($V) ($(value $V))))
+

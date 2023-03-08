@@ -1,0 +1,2 @@
+#!/bin/sh
+echo `xprop -id $WINDOWID WM_NAME|awk '{print $3}'|xargs echo`

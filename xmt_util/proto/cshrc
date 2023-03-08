@@ -22,22 +22,23 @@ setenv PATH	"${PATH}:$XMTUTIL/bin"
 
 if ( $?prompt ) then
     alias a alias
-    a cwdcmd	'set prompt="$cwd:t/ \! >"; tooltitle $cwd'
+    a cwdcmd	'set prompt="$cwd:t/ \! >"; '
     a cdb	'cd "$owd"'
     a vi        vim
     a c		clear
     a hi 	history
-    a ls	ls -uF
+    a ls	ls -Fh
     a so	source
-    a f		find . -name \"\!:1\"
-    a fsrc 	'find . -name "*.[ch]" | xargs  grep '
-    a fstr 	'find . -type f | xargs  grep '
-    a vstr	'vi `fgrep -l \!:1 \!:2*`'
+    a f		find -L . -name \"\!:1\"
+    a fsrc 	'find -L . \( -name "*.[ch]" -o -name "*.[ch]pp" \) -print | xargs  grep '
+    a fstr 	'find -L . -type f -print | xargs  grep '
+    a vstr	'vi `grep -r -l \!:1 \!:2*`'
 
+    set prompt="%c1/ \! %{\033]0;%/\007%}>"	# tcsh-specific. set prompt and xterm title
     set nonomatch
     set history = 100
-    unset savehist
     set filec
     set owd = `echo $cwd | sed 's://:/:g'`
     cd "$owd"
+    #tooltitle "xterm"
 endif

@@ -1,0 +1,36 @@
+#!/usr/bin/env perl 
+#************************************************************************
+#   Package	: xmt_cm
+#   Synopsis	:
+#   Purpose	:  initialize the named new Mercurial repo along with 
+#               all its standard named branches.
+#
+#    Copyright 2019 Visionary Research Inc.   All rights reserved.
+#    			legal@visionary-research.com
+#************************************************************************
+
+use strict;
+use Getopt::Long;
+use Env;
+
+my @branches = ( 'ReleaseQualified', 'IUT', 'Develop' );
+(my $pgmname = $0) =~ s{.*/}{};
+my $usage		= "usage: $pgmname [-u] <repositoy_name> \n";
+undef my $opt_u;	# unnecessary, but it shuts up -w
+GetOptions( "u" ) || die $usage;
+die "$usage" if defined $opt_u;
+die "usage"  if $#ARGV < 0;
+my $repo    = $ARGV[$#ARGV];
+
+my $cmd = "hg init $repo";
+system( $cmd ) == 0 or die "$cmd: $!";
+chdir( $repo ) or die "$repo: $!";
+
+foreach my $br (@branches)
+{
+    $cmd = "hg branch $br";
+    system( $cmd ) == 0 or die "$cmd: $!";
+    $cmd = "hg ci -m 'created new branch'";
+    system( $cmd ) == 0 or die "$cmd: $!";
+}
+

@@ -32,7 +32,8 @@ export PATH="${XMTBUILD}/bin:${PATH}"
 # eg:	export XMTBUILD_SUPP_ARCHS= "SunOS-5.6-sparc SunOS-5.6-i386"
 #	export XMTBUILD_DFLT_ARCH= "SunOS-5.6-sparc"
 #************************************************************************
-export	XMTBUILD_SUPP_ARCHS="STM32F4 STM32L4 AX8052 linux_x86 cygwin"
+export	XMTBUILD_SUPP_ARCHS="STM32F4 STM32L4 AX8052 x86"
+export	XMTBUILD_CONFIG=""
 if [ -z $XMTBUILD_DFLT_ARCH ]; then
     export XMTBUILD_DFLT_ARCH=STM32L4
 fi
@@ -41,12 +42,12 @@ fi
 # useful programming-related aliases ...
 #************************************************************************
 if [[ $- == *i* ]]; then
-    alias mk='make -j8 -k -f Makefile \!* >& \!$.ERRS'
+    alias mk='function _mk(){ make -j8 -k -f Makefile  $@ >\${@: -1}.ERRS 2>&1; };_mk'
     alias ve='vi *.ERRS'
     alias mm=makemake
-    alias  cs.build='set s=`pwd`; pushd /; find $s -name "*.[chs]" -ls | sed -e "s|.* /cygdrive/c/|c:/|"  > $s/cscope.files; popd; cscope -I /cygdrive/c/Programs/gcc/arm-none-eabi/include -b'
-    alias cta='cs.build'
+    alias  cs.build='function _cs.build(){ pushd $PROJECT; srclist -full  $@ > ./cscope.files; cscope -I $GCCROOT/include -b; popd; };_cs.build'
+    alias cta='cs.build $PROJECT'
     alias flist='cat tags|sed "s/	.*//"'
-    alias fflist='flist|fgrep \!:1'
+    alias fflist='function _fflist(){ flist|fgrep  $1; };_fflist '
     alias funcs='sed -n "/\!*/p" tags | sed "s/	.*//"'
 fi

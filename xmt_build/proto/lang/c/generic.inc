@@ -1,10 +1,9 @@
 #************************************************************************
-#*   $Version:$
 #*   Package	: xmt_build
 #*   Synopsis	: included by $(XMTBUILD)/proto/Makefile.top
 #*   Purpose	: 
-#*              This Makefile segment adds language support to
-#*              $(XMTBUILD)/proto/Makefile.top
+#*			  This Makefile segment adds language support to
+#*			  $(XMTBUILD)/proto/Makefile.top
 #*
 #*   To add support for a new target architecture,  clone any existing
 #*   <architecture>.inc file & alter program paths & flags appropriately.
@@ -26,43 +25,83 @@
 
 
 #   := assignements are evaluated during lexical scan;
-#    = assignemtns are recursively evaluated during rule parsing
-srcs.c	:= $(wildcard $(SRCDIR)/*.c)
-hdrs.c	:= $(wildcard $(SRCDIR)/*.h)
-objs.c	:= $(patsubst $(SRCDIR)/%.c,$(OBJDIR)/%.o,$(srcs.c))
-docs.c	:= $(patsubst $(SRCDIR)/%.c,$(DOCDIR)/%.html,$(srcs.c))
-lnts.c	:= $(patsubst $(SRCDIR)/%.c,$(OBJDIR)/%.ln,$(srcs.c))
+#	= assignments are recursively evaluated during rule parsing
+lang	:= c
+
+# we specifically do NOT want to recursively search below SRCDIR for sources
+# because there may be platform-specific code in different subdirectories.
+# So we search $SRCDIR and recursively below $SRCDIR/$ARCH for sources
+srcs.$(lang)	= $(wildcard $(SRCDIR)/*.$(lang))
+srcs.$(lang)	+= $(sort $(shell find -L $(SRCDIR)/$(ARCH) -name "*.$(lang)"))
+hdrs.$(lang)	= $(wildcard $(SRCDIR)/*.h)
+hdrs.$(lang)	+= $(sort $(shell find -L $(SRCDIR)/$(ARCH) -name "*.h"))
+objs.$(lang)	= $(patsubst $(SRCDIR)/%.$(lang),$(OBJDIR)/%.o,$(srcs.$(lang)))
+docs.$(lang)	= $(patsubst $(SRCDIR)/%.$(lang),$(DOCDIR)/%.html,$(srcs.$(lang)))
+lnts.$(lang)	= $(patsubst $(SRCDIR)/%.$(lang),$(OBJDIR)/%.ln,$(srcs.$(lang)))
 
 #**********************************************************************
-# pull in sources from vendor tree rooted at VENDOR_ROOT
+# if directory THIRDPARTY_SRCS exists
+# recurse down into it and gather all 3rd party sources and includes found there.
+# There could be different third party directories for different build configurations
+# so THIRDPARTY_SRCS needs to be set at the package level.
 #**********************************************************************
-VENDOR_ROOT	= $(SRCDIR)/vendor
-vendor_srcdirs	:= $(sort $(dir $(shell find $(VENDOR_ROOT) -name "*.$(LANGUAGE)")))
-vendor_srcfiles	:= $(sort $(notdir $(shell find $(VENDOR_ROOT) -name "*.$(LANGUAGE)")))
-vendor_sdirs	:= $(sort $(dir $(shell find $(VENDOR_ROOT) -name "*.[sS]")))
-vendor_sfiles	:= $(sort $(notdir $(shell find $(VENDOR_ROOT) -name "*.[sS]")))
-vendor_objfiles	:= $(patsubst %,$(OBJDIR)/%,$(vendor_srcfiles:.$(LANGUAGE)=.o) $(vendor_sfiles:.s=.o))
-vendor_hdirs	:= $(sort $(dir $(shell find $(VENDOR_ROOT) -name "*.h")))
-vendor_hfiles	:= $(sort $(notdir $(shell find $(VENDOR_ROOT) -name "*.h")))
-vendor_incs	:= $(patsubst %,-I%,$(vendor_hdirs))
+tpdir		= $(shell [ -d "$(THIRDPARTY_SRCS)" ] && echo "$(THIRDPARTY_SRCS)" || echo "")
+ifneq ($(strip $(tpdir)),)
+  thirdparty_c		= $(sort $(shell find -L $(tpdir) -name "*.$(lang)"))
+  thirdparty_h		= $(sort $(shell find -L $(tpdir) -name "*.h"))
+  thirdparty_s		= $(sort $(shell find -L $(tpdir) -name "*.s"))
+  thirdparty_S		= $(sort $(shell find -L $(tpdir) -name "*.S"))
+  thirdparty_cdirs	= $(sort $(dir $(thirdparty_c)))
+  thirdparty_hdirs	= $(sort $(dir $(thirdparty_h)))
+  thirdparty_sdirs	= $(sort $(dir $(thirdparty_s)))
+  thirdparty_Sdirs	= $(sort $(dir $(thirdparty_S)))
+  thirdparty_cfiles	= $(sort $(notdir $(thirdparty_c)))
+  thirdparty_hfiles	= $(sort $(notdir $(thirdparty_h)))
+  thirdparty_sfiles	= $(sort $(notdir $(thirdparty_s)))
+  thirdparty_Sfiles	= $(sort $(notdir $(thirdparty_S)))
+  thirdparty_includes	= $(sort $(patsubst %,-I%,$(thirdparty_hdirs)))
+$(warning thirdparty_includes= $(thirdparty_includes))
+  thirdparty_objfiles	= $(patsubst  %,$(OBJDIR)/%,$(notdir $(thirdparty_cfiles:.$(lang)=.o)))
+  thirdparty_objfiles	+= $(patsubst %,$(OBJDIR)/%,$(notdir $(thirdparty_sfiles:.s=.o)))
+  thirdparty_objfiles	+= $(patsubst %,$(OBJDIR)/%,$(notdir $(thirdparty_Sfiles:.S=.o)))
+  vpath	%.$(lang)	$(SRCDIR) $(thirdparty_cdirs)
+  vpath	%.i	$(SRCDIR) $(thirdparty_cdirs)
+  vpath	%.ln	$(SRCDIR) $(thirdparty_cdirs)
+  vpath	%.html	$(SRCDIR) $(thirdparty_cdirs)
+  vpath	%.h	$(SRCDIR) $(thirdparty_hdirs)
+  vpath	%.s	$(SRCDIR) $(thirdparty_sdirs)
+  vpath	%.S	$(SRCDIR) $(thirdparty_Sdirs)
+else
+  vpath	%.$(lang)	$(SRCDIR) 
+  vpath	%.i	$(SRCDIR) 
+  vpath	%.ln	$(SRCDIR) 
+  vpath	%.html	$(SRCDIR) 
+  vpath	%.h	$(SRCDIR) 
+  vpath	%.s	$(SRCDIR) 
+  vpath	%.S	$(SRCDIR) 
+endif
 
-vpath %.c $(SRCDIR) $(vendor_srcdirs)
-vpath %.i $(SRCDIR) $(vendor_srcdirs)
-vpath %.ln $(SRCDIR) $(vendor_srcdirs)
-vpath %.html $(SRCDIR) $(vendor_srcdirs)
-vpath %.h $(SRCDIR) $(vendor_hdirs)
-vpath %.s $(SRCDIR) $(vendor_sdirs)
-vpath %.S $(SRCDIR) $(vendor_sdirs)
-
 #**********************************************************************
-# This is the place to define default flags and recipes
-# that are common to ALL target architectures for THIS language.
+# This is the place to define programs, flags and recipes
+# that are common to ALL target architectures for *THIS* language.
+# Language-specific values inherit from global (language-independent) defines
+# by default, but can be overridden in a project or package level Makefile
 #**********************************************************************
-CFLAGS.c	+=  -c -o $@ 
-ARFLAGS.c	+= 
-LDFLAGS.c	+= -o $@
-LINTFLAGS.c	+= $(CFLAGS.c)
-DOCFLAGS.c	+= -o $@
+DOCER.$(lang)		= $(XMTEXT)/site/usr/bin/doxygen
+DOCFLAGS.$(lang)	+= $(PROJECT)/proto/Doxyfile
+LINTER.$(lang)		= $(XMTEXT)/site/usr/lib/llvm-9/bin/clang-tidy
+LINTFLAGS.$(lang)	+= --quiet
+GCCROOT				= $(XMTEXT)/site/opt/gcc-arm-none-eabi
+COMPILER.$(lang)	= $(GCCROOT)/bin/arm-none-eabi-gcc
+CFLAGS.$(lang)		+= -c -o $@ 
+LINKER.$(lang)  	= $(GCCROOT)/bin/arm-none-eabi-gcc
+LDFLAGS.$(lang)		+= -o $@
+ARCHIVER.$(lang)  	= $(GCCROOT)/bin/arm-none-eabi-ar
+ARFLAGS.$(lang)		+= -rscDv
+OBJCOPY.$(lang)		= $(GCCROOT)/bin/arm-none-eabi-objcopy
+LIB_PFX.$(lang)		= lib
+LIB_SFX.$(lang)		= .a
+EXE_PFX.$(lang)		= 
+EXE_SFX.$(lang)		= .elf
 
 ## Define recipes in $(XMTBUILD)/proto/lang/$(LANGUAGE)/$(ARCH)
-## after variables are further defined there 

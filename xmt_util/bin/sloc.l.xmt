@@ -1,0 +1,81 @@
+%{ /* DO NOT REMOVE THIS LINE */
+
+/************************************************************************
+*   $Version:$
+*   Package	: xmt_util
+*   Purpose	: source code metrics counter
+*
+*   Notes	: to compile,   % lex sloc.l
+*				% perl sloc.pl < lex.yy.c > sloc.c
+*				% cc sloc.c -o sloc
+*		: to run,	% sloc < file.c
+*
+*   Copyright (c) 2000	Neumann & Associates Information Systems Inc.
+*   All Rights reserved.	legal.info@neumann-associates.com
+************************************************************************/
+
+#include <stdio.h>
+#define TRUE 1
+#define FALSE 0
+
+int	num_cmts	= 0;
+int	num_logs	= 0;
+int	num_diags	= 0;
+int	num_asserts	= 0;
+int	num_slocs	= 0;
+int	total_lines	= 0;
+int	in_cmt		= 0;
+
+%}
+
+%%
+
+\/\*		        { in_cmt = TRUE; ++num_cmts; }
+\*\/		        { in_cmt = FALSE; } 
+\/\/.*		        { ++num_cmts; }
+"err_push"    { if ( !in_cmt ) ++num_logs; }
+"DIAG_TRACE"        { if ( !in_cmt ) ++num_diags; }
+"ASSERT"|"assert"	{ if ( !in_cmt ) ++num_asserts; }
+";"		            { if ( !in_cmt ) ++num_slocs; }
+\n		            { ++total_lines; }
+.		;
+
+%%
+
+yywrap()
+{
+extern char csv_mode;
+    if ( csv_mode )
+    {
+	printf( "%d,%d,%d,%d,%d,%d,%.1f,%.1f,%.1f,%.1f\n", 
+	    num_slocs, num_cmts, num_logs, num_diags, num_asserts, total_lines, 
+		( num_slocs == 0 ? 0 : ((float) num_cmts / (float) num_slocs ) * 1000 ),
+		( num_slocs == 0 ? 0 : ((float) num_logs / (float) num_slocs ) * 1000 ),
+		( num_slocs == 0 ? 0 : ((float) num_diags / (float) num_slocs ) * 1000 ),
+		( num_slocs == 0 ? 0 : ((float) num_asserts / (float) num_slocs ) * 1000 ) );
+    }
+    else
+    {
+	printf( "Source Lines of Code:\t\t%d\n", num_slocs );
+	printf( "comments:\t\t\t%d\n", num_cmts );
+	printf( "run-time logging stmts:\t\t%d\n", num_logs );
+	printf( "run-time diagnostics:\t\t%d\n", num_diags );
+	printf( "assertions:\t\t\t%d\n", num_asserts );
+	printf( "total lines:\t\t\t%d\n", total_lines );
+	printf( "comments per thousand SLOCs:\t%.1f\n", 
+		( num_slocs == 0 ? 0 : ((float) num_cmts / (float) num_slocs ) * 1000 ));
+	printf( "logging statements per thousand SLOCs:\t%.1f\n", 
+		( num_slocs == 0 ? 0 : ((float) num_logs / (float) num_slocs ) * 1000 ));
+	printf( "diagnostics per thousand SLOCs:\t%.1f\n", 
+		( num_slocs == 0 ? 0 : ((float) num_diags / (float) num_slocs ) * 1000 ));
+	printf( "assertions per thousand SLOCs:\t%.1f\n", 
+		( num_slocs == 0 ? 0 : ((float) num_asserts / (float) num_slocs ) * 1000 ));
+
+    }
+    return( 1 );
+}
+
+int main()
+{
+    yylex();
+}

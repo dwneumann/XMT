@@ -1,4 +1,10 @@
 # ignore all files matching regexp patterns rooted here
+.config/**
+xmt_extern/**
+!xmt_extern/proto
+!xmt_extern/proto/**
+!xmt_extern/COPYING
+!xmt_extern/README.md
 .svn
 obj
 tmp
@@ -12,7 +18,6 @@ Thumbs.db
 cscope.*
 .DS_Store
 *.ERRS
-ERRS.*
 *.exe
 *.gcda
 *.gcno

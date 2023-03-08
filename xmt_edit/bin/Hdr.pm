@@ -278,7 +278,7 @@ sub hdr_cpp_func
 
 
 #************************************************************************/
-#  hdr_c_synopsis parses a NAIS standards-conformant C/C++ file
+#  hdr_c_synopsis parses XMT standards-conformant C/C++ file
 #  into predefined variables $::funcs 
 #************************************************************************/
 sub hdr_c_synopsis 
@@ -290,7 +290,7 @@ sub hdr_c_synopsis
     # collect the Synopsis lines from each function/method header block
     #********************************************************************
     study $in;
-    while ( $in =~ /\n\s*\*\s+Synopsis:\s*\n\s*\*\s+([^\n]*)(.*)/s )
+    while ( $in =~ /\n\s*\*\s+\@fn\s+([^\n]*)(.*)/s )
     {
 	$tmpfunc = {};
 	$tmpfunc->{ proto }	= "$1";

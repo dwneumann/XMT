@@ -1,10 +1,9 @@
 #************************************************************************
-#*   $Version:$
 #*   Package	: xmt_build
 #*   Synopsis	: included by $(XMTBUILD)/proto/Makefile.top
 #*   Purpose	: 
-#*              This Makefile segment adds language support to
-#*              $(XMTBUILD)/proto/Makefile.top
+#*			  This Makefile segment adds language support to
+#*			  $(XMTBUILD)/proto/Makefile.top
 #*
 #*   To add support for a new target architecture,  clone any existing
 #*   <architecture>.inc file & alter program paths & flags appropriately.
@@ -12,7 +11,7 @@
 #*   architecture to XMTBUILD_SUPP_ARCHS.
 #*
 #*  Copyright (c) 1998	Neumann & Associates Information Systems Inc.
-#*  			legal.info@neumann-associates.ccom
+#*  			legal.info@neumann-associates.com
 #*  Licensed under the Apache License, Version 2.0 (the "License");
 #*  you may not use this file except in compliance with the License.
 #*  You may obtain a copy of the License at http://www.apache.org/licenses/LICENSE-2.0
@@ -25,42 +24,82 @@
 #************************************************************************
 
 
-srcs.cc	= $(wildcard $(SRCDIR)/*.cc)
-hdrs.cc	= $(wildcard $(SRCDIR)/*.h)
-objs.cc	= $(patsubst $(SRCDIR)/%.cc,$(OBJDIR)/%.o,$(srcs.cc))
-docs.cc	= $(patsubst $(SRCDIR)/%.cc,$(DOCDIR)/%.html,$(srcs.cc))
-lnts.cc	= $(patsubst $(SRCDIR)/%.cc,$(OBJDIR)/%.ln,$(srcs.cc))
+#   := assignements are evaluated during lexical scan;
+#	= assignments are recursively evaluated during rule parsing
+lang	:= cc
+
+# we specifically do NOT want to recursively search below SRCDIR for sources
+# because there may be platfrorm-specific code in different subdirectories
+# that we need to include or exclude at the package level.
+srcs.$(lang)	= $(wildcard $(SRCDIR)/*.$(lang))
+hdrs.$(lang)	= $(wildcard $(SRCDIR)/*.h)
+objs.$(lang)	= $(patsubst $(SRCDIR)/%.$(lang),$(OBJDIR)/%.o,$(srcs.$(lang)))
+docs.$(lang)	= $(patsubst $(SRCDIR)/%.$(lang),$(DOCDIR)/%.html,$(srcs.$(lang)))
+lnts.$(lang)	= $(patsubst $(SRCDIR)/%.$(lang),$(OBJDIR)/%.ln,$(srcs.$(lang)))
 
 #**********************************************************************
-# pull in sources from vendor tree rooted at VENDOR_ROOT
+# if directory THIRDPARTY_SRCS exists
+# recurse down into it and gather all 3rd party sources and includes found there.
+# There could be different third party directories for different build configurations
+# so THIRDPARTY_SRCS needs to be set at the package level.
 #**********************************************************************
-VENDOR_ROOT	= $(SRCDIR)/vendor
-vendor_srcdirs	= $(sort $(dir $(shell find $(VENDOR_ROOT) -name "*.$(LANGUAGE)")))
-vendor_srcfiles	= $(sort $(notdir $(shell find $(VENDOR_ROOT) -name "*.$(LANGUAGE)")))
-vendor_sdirs	= $(sort $(dir $(shell find $(VENDOR_ROOT) -name "*.[sS]")))
-vendor_sfiles	= $(sort $(notdir $(shell find $(VENDOR_ROOT) -name "*.[sS]")))
-vendor_objfiles	= $(patsubst %,$(OBJDIR)/%,$(vendor_srcfiles:.$(LANGUAGE)=.o) $(vendor_sfiles:.s=.o))
-vendor_hdirs	= $(sort $(dir $(shell find $(VENDOR_ROOT) -name "*.h")))
-vendor_hfiles	= $(sort $(notdir $(shell find $(VENDOR_ROOT) -name "*.h")))
-vendor_incs	= $(patsubst %,-I%,$(vendor_hdirs))
+tpdir		= $(shell [ -d "$(THIRDPARTY_SRCS)" ] && echo "$(THIRDPARTY_SRCS)" || echo "")
+ifneq ($(strip $(tpdir)),)
+  thirdparty_c		= $(sort $(shell find -L $(tpdir) -name "*.$(lang)"))
+  thirdparty_h		= $(sort $(shell find -L $(tpdir) -name "*.h"))
+  thirdparty_s		= $(sort $(shell find -L $(tpdir) -name "*.s"))
+  thirdparty_S		= $(sort $(shell find -L $(tpdir) -name "*.S"))
+  thirdparty_cdirs	= $(sort $(dir $(thirdparty_c)))
+  thirdparty_hdirs	= $(sort $(dir $(thirdparty_h)))
+  thirdparty_sdirs	= $(sort $(dir $(thirdparty_s)))
+  thirdparty_Sdirs	= $(sort $(dir $(thirdparty_S)))
+  thirdparty_cfiles	= $(sort $(notdir $(thirdparty_c)))
+  thirdparty_hfiles	= $(sort $(notdir $(thirdparty_h)))
+  thirdparty_sfiles	= $(sort $(notdir $(thirdparty_s)))
+  thirdparty_Sfiles	= $(sort $(notdir $(thirdparty_S)))
+  thirdparty_includes	= $(sort $(patsubst %,-I%,$(thirdparty_hdirs)))
+  thirdparty_objfiles	= $(patsubst  %,$(OBJDIR)/%,$(notdir $(thirdparty_cfiles:.$(lang)=.o)))
+  thirdparty_objfiles	+= $(patsubst %,$(OBJDIR)/%,$(notdir $(thirdparty_sfiles:.s=.o)))
+  thirdparty_objfiles	+= $(patsubst %,$(OBJDIR)/%,$(notdir $(thirdparty_Sfiles:.S=.o)))
+  vpath	%.$(lang)	$(SRCDIR) $(thirdparty_cdirs)
+  vpath	%.i	$(SRCDIR) $(thirdparty_cdirs)
+  vpath	%.ln	$(SRCDIR) $(thirdparty_cdirs)
+  vpath	%.html	$(SRCDIR) $(thirdparty_cdirs)
+  vpath	%.h	$(SRCDIR) $(thirdparty_hdirs)
+  vpath	%.s	$(SRCDIR) $(thirdparty_sdirs)
+  vpath	%.S	$(SRCDIR) $(thirdparty_Sdirs)
+else
+  vpath	%.$(lang)	$(SRCDIR) 
+  vpath	%.i	$(SRCDIR) 
+  vpath	%.ln	$(SRCDIR) 
+  vpath	%.html	$(SRCDIR) 
+  vpath	%.h	$(SRCDIR) 
+  vpath	%.s	$(SRCDIR) 
+  vpath	%.S	$(SRCDIR) 
+endif
 
-vpath %.cc $(SRCDIR) $(vendor_srcdirs)
-vpath %.i $(SRCDIR) $(vendor_srcdirs)
-vpath %.ln $(SRCDIR) $(vendor_srcdirs)
-vpath %.html $(SRCDIR) $(vendor_srcdirs)
-vpath %.h $(SRCDIR) $(vendor_hdirs)
-vpath %.s $(SRCDIR) $(vendor_sdirs)
-vpath %.S $(SRCDIR) $(vendor_sdirs)
-
 #**********************************************************************
-# This is the place to define default flags and recipes
-# that are common to ALL target architectures for THIS language.
+# This is the place to define programs, flags and recipes
+# that are common to ALL target architectures for *THIS* language.
+# Language-specific values inherit from these language-independent defines
+# by default, but can be overridden in a project or package level Makefile
 #**********************************************************************
-CFLAGS.cc	+= -c -o $@
-ARFLAGS.cc	+= 
-LDFLAGS.cc	+= -o $@
-LINTFLAGS.cc	+= $(CFLAGS.cc)
-DOCFLAGS.cc	+= -o $@
+DOCER.$(lang)	= $(DOCER)
+DOCFLAGS.$(lang)	+= $(PROJECT)/proto/Doxyfile
+LINTER.$(lang)	= $(LINTER)
+LINTFLAGS.$(lang)	+= --quiet
+GCCROOT			= $(XMTEXT)/site/opt/gcc-arm-none-eabi
+COMPILER.$(lang)= $(GCCROOT)/bin/arm-none-eabi-gcc
+CFLAGS.$(lang)	+= -c -o -I $(GCCROOT)/include $@
+LINKER.$(lang)	= $(GCCROOT)/bin/arm-none-eabi-gcc
+LDFLAGS.$(lang)	+= -o $@
+ARCHIVER.$(lang)= $(GCCROOT)/bin/arm-none-eabi-ar
+ARFLAGS.$(lang)	+= -rscDv
+OBJCOPY.$(lang)	= $(GCCROOT)/bin/arm-none-eabi-objcopy
+LIB_PFX.$(lang)	= lib
+LIB_SFX.$(lang)	= .a
+EXE_PFX.$(lang)	=
+EXE_SFX.$(lang)	=
 
 ## Define recipes in $(XMTBUILD)/proto/lang/$(LANGUAGE)/$(ARCH)
-## after variables are further defined there 
+

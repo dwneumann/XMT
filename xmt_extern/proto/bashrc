@@ -1,0 +1,42 @@
+#************************************************************************
+#*   Package	: xmt_extern
+#*   Synopsis	: source xmt_extern/proto/bashrc
+#*   Purpose	: extern package .bashrc additions
+#*      XMT can be installed on an NFS-exported filesystem that is mounted by
+#*      all developers to avoid each developer having to install and configure
+#*      it locally. XMT packages can have dependencies on thirdparty tools.
+#*      It may be convenient to install those here as well, and make them
+#*      available via the same NFS mount. xmt_extern/bin is the recommended
+#*      path for thirdparty software invoked by XMT.  $XMT/.cshrc and
+#*      $XMT/.bashrc adds this to PATH by default.
+#*
+#*  Copyright (c) 1998	Neumann & Associates Information Systems Inc.
+#*  			legal.info@neumann-associates.com
+#*  Licensed under the Apache License, Version 2.0 (the "License");
+#*  you may not use this file except in compliance with the License.
+#*  You may obtain a copy of the License at http://www.apache.org/licenses/LICENSE-2.0
+#*  
+#*  Unless required by applicable law or agreed to in writing, software
+#*  distributed under the License is distributed on an "AS IS" BASIS,
+#*  WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+#*  See the License for the specific language governing permissions and
+#*  limitations under the License. 
+#************************************************************************
+
+[ -z "$PATH" ] &&  export PATH="/bin:/usr/bin:/usr/local/bin:/sbin:/usr/sbin:/usr/local/sbin"
+[ -z "$LD_LIBRARY_PATH" ] &&  export LD_LIBRARY_PATH="/lib:/usr/lib:/usr/local/lib"
+[ -z "$MANPATH" ] &&  export MANPATH="/usr/share/man"
+[ -z "$PYTHONPATH" ] &&  export PYTHONPATH="/usr/lib/python2.7"
+
+export XMTEXT="${XMT}/xmt_extern"
+
+# additional paths installed under $XMTEXT, as described in $XMTEXT/README.md
+#export GCCROOT=$XMTEXT/site/opt/gcc-arm-none-eabi
+export PYTHONPATH="${PYTHONPATH}:$XMTEXT/site/usr"
+
+export PATH=$XMTEXT/site/opt/gcc-arm-none-eabi-9-2020-q2-update/arm-none-eabi/bin:$XMTEXT/site/opt/gcc-arm-none-eabi-9-2020-q2-update/bin:$XMTEXT/site/usr/bin:$XMTEXT/site/usr/share/clang/scan-build-py-9/bin:$XMTEXT/site/usr/share/clang/scan-view-9/bin:$XMTEXT/site/usr/share/clang/scan-build-9/bin:$XMTEXT/site/usr/lib/llvm-9/bin:${PATH}
+export LD_LIBRARY_PATH=$XMTEXT/site/opt/SEGGER/JLink_V680:$XMTEXT/site/opt/SEGGER/JLink_V680/GDBServer:$XMTEXT/site/opt/SEGGER/JLink_V680/x86:$XMTEXT/site/opt/SEGGER/JLink_V680/ThirdParty:$XMTEXT/site/opt/gcc-arm-none-eabi-9-2020-q2-update/lib:$XMTEXT/site/opt/gcc-arm-none-eabi-9-2020-q2-update/lib/gcc/arm-none-eabi/9.3.1:$XMTEXT/site/opt/gcc-arm-none-eabi-9-2020-q2-update/lib/gcc/arm-none-eabi/9.3.1/plugin:$XMTEXT/site/usr/lib/x86_64-linux-gnu:$XMTEXT/site/usr/lib/llvm-9/lib:${LD_LIBRARY_PATH}
+export MANPATH=$XMTEXT/site/opt/gcc-arm-none-eabi-9-2020-q2-update/share/doc/gcc-arm-none-eabi/man:$XMTEXT/site/usr/share/man:$XMTEXT/site/usr/share/clang/scan-build-9/man:$XMTEXT/site/usr/lib/llvm-9/share/man:${MANPATH}
+
+#************************************************************************
+

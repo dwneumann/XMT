@@ -1,8 +1,6 @@
 {
 #************************************************************************
-#   $Version:$
 #   Package	: xmt_edit
-#   Synopsis	:
 #   Purpose	: Perl block which, when eval'ed, prints the desired
 # 		file header for C++ files.
 #
@@ -24,27 +22,17 @@ $copyright =~ s/\n/\n*   /g;
 ($hfile = $filename) =~ s/\.[^\.]*$/.hpp/;
 print 
 qq{/************************************************************************
-*   Package	: $module->{pkg}
-*   $cm->{rev}
+*   \@file       ${filename}
+*   \@brief      <synopsis>
+*
 *   $copyright
-* 
-*   Purpose	:
-* 
-*   Functions	:
-* 
 * ***********************************************************************/
 
-
 #define __${filename_}
+#define __${filename_}_VERSION   "$cm->{rev}";
 
-#ifdef EMBED_REVISION_STRINGS
-namespace {
-static const char ${filename_}_id[] = "@(#) $module->{pkg}::${filename}\t$cm->{rev}";
-}
-#endif
 // includes ...
 #include "$hfile"
-
 
 $module->{name}::$module->{name}()	// constructor(s)
 {

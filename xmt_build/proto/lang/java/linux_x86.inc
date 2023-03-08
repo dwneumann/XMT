@@ -3,9 +3,9 @@
 #*   Package	: xmt_build
 #*   Synopsis	: included by $(XMTBUILD)/proto/lang/<language>/generic.inc
 #*   Purpose	: 
-#*              This Makefile segment adds architecture support to
-#*              $(XMTBUILD)/proto/lang/<language>/generic.inc
-#*              It is intended to be included by that file only.
+#*			  This Makefile segment adds architecture support to
+#*			  $(XMTBUILD)/proto/lang/<language>/generic.inc
+#*			  It is intended to be included by that file only.
 #*
 #*   To add support for a new target architecture,  clone any existing
 #*   <architecture>.inc file & alter program paths & flags appropriately.
@@ -25,54 +25,48 @@
 #*  limitations under the License. 
 #************************************************************************
 
+arch := linux_x86
 
 #**********************************************************************
 # define program paths...
 #**********************************************************************
-COMPILE.java.linux_x86	:= javac
-LD.java.linux_x86	:= /bin/true
-AR.java.linux_x86	:= jar
-LINT.java.linux_x86	:= echo no lint installed for Java
-DOC.java.linux_x86	:= javadoc
+DOCER.$(lang).$(arch)	= $(DOCER.$(lang))
+LINTER.$(lang).$(arch)	= $(LINTER.$(lang))
+COMPILER.$(lang).$(arch)= $(COMPILER.$(lang))
+LINKER.$(lang).$(arch)	= $(LINKER.$(lang))
+ARCHIVER.$(lang).$(arch)= $(ARCHIVER.$(lang))
+OBJCOPY.$(lang).$(arch)	= $(OBJCOPY.$(lang))
 
 #**********************************************************************
 # This is the place to define flags that are specific to THIS language
 # when compiled for THIS architecture.
 #**********************************************************************
-CFLAGS.java.linux_x86	= 
-LDFLAGS.java.linux_x86	= 
-ARFLAGS.java.linux_x86	=
-LINTFLAGS.java.linux_x86= 
-DOCFLAGS.java.linux_x86	=
-LIB_PFX.java.linux_x86	:= 
-LIB_SFX.java.linux_x86	:= .jar
-EXE_PFX.java.linux_x86	:= 
-EXE_SFX.java.linux_x86	:= 
+CFLAGS.$(lang).$(arch)		+= 
+LDFLAGS.$(lang).$(arch)		+= 
+ARFLAGS.$(lang).$(arch)		+= 
+LINTFLAGS.$(lang).$(arch)	+= 
+DOCFLAGS.$(lang).$(arch)	+= 
+LIB_PFX.$(lang).$(arch)		= 
+LIB_SFX.$(lang).$(arch)		= .jar
+EXE_PFX.$(lang).$(arch)		= 
+EXE_SFX.$(lang).$(arch)		= 
 
-$(JAVA_PKGROOT)/%.class: $(SRCDIR)/$(JAVA_PKGROOT)/%.java
+$(JAVA_PKGROOT)/%.class: $(SRCDIR)/$(JAVA_PKGROOT)/%.$(lang)
+	@mkdir -p $(@D)
 	@mkdir -p $(OBJDIR)/$(JAVA_PKGROOT);
-	@echo	$(CFLAGS) $(CFLAGS.java) $(CFLAGS.java.$(ARCH)) > $(OBJDIR)/$@.cflags ;
-	$(COMPILE.java.$(ARCH))	@$(OBJDIR)/$@.cflags $<
+	@echo	$(CFLAGS) $(CFLAGS.$(lang)) $(CFLAGS.$(lang).$(arch)) > $(OBJDIR)/$@.cflags ;
+	$(COMPILER.$(lang).$(arch))	@$(OBJDIR)/$@.cflags $<
 
-$(DOCDIR)/%.html: $(SRCDIR)/$(JAVA_PKGROOT)/%.java
-	cd $(DOCDIR); $(DOC.java.$(ARCH)) $(DOCFLAGS) $(DOCFLAGS.java) $(DOCFLAGS.java.$(ARCH)) $<
+.PHONY: docs.$(lang).$(arch) 
+docs.$(lang).$(arch) :
+	$(DOCER.$(LANGUAGE).$(ARCH))	\
+		$(DOCFLAGS) $(DOCFLAGS.$(LANGUAGE)) $(DOCFLAGS.$(LANGUAGE).$(ARCH))
 
-.lib.$(LANGUAGE):	$(TGTDIR)/$(LIB_NM)
-.exe.$(LANGUAGE):	$(TGTDIR)/$(LIB_NM)
-$(TGTDIR)/$(LIB_NM): $(objs.$(LANGUAGE)) 
+lib.$(lang).$(arch):	$(TGTDIR)/$(LIB_NM)
+exe.$(lang).$(arch):	$(TGTDIR)/$(LIB_NM)
+$(TGTDIR)/$(LIB_NM): $(objs.$(lang)) 
+	@mkdir -p $(@D)
 	(cd $(OBJDIR);  \
-	echo $(ARFLAGS) $(ARFLAGS.$(LANGUAGE)) $(ARFLAGS.$(LANGUAGE).$(ARCH)) > $(LIB_NM).arflags;\
-	$(AR.$(LANGUAGE).$(ARCH)) @$(LIB_NM).arflags $(LIB_NM) *.class;)
+	echo $(ARFLAGS) $(ARFLAGS.$(lang)) $(ARFLAGS.$(lang).$(arch)) > $(LIB_NM).arflags;\
+	$(ARCHIVE.$(lang).$(arch)) @$(LIB_NM).arflags $(LIB_NM) *.class;)
 	-/bin/mv $(OBJDIR)/$(LIB_NM) $(TGTDIR)/$(LIB_NM)
-
-$(DOCDIR)/%.html: $(SRCDIR)/$(JAVA_PKGROOT)/%.java
-	cd $(DOCDIR); $(DOC.java.$(ARCH)) $(DOCFLAGS) $(DOCFLAGS.java) $(DOCFLAGS.java.$(ARCH)) $<
-
-.lib.$(LANGUAGE):	$(TGTDIR)/$(LIB_NM)
-.exe.$(LANGUAGE):	$(TGTDIR)/$(LIB_NM)
-$(TGTDIR)/$(LIB_NM): $(objs.java) 
-	(cd $(OBJDIR);  \
-	echo $(ARFLAGS) $(ARFLAGS.$(LANGUAGE)) $(ARFLAGS.$(LANGUAGE).$(ARCH)) > $(LIB_NM).arflags;\
-	$(AR.$(LANGUAGE).$(ARCH)) @$(LIB_NM).arflags $(LIB_NM) `find . -name '*.class'`;)
-	-/bin/mv $(OBJDIR)/$(LIB_NM) $(TGTDIR)/$(LIB_NM)
-

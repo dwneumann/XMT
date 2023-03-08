@@ -1,8 +1,6 @@
 {
 #************************************************************************
-#   $Version:$
 #   Package	: xmt_edit
-#   Synopsis	:
 #   Purpose	: Perl block which, when eval'ed, prints the desired
 # 		function header block for C++ functions.
 #
@@ -19,16 +17,16 @@
 #   limitations under the License. 
 #************************************************************************
 
-# customize the fields the way we want them before printing ...
+# standardize field output before printing ...
 
-# customize the synopsis
+# standardize the synopsis
 ($n = $funcs[0]->{name}) =~ s/.*\:\://;
 if ( $funcs[0]->{name} =~ /^$n\:\:$n/ ) 
 {
     $funcs[0]->{proto} =~ s/^/new /;
 }
 
-# customize the return values
+# standardize the return values
 $r = {};
 if ( $funcs[0]->{type} =~ /(void|delete)/ ) 
 { 
@@ -64,41 +62,46 @@ else
 
 print qq{
 /************************************************************************
-*   Synopsis:
-*	$funcs[0]->{proto}
+*   \fn $funcs[0]->{proto}
+*   \@brief      <synopsis>
 *
-*   Purpose:
-*	<purpose>
+*	<description>
 * 
 *   Parameters: 
 };
 
 foreach $i ( 0 .. $#args )
 {
-    print qq{*\t$args[$i]->{type}\t$args[$i]->{name}\t: <meaning>\n};
+    print qq{*   \@param[in]\t $args[$i]->{type}\t$args[$i]->{name}\t <meaning>\n};
 }
 
 print 
 qq{* 
-*   Values Returned: 
+*  Preconditions:
+*   \@pre\t <description> 
 };
 
+print 
+qq{* 
+*  Returns:
+*   \@returns\t <description>  
+};
 foreach $i ( 0 .. $#rtnvals )
 {
-    print qq{*\t$rtnvals[$i]->{val}\t: $rtnvals[$i]->{desc}\n};
+    print qq{*\t\@retval $rtnvals[$i]->{val}\t $rtnvals[$i]->{desc}\n};
 }
 
 print 
-qq{*\n*   Exceptions Thrown:\n};
-
+qq{*
+*   Exceptions Thrown:
+};
 foreach $i ( 0 .. $#exceps )
 {
-    print qq{*\t$exceps[$i]->{type}\t: $exceps[$i]->{desc}\n};
+    print qq{*   \@throws\t$exceps[$i]->{type}\t $exceps[$i]->{desc}\n};
 }
 
 print 
 qq{* 
 ***********************************************************************/
 $stdin};
-
 }

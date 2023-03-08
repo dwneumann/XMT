@@ -1,10 +1,9 @@
 #************************************************************************
-#*   $Version:$
 #*   Package	: xmt_build
 #*   Synopsis	: included by $(XMTBUILD)/proto/lang/<language>/generic.inc
 #*   Purpose	: 
-#*              This Makefile segment adds architecture support to
-#*              $(XMTBUILD)/proto/lang/<language>/generic.inc
+#*			  This Makefile segment adds architecture support to
+#*			  $(XMTBUILD)/proto/lang/<language>/generic.inc
 #*
 #*   To add support for a new target architecture,  clone any existing
 #*   <architecture>.inc file & alter program paths & flags appropriately.
@@ -24,67 +23,96 @@
 #*  limitations under the License. 
 #************************************************************************
 
-
+arch := SunOS-sparc
 #**********************************************************************
 # define program paths...
 #**********************************************************************
-COMPILE.c.SunOS-sparc	:= /usr/local/bin/gcc
-LD.c.SunOS-sparc	:= $(COMPILE.c.SunOS-sparc)
-AR.c.SunOS-sparc	:= $(COMPILE.c.SunOS-sparc)
-LINT.c.SunOS-sparc	:= echo /usr/ucb/lint not installed
-DOC.c.SunOS-sparc	:= $(XMTBUILD)/bin/srcdoc 
+DOCER.$(lang).$(arch)	= $(DOCER.$(lang))
+LINTER.$(lang).$(arch)	= $(LINTER.$(lang))
+COMPILER.$(lang).$(arch)= /usr/local/bin/gcc
+LINKER.$(lang).$(arch)	= /usr/local/bin/gcc
+ARCHIVER.$(lang).$(arch)= /usr/local/bin/gcc
+OBJCOPY.$(lang).$(arch)	= echo no objcopy for $(arch)
+LIB_PFX.$(lang).$(arch)	= $(LIB_PFX.$(lang))
+LIB_SFX.$(lang).$(arch)	= .so
+EXE_PFX.$(lang).$(arch)	= 
+EXE_SFX.$(lang).$(arch)	= 
+PVS_CFG					= $(PROJECT)/.pvs-studio.cfg
+PVS_LOG					= $(TGTDIR)/pvs-studio.log
+PVS_OUT					= $(TGTDIR)/pvs-studio.out
+
 #**********************************************************************
 # This is the place to define default flags that are specific to THIS 
 # platform and THIS language.
 #**********************************************************************
-CFLAGS.c.SunOS-sparc	:= -Wall -Wno-unused-const-variable -fpic 
-LDFLAGS.c.SunOS-sparc	:= -Wall 
-ARFLAGS.c.SunOS-sparc	:= -Wall -shared -rscDv
-LINTFLAGS.c.SunOS-sparc	 = $(CFLAGS.c.SunOS-sparc)
-DOCFLAGS.c.SunOS-sparc	:= 
-LIB_PFX.c.SunOS-sparc	:= lib
-LIB_SFX.c.SunOS-sparc	:= .so
-EXE_PFX.c.SunOS-sparc	:= 
-EXE_SFX.c.SunOS-sparc	:= 
 
+CFLAGS.$(lang).$(arch)		+= -Wall -Wno-attributes -Wno-unused-function 	\
+	-Wno-unused-const-variable -fpic 										\
+	-isystem $(GCCROOT)/include
+LDFLAGS.$(lang).$(arch)		+= 
+ARFLAGS.$(lang).$(arch)		+= -shared 
+LINTFLAGS.$(lang).$(arch)	+= 
+DOCFLAGS.$(lang).$(arch)	+= 
 
+.PHONY: bin.$(lang).$(arch)
+bin.$(lang).$(arch): exe.$(lang).$(arch)
+	$(OBJCOPY.$(lang).$(arch)) -O binary $(TGTDIR)/$(EXE_NM) $(TGTDIR)/$(PKG_NM).bin
 
+.PHONY: hex.$(lang).$(arch)
+hex.$(lang).$(arch): exe.$(lang).$(arch)
+	$(OBJCOPY.$(lang).$(arch)) -O ihex $(TGTDIR)/$(EXE_NM) $(TGTDIR)/$(PKG_NM).hex
 
-$(OBJDIR)/%.o	: %.S
-	@echo $(CFLAGS) $(CFLAGS.c) $(CFLAGS.c.$(ARCH)) > $@.cflags ; 
-	$(COMPILE.c.$(ARCH)) @$@.cflags $< 
+.PHONY: lint.$(lang).$(arch) 
+lint.$(lang).$(arch) :
+	$(LINTER.$(LANGUAGE).$(ARCH))	\
+		$(LINTFLAGS) $(LINTFLAGS.$(LANGUAGE)) $(LINTFLAGS.$(LANGUAGE).$(ARCH))  \
+		$(srcs.$(lang)) $(hdrs.$(lang)) -- 										\
+		$(filter -D% -I%, $(CFLAGS) $(CFLAGS.$(lang)) $(CFLAGS.$(lang).$(arch)))
+
+.PHONY: misra-check.$(lang).$(arch) 
+misra-check.$(lang).$(arch) :
+		pvs-studio-analyzer trace -- make $(PKG_TGT);
+		-pvs-studio-analyzer analyze --disableLicenseExpirationCheck -o $(PVS_LOG);
+		plog-converter -a MISRA -t tasklist -o $(PVS_OUT) $(PVS_LOG)
+
+.PHONY: docs.$(lang).$(arch) 
+docs.$(lang).$(arch) :
+	$(DOCER.$(LANGUAGE).$(ARCH))	\
+		$(DOCFLAGS) $(DOCFLAGS.$(LANGUAGE)) $(DOCFLAGS.$(LANGUAGE).$(ARCH))
 
 $(OBJDIR)/%.o	: %.s
-	@echo $(CFLAGS) $(CFLAGS.c) $(CFLAGS.c.$(ARCH)) > $@.cflags ; 
-	$(COMPILE.c.$(ARCH)) @$@.cflags $< 
+	@mkdir -p $(@D)
+	@echo $(CFLAGS) $(CFLAGS.$(lang)) $(CFLAGS.$(lang).$(arch)) > $@.cflags ; 
+	$(COMPILER.$(lang).$(arch)) @$@.cflags $< 
 
-$(OBJDIR)/%.o	: %.c
-	@echo $(CFLAGS) $(CFLAGS.c) $(CFLAGS.c.$(ARCH)) > $@.cflags ; 
-	$(COMPILE.c.$(ARCH)) @$@.cflags $< 
+$(OBJDIR)/%.o	: %.$(lang)
+	@mkdir -p $(@D)
+	@echo $(CFLAGS) $(CFLAGS.$(lang)) $(CFLAGS.$(lang).$(arch)) > $@.cflags ; 
+	$(COMPILER.$(lang).$(arch)) @$@.cflags $< 
 
-$(OBJDIR)/%.i	: /%.c
-	@echo -E $(CFLAGS) $(CFLAGS.c) $(CFLAGS.c.$(ARCH)) > $@.cflags ; 
-	$(COMPILE.c.$(ARCH)) @$@.cflags $< 
+$(OBJDIR)/%.i	: $(SRCDIR)/%.$(lang)
+	@mkdir -p $(@D)
+	@echo -E $(CFLAGS) $(CFLAGS.$(lang)) $(CFLAGS.$(lang).$(arch)) > $@.cflags ; 
+	$(COMPILER.$(lang).$(arch)) @$@.cflags $< 
 
-$(OBJDIR)/%.ln	: %.c
-	@echo $(LINTFLAGS) $(LINTFLAGS.c) $(LINTFLAGS.c.$(ARCH)) > $@.lintflags ; 
-	$(LINT.c.$(ARCH)) @$@.lintflags $< 
-
-$(DOCDIR)/%.html: $(SRCDIR)/%.c
-	@echo $(DOCFLAGS) $(DOCFLAGS.c) $(DOCFLAGS.c.$(ARCH)) > $@.docflags ; 
-	$(DOC.c.$(ARCH)) @$@.docflags $< 
-
-.lib.$(LANGUAGE):	$(TGTDIR)/$(LIB_NM)
+.PHONY: lib.$(lang).$(arch)
+lib.$(lang).$(arch):	$(TGTDIR)/$(LIB_NM)
 $(LIB_NM): $(TGTDIR)/$(LIB_NM)
-$(TGTDIR)/$(LIB_NM): $(objs.$(LANGUAGE)) $(EXTRA_OBJS)
-	@echo 	$(ARFLAGS) $(ARFLAGS.$(LANGUAGE)) $(ARFLAGS.$(LANGUAGE).$(ARCH)) > $@.arflags;
-	$(AR.$(LANGUAGE).$(ARCH)) @$@.arflags $@ $^ 	
+$(TGTDIR)/$(LIB_NM): $(objs.$(lang)) $(EXTRA_OBJS)
+	@mkdir -p $(@D)
+	@echo 	$(ARFLAGS) $(ARFLAGS.$(lang)) $(ARFLAGS.$(lang).$(arch)) > $@.arflags;
+	$(ARCHIVER.$(lang).$(arch)) @$@.arflags $@ $^ 	
 
-.exe.$(LANGUAGE):	$(TGTDIR)/$(EXE_NM)
+.PHONY: exe.$(lang).$(arch)
+exe.$(lang).$(arch):	$(TGTDIR)/$(EXE_NM)
 $(EXE_NM): $(TGTDIR)/$(EXE_NM)
-$(TGTDIR)/$(EXE_NM): $(objs.$(LANGUAGE)) $(EXTRA_OBJS) 
-	@echo $(LDFLAGS) $(LDFLAGS.$(LANGUAGE)) $(LDFLAGS.$(LANGUAGE).$(ARCH)) > $@.ldflags;
-	$(LD.$(LANGUAGE).$(ARCH)) @$@.ldflags $^ \
-	    $(LIBS) $(LIBS.$(LANGUAGE)) $(LIBS.$(LANGUAGE).$(ARCH)) 
+$(TGTDIR)/$(EXE_NM): $(objs.$(lang)) $(EXTRA_OBJS) 
+	@mkdir -p $(@D)
+	@echo $(LDFLAGS) $(LDFLAGS.$(lang)) $(LDFLAGS.$(lang).$(arch)) > $@.ldflags;
+	$(LINKER.$(lang).$(arch)) @$@.ldflags $^ \
+		$(LIBS) $(LIBS.$(lang)) $(LIBS.$(lang).$(arch)) 
 
+.PHONY: stflash
+stflash: bin
+	st-flash write $(TGTDIR)/$(PKG_NM).bin 0x8000000
 

@@ -7,7 +7,7 @@ my $usage	= "usage: $pgmname [c|java]\n";
 die "$usage" if $#ARGV != 0;
 die "$usage" if $ARGV[0] ne "c" && $ARGV[0] ne "java";
 
-my $pgm = ($ARGV[0] eq "c" ?  "$XMTXHIST/test/hello/tgt/linux_x86/hello" : 
-    "java -cp $XMTXHIST/test/hello/obj/jre/:$XMTXHIST/libxhist/tgt/jre/Xhist.jar Hello" );
+my $pgm = ($ARGV[0] eq "c" ?  "$XMTXHIST/test/hello/$T/hello" : 
+    "java -cp $XMTXHIST/test/hello/$T/Hello.jar:$XMTXHIST/libxhist/$T/Xhist.jar Hello" );
 
 exec($pgm);

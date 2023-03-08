@@ -3,9 +3,9 @@
 #*   Package	: xmt_build
 #*   Synopsis	: included by $(XMTBUILD)/proto/lang/<language>/generic.inc
 #*   Purpose	: 
-#*              This Makefile segment adds architecture support to
-#*              $(XMTBUILD)/proto/lang/<language>/generic.inc
-#*              It is intended to be included by that file only.
+#*			  This Makefile segment adds architecture support to
+#*			  $(XMTBUILD)/proto/lang/<language>/generic.inc
+#*			  It is intended to be included by that file only.
 #*
 #*   To add support for a new target architecture,  clone any existing
 #*   <architecture>.inc file & alter program paths & flags appropriately.
@@ -25,46 +25,48 @@
 #*  limitations under the License. 
 #************************************************************************
 
+arch := SunOS-sparc
 
 #**********************************************************************
 # define program paths...
 #**********************************************************************
-COMPILE.java.SunOS-sparc := javac
-LD.java.SunOS-sparc	:= /bin/true
-AR.java.SunOS-sparc	:= jar
-LINT.java.SunOS-sparc	:= echo no lint installed for Java
-DOC.java.SunOS-sparc	:= javadoc
+DOCER.$(lang).$(arch)	= $(DOCER.$(lang))
+LINTER.$(lang).$(arch)	= $(LINTER.$(lang))
+COMPILER.$(lang).$(arch)= $(COMPILER.$(lang))
+LINKER.$(lang).$(arch)	= $(LINKER.$(lang))
+ARCHIVER.$(lang).$(arch)= $(ARCHIVER.$(lang))
+OBJCOPY.$(lang).$(arch)	= $(OBJCOPY.$(lang))
 
 #**********************************************************************
 # This is the place to define flags that are specific to THIS language
 # when compiled for THIS architecture.
 #**********************************************************************
-CFLAGS.java.SunOS-sparc	= 
-LDFLAGS.java.SunOS-sparc	= 
-ARFLAGS.java.SunOS-sparc	=
-LINTFLAGS.java.SunOS-sparc	= 
-DOCFLAGS.java.SunOS-sparc	=
-LIB_PFX.java.SunOS-sparc	:= 
-LIB_SFX.java.SunOS-sparc	:= .jar
-EXE_PFX.java.SunOS-sparc	:= 
-EXE_SFX.java.SunOS-sparc	:= 
+CFLAGS.$(lang).$(arch)		+= 
+LDFLAGS.$(lang).$(arch)		+= 
+ARFLAGS.$(lang).$(arch)		+= 
+LINTFLAGS.$(lang).$(arch)	+= 
+DOCFLAGS.$(lang).$(arch)	+= 
+LIB_PFX.$(lang).$(arch)		= 
+LIB_SFX.$(lang).$(arch)		= .jar
+EXE_PFX.$(lang).$(arch)		= 
+EXE_SFX.$(lang).$(arch)		= 
 
-
-
-$(JAVA_PKGROOT)/%.class: $(SRCDIR)/$(JAVA_PKGROOT)/%.java
+$(JAVA_PKGROOT)/%.class: $(SRCDIR)/$(JAVA_PKGROOT)/%.$(lang)
+	@mkdir -p $(@D)
 	@mkdir -p $(OBJDIR)/$(JAVA_PKGROOT);
-	@echo	$(CFLAGS) $(CFLAGS.java) $(CFLAGS.java.$(ARCH)) > $@.cflags ;
-	$(COMPILE.java.$(ARCH))	@$@.cflags $<
+	@echo	$(CFLAGS) $(CFLAGS.$(lang)) $(CFLAGS.$(lang).$(arch)) > $(OBJDIR)/$@.cflags ;
+	$(COMPILER.$(lang).$(arch))	@$(OBJDIR)/$@.cflags $<
 
-$(DOCDIR)/%.html: $(SRCDIR)/$(JAVA_PKGROOT)/%.java
-	cd $(DOCDIR); $(DOC.java.$(ARCH)) $(DOCFLAGS) $(DOCFLAGS.java) $(DOCFLAGS.java.$(ARCH)) $<
+.PHONY: docs.$(lang).$(arch) 
+docs.$(lang).$(arch) :
+	$(DOCER.$(LANGUAGE).$(ARCH))	\
+		$(DOCFLAGS) $(DOCFLAGS.$(LANGUAGE)) $(DOCFLAGS.$(LANGUAGE).$(ARCH))
 
-.lib.$(LANGUAGE):	$(TGTDIR)/$(LIB_NM)
-.lib.$(LANGUAGE):	$(TGTDIR)/$(LIB_NM)
-$(TGTDIR)/$(LIB_NM): $(objs.$(LANGUAGE)) 
+lib.$(lang).$(arch):	$(TGTDIR)/$(LIB_NM)
+exe.$(lang).$(arch):	$(TGTDIR)/$(LIB_NM)
+$(TGTDIR)/$(LIB_NM): $(objs.$(lang)) 
+	@mkdir -p $(@D)
 	(cd $(OBJDIR);  \
-	echo $(ARFLAGS) $(ARFLAGS.$(LANGUAGE)) $(ARFLAGS.$(LANGUAGE).$(ARCH)) > $(LIB_NM).arflags;\
-	$(AR.$(LANGUAGE).$(ARCH)) @$(LIB_NM).arflags $(LIB_NM) $(objs.$(LANGUAGE)) $(EXTRA_OBJS);)
+	echo $(ARFLAGS) $(ARFLAGS.$(lang)) $(ARFLAGS.$(lang).$(arch)) > $(LIB_NM).arflags;\
+	$(ARCHIVE.$(lang).$(arch)) @$(LIB_NM).arflags $(LIB_NM) *.class;)
 	-/bin/mv $(OBJDIR)/$(LIB_NM) $(TGTDIR)/$(LIB_NM)
-
-

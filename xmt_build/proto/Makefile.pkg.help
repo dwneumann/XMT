@@ -45,6 +45,7 @@
 #                       $(MAKE) LANGUAGE=cpp exe
 # ARCH          : the platform architecture to build for.  The default is
 #                 to use the environment variable $XMTBUILD_DFLT_ARCH.
+# BUILD_CFG	: the build configuration (eg "release", "debug") to append to $ARCH
 # LIB_NM        : the name the library should take.  The default is
 #                 to use $(PKG_NM) as the rootname, with a prefix
 #                 and suffix appropriate for $(LANGUAGE) and $(ARCH).

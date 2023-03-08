@@ -19,39 +19,25 @@ public	class		Hello
 {
     public static final String id = "@(#) hello.Hello $Version:$";
 
-    public static void main(String []args) 
-    {
-	int t = 0;
+    public static void main(String []args) {
+	int i = 0;
 
-	for (t = 0; t < 10; t++)	// thread loop
-	{
-	    Thread thr = new Thread(new Runnable() 
-	    {
-		@Override
-		public void run() 
-		{
-		    int i = 0;
-		    /* <xhist init> */		// instrument each thread
+	/* <XHIST INIT> */
 
-		    for (i = 0; i < 10; i++)	// print loop
-		    { 
-			try { 
-			    Thread.sleep(1000);
-			} 
-			catch (InterruptedException e) {
-			    /* do nothing */
-			}
-			foo((int) Thread.currentThread().getId());
-		    } 
-		}
-	    } );
-
-	    thr.start();
-	}
+	for (i = 0; i < 10; i++)
+	{ 
+	    try { 
+		Thread.sleep(1000); 
+	    } 
+	    catch (InterruptedException e) {
+	        /* do nothing */
+	    }
+	    foo();
+	} 
     }
 
-    public static void foo(int t) 
-    {
-        System.out.println("hello from thread " + t);
+    public static void foo() {
+        System.out.println("hello foo (Java version)");
     }
+
 }

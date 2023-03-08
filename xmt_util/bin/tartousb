@@ -1,0 +1,25 @@
+#!/usr/bin/env perl 
+#************************************************************************
+#   Package	: 
+#   Synopsis: tartousb [-o <target directory>] <srcdir>
+#   Purpose	: tar the directory structure <srcdir> & output the compressed tarfile 
+#   to the specified target directory (default is /media/dean/usbdrive/<srcdir>.tgz)
+#
+#    Copyright 2020 Visionary Research Inc.   All rights reserved.
+#    			legal@visionary-research.com
+#************************************************************************
+
+use strict;
+use Getopt::Long;
+use Env;
+
+(my $pgmname = $0) =~ s{.*/}{};
+my $usage		= "usage: $pgmname [-o <target directory>] <srcdir> \n";
+undef my $opt_u;	# unnecessary, but it shuts up -w
+my $opt_o   = '/media/dean/usbdrive'; 
+GetOptions( "u", "o=s" ) || die $usage;
+die "$usage" if defined $opt_u;
+my $srcdir = $ARGV[$#ARGV];
+
+die "$opt_o : $!\n" if (! -e $opt_o);
+system("tar --create --file $opt_o/$srcdir.tgz --gzip --ignore-failed-read $srcdir");

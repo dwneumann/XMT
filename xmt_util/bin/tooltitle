@@ -19,4 +19,8 @@
 #*  limitations under the License. 
 #************************************************************************
 
+# save current title to xprop title stack
+print "\033[22t";
+
+# push new title onto title stack
 print "\033]0;@ARGV\007";

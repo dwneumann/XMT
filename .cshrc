@@ -36,6 +36,7 @@
     source $XMT/xmt_xhist/proto/cshrc
     source $XMT/xmt_xtest/proto/cshrc
     source $XMT/xmt_cicd/proto/cshrc
+   # source $XMT/xmt_extern/proto/cshrc
    # source $XMT/xmt_doc/proto/cshrc
    # source $XMT/xmt_defect/proto/cshrc
    # source $XMT/xmt_metrics/proto/cshrc
@@ -44,7 +45,7 @@
     #********************************************************************
     # remove duplicate entries from PATH & MANPATH
     #********************************************************************
-    #setenv  PATH    `echo $PATH | $XMTUTIL/bin/modenv -s`; 
+    setenv  PATH    `echo $PATH | $XMTUTIL/bin/modenv -s`; 
     #setenv  MANPATH `echo $MANPATH | modenv` 
 #endif
 

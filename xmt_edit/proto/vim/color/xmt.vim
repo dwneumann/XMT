@@ -55,10 +55,10 @@ hi Visual term=reverse cterm=reverse ctermfg=NONE ctermbg=NONE gui=reverse guifg
 hi VisualNOS term=reverse,underline cterm=reverse,underline ctermfg=NONE ctermbg=NONE gui=reverse,underline guifg=NONE guibg=NONE
 
 " Diff
-hi DiffAdd term=NONE cterm=NONE ctermfg=2 ctermbg=NONE gui=NONE guifg=#008000 guibg=NONE
-hi DiffChange term=NONE cterm=NONE ctermfg=3 ctermbg=NONE gui=NONE guifg=#808000 guibg=NONE
-hi DiffDelete term=NONE cterm=NONE ctermfg=1 ctermbg=NONE gui=NONE guifg=#800000 guibg=NONE
-hi DiffText term=NONE cterm=NONE ctermfg=4 ctermbg=NONE gui=NONE guifg=#000080 guibg=NONE
+hi DiffAdd term=bold cterm=none ctermfg=none ctermbg=150 gui=NONE guifg=NONE guibg=DarkSeaGreen3
+hi DiffChange term=bold cterm=none ctermfg=none ctermbg=none gui=NONE guifg=NONE guibg=NONE
+hi DiffDelete term=bold cterm=none ctermfg=none ctermbg=216 gui=NONE guifg=NONE guibg=LightRed
+hi DiffText term=bold cterm=none ctermfg=none ctermbg=143 gui=NONE guifg=NONE guibg=DarkKhaki
 
 " Spell
 hi SpellBad term=underline cterm=underline ctermfg=13 ctermbg=NONE gui=underline guifg=#FF00FF guibg=NONE

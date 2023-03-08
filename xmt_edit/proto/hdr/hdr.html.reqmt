@@ -1,8 +1,6 @@
 {
 #************************************************************************
-#   $Version:$
 #   Package	: xmt_edit
-#   Synopsis	:
 #   Purpose	: Perl block which, when eval'ed, prints the desired
 # 		requirement specification block for SRS files.
 #

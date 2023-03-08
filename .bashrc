@@ -34,6 +34,8 @@ if [[ $- == *i* ]]; then
     source $XMT/xmt_cm/proto/bashrc
     source $XMT/xmt_xhist/proto/bashrc
     source $XMT/xmt_xtest/proto/bashrc
+    source $XMT/xmt_cicd/proto/bashrc
+    source $XMT/xmt_extern/proto/bashrc
 #    source $XMT/xmt_doc/proto/bashrc
 #    source $XMT/xmt_defect/proto/bashrc
 #    source $XMT/xmt_metrics/proto/bashrc

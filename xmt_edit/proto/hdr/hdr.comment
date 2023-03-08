@@ -1,8 +1,6 @@
 {
 #************************************************************************
-#   $Version:$
 #   Package	: xmt_edit
-#   Synopsis	:
 #   Purpose	: Perl block which, when eval'ed, reformats the comment
 # 		block read from stdin, preserving per-line and
 # 		per-block comment delimiters and indentation, but 

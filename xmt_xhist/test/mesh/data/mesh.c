@@ -171,10 +171,17 @@ int main(int argc, char *argv[])
 	{
 	    globals.gl_pkts_returned++;
 	    globals.gl_total_time += round_trip_ms(payload.pkt_sent_at);
-	    printf("%2d : RECV'd ACK after %2d hops in %ld ms\n", 
-		globals.gl_nodes[globals.gl_my_nodenum], 
-		payload.pkt_num_fwds, 
-		round_trip_ms(payload.pkt_sent_at));
+
+#ifdef DIAGNOSTICS
+	    if ( diagnosing(DIAG_MESH_RX) )
+	    {
+		fprintf( DIAG_FD, "%s:%d\t: ", __FILE__, __LINE__ ); 
+		fprintf( DIAG_FD, "%2d : RECV'd ACK after %2d hops in %ld ms\n", 
+		    globals.gl_nodes[globals.gl_my_nodenum], 
+		    payload.pkt_num_fwds, 
+		    round_trip_ms(payload.pkt_sent_at));
+	    }
+#endif 
 	}
 
 	/* @ttl expired; send back to sender as ack */

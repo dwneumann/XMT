@@ -24,7 +24,6 @@ $copyright =~ s/\n/\n#   /g;
 print 
 qq{#!/usr/bin/env perl 
 #************************************************************************
-#   $cm->{rev}
 #   Package	: $module->{pkg}
 #   Synopsis	:
 #   Purpose	: 

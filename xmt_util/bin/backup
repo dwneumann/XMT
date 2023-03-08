@@ -49,6 +49,7 @@ my $excludes	= "$0.exclude";			# search in same directory as pgm
 my $hostname	=`/bin/hostname`; chomp($hostname);
 my $dstroot	= "/cygdrive/c/Backups/$hostname";	# unless overridden by --dest
 $ENV{'TZ'}	= "America/Vancouver"; tzset();		# necessary for Windows OS
+my $today = strftime("%F", localtime);
 
 ##   there's nothing configurable below this line.  Leave it alone.
 my ($opt_u, $opt_full, $opt_incr);
@@ -62,26 +63,26 @@ open(my $LOG, ">>", $logfile) or die "$logfile: $!";
 $LOG->autoflush(1); 
 
 my ($basename, $path, $sfx)	= fileparse($srcpath);
-my $today = strftime("%F", localtime);
-my $timenow = strftime("%X", localtime);
 print $LOG "\n\n______________________________________________________________\n";
-print $LOG "level $level backup of $srcpath started $today at $timenow \n";
+timestamp($LOG, "level $level backup of $srcpath started");
 my $dstpath = "$dstroot/$hostname.$basename.$today.$level";
 my $manifest = "$dstpath.manifest";
 my @fullbackups = glob( "$dstroot/$hostname.$basename.*.0.tgz");
 my $last0 = $fullbackups[$#fullbackups];
 create_manifest($srcpath, $excludes, $manifest, $last0);
 backup($srcpath, $dstpath, $manifest);
-my $timenow = strftime("%X", localtime);
-print $LOG "... ended at $timenow \n";
+timestamp($LOG, "backup ended successfully");
 
 exit 0;
 
+sub timestamp
+{
+    my ($LOG, $str) = @_;
+    my $today = strftime("%F", localtime);
+    my $timenow = strftime("%X", localtime);
+    print $LOG "$today $timenow: $str \n";
+}
 
-#************************************************************************
-# sub create_manifest :  create a manifest file of all files that are (will be)
-# present in the backup we are about to create.
-#************************************************************************
 sub create_manifest
 {
     my ($srcpath, $excludes, $manifest, $last0) = @_;
@@ -115,11 +116,6 @@ sub create_manifest
     close $fh;
 }
 
-#************************************************************************
-# sub backup : create a compressed tarfile containing all files 
-# listed in the manifest.
-# Print checkpoint lines to backup.log every 10GB.
-#************************************************************************
 sub backup
 {
     my ($srcpath, $dstpath, $manifest) = @_;
@@ -131,5 +127,5 @@ sub backup
     $cmd .= " --checkpoint-action=totals";
     $cmd .= " --files-from=$manifest";
     print $LOG "$cmd \n";
-    system("$cmd >>$logfile 2>&1") or die "$cmd: $!";
+    system("$cmd >>$logfile 2&>1") == 0 or die "$cmd: failed with: $!";
 }

@@ -45,7 +45,7 @@
     #********************************************************************
     # remove duplicate entries from PATH & MANPATH
     #********************************************************************
-    #setenv  PATH    `echo $PATH | $XMTUTIL/bin/modenv -s`; 
+    setenv  PATH    `echo $PATH | $XMTUTIL/bin/modenv -s`; 
     #setenv  MANPATH `echo $MANPATH | modenv` 
 #endif
 

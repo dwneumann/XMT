@@ -47,9 +47,9 @@ my $usage	= "usage: $pgmname [-u] [-0|1] [--dest=<path>] <path>\n";
 my $logfile	= "/var/log/backup.log";
 my $excludes	= "$0.exclude";			# search in same directory as pgm
 my $hostname	=`/bin/hostname`; chomp($hostname);
-my $dstroot	= "/cygdrive/c/Backups/$hostname";	# unless overridden by --dest
+my $dstroot	= "/c/Backups/$hostname";	# unless overridden by --dest
 $ENV{'TZ'}	= "America/Vancouver"; tzset();		# necessary for Windows OS
-my $today = strftime("%F", localtime);
+my $today 	= strftime("%F", localtime);
 
 ##   there's nothing configurable below this line.  Leave it alone.
 my ($opt_u, $opt_full, $opt_incr);
@@ -65,22 +65,32 @@ $LOG->autoflush(1);
 my ($basename, $path, $sfx)	= fileparse($srcpath);
 print $LOG "\n\n______________________________________________________________\n";
 timestamp($LOG, "level $level backup of $srcpath started");
-my $dstpath = "$dstroot/$hostname.$basename.$today.$level";
-my $manifest = "$dstpath.manifest";
+
+# find most recent level 0 
+# convert to level 0 if this is level 1 but there's no last level 0
 my @fullbackups = glob( "$dstroot/$hostname.$basename.*.0.tgz");
 my $last0 = $fullbackups[$#fullbackups];
+if (! -e $last0)
+{
+    $level = 0;
+    print $LOG "no previous level 0 found.  Reverting to level 0 backup\n";
+}
+
+my $last0_mtime = (stat($last0))[9] if ($level > 0);
+my $dstpath = "$dstroot/$hostname.$basename.$today.$level";
+my $manifest = "$dstpath.manifest";
 create_manifest($srcpath, $excludes, $manifest, $last0);
 backup($srcpath, $dstpath, $manifest);
-timestamp($LOG, "backup ended successfully");
+timestamp($LOG, "level $level backup of $srcpath ended successfully");
 
 exit 0;
+
 
 sub timestamp
 {
     my ($LOG, $str) = @_;
-    my $today = strftime("%F", localtime);
-    my $timenow = strftime("%X", localtime);
-    print $LOG "$today $timenow: $str \n";
+    my $timenow = strftime("%F %X", localtime);
+    print $LOG "$timenow: $str \n";
 }
 
 sub create_manifest
@@ -100,15 +110,11 @@ sub create_manifest
         @files = grep { $_ !~ m/$ptn/ } @files;
     }
 
-    # revert to level 0 if this is level 1 but there's no last level 0
-    $level = 0 if (! -e $last0);
-    my $last0_mtime = (stat($last0))[9] if ($level > 0);
-
     open $fh, '>', $manifest or die "$manifest: $!";
     for (@files)
     {
 	next if (! -f $_);
-	# write filename to manifest if level0 or mtime is later than last0_mtime
+	# add filename to manifest if level0 or if mtime is later than last0_mtime
 	my $this_mtime = (stat($_))[9];		
 	$_ =~ s{$srcpath}{.};
 	print $fh "$_\n" if ($level==0 || ($last0_mtime > 0 && $this_mtime > $last0_mtime));
@@ -123,9 +129,9 @@ sub backup
     my $cmd = "tar --create --file=$dstpath.tgz --directory=$srcpath ";
     $cmd .= " --use-compress-program=pigz";
     $cmd .= " --ignore-failed-read --exclude-backups --seek --totals";
-    $cmd .= " --record-size=65536 --checkpoint=160000 ";  # 64KB writes, 10GB checkpoints
+    $cmd .= " --record-size=65536 --checkpoint=163840";  # 64KB writes, 10GB checkpoints
     $cmd .= " --checkpoint-action=totals";
     $cmd .= " --files-from=$manifest";
     print $LOG "$cmd \n";
-    system("$cmd >>$logfile 2&>1") == 0 or die "$cmd: failed with: $!";
+    system("$cmd >>$logfile 2>&1") == 0 or die "$cmd: failed with: $!";
 }
